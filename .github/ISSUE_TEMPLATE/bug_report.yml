@@ -1,0 +1,134 @@
+name: Bug Report
+description: 报告一个bug来帮助我们改进
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间填写这个bug报告！
+
+  - type: input
+    id: contact
+    attributes:
+      label: 联系方式
+      description: 如果我们需要跟进，如何联系您？
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么？
+      description: 也可以告诉我们，您期望发生什么？
+      placeholder: 详细描述bug...
+      value: "发生了一个bug！"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 重现步骤
+      description: 请提供重现bug的详细步骤
+      placeholder: |
+        1. 执行 './run_interactive.sh'
+        2. 输入 '...'
+        3. 查看错误
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期望的行为
+      description: 描述您期望发生什么
+      placeholder: 我期望...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志输出
+      description: 请复制并粘贴任何相关的日志输出。这将自动格式化为代码，因此无需反引号。
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: 版本
+      description: 您使用的是哪个版本的OpenManus Java？
+      options:
+        - 1.0.0 (Default)
+        - 开发版 (master/main分支)
+        - 其他 (请在下方说明)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: java-version
+    attributes:
+      label: Java版本
+      description: 您使用的Java版本？
+      options:
+        - Java 21
+        - Java 17
+        - Java 11
+        - 其他 (请在下方说明)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      description: 您在哪个操作系统上运行？
+      options:
+        - macOS
+        - Linux (Ubuntu)
+        - Linux (CentOS/RHEL)
+        - Linux (其他)
+        - Windows
+        - 其他 (请在下方说明)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: docker
+    attributes:
+      label: Docker环境
+      description: 您是否使用Docker？
+      options:
+        - label: 我正在使用Docker
+        - label: 我正在使用Docker Compose
+        - label: 我没有使用Docker
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他上下文
+      description: 在此处添加有关问题的任何其他上下文。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 检查清单
+      description: 在提交之前，请确认以下事项
+      options:
+        - label: 我已经搜索了现有的Issues，确认这不是重复的
+          required: true
+        - label: 我已经阅读了CONTRIBUTING.md
+          required: true
+        - label: 我愿意提交Pull Request来修复这个bug（如果可能的话）
+          required: false 
