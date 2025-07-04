@@ -1,0 +1,237 @@
+com.openmanus.java:openmanus:jar:1.0-SNAPSHOT
++- org.springframework.boot:spring-boot-starter:jar:3.2.0:compile
+|  +- org.springframework.boot:spring-boot:jar:3.2.0:compile (version managed from 3.2.0; scope not updated to compile)
+|  |  +- (org.springframework:spring-core:jar:6.1.1:compile - version managed from 6.1.1; omitted for duplicate)
+|  |  \- org.springframework:spring-context:jar:6.1.1:compile (version managed from 6.1.1)
+|  |     +- org.springframework:spring-aop:jar:6.1.1:compile (version managed from 6.1.1)
+|  |     |  +- (org.springframework:spring-beans:jar:6.1.1:compile - version managed from 6.1.1; omitted for duplicate)
+|  |     |  \- (org.springframework:spring-core:jar:6.1.1:compile - version managed from 6.1.1; omitted for duplicate)
+|  |     +- org.springframework:spring-beans:jar:6.1.1:compile (version managed from 6.1.1)
+|  |     |  \- (org.springframework:spring-core:jar:6.1.1:compile - version managed from 6.1.1; omitted for duplicate)
+|  |     +- (org.springframework:spring-core:jar:6.1.1:compile - version managed from 6.1.1; omitted for duplicate)
+|  |     +- org.springframework:spring-expression:jar:6.1.1:compile (version managed from 6.1.1)
+|  |     |  \- (org.springframework:spring-core:jar:6.1.1:compile - version managed from 6.1.1; omitted for duplicate)
+|  |     \- io.micrometer:micrometer-observation:jar:1.12.0:compile (version managed from 1.12.0)
+|  |        \- io.micrometer:micrometer-commons:jar:1.12.0:compile (version managed from 1.12.0)
+|  +- org.springframework.boot:spring-boot-autoconfigure:jar:3.2.0:compile (version managed from 3.2.0; scope not updated to compile)
+|  |  \- (org.springframework.boot:spring-boot:jar:3.2.0:compile - version managed from 3.2.0; omitted for duplicate)
+|  +- org.springframework.boot:spring-boot-starter-logging:jar:3.2.0:compile (version managed from 3.2.0)
+|  |  +- ch.qos.logback:logback-classic:jar:1.4.11:compile (version managed from 1.4.11)
+|  |  |  +- ch.qos.logback:logback-core:jar:1.4.11:compile (version managed from 1.4.11)
+|  |  |  \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 2.0.7; omitted for duplicate)
+|  |  +- org.apache.logging.log4j:log4j-to-slf4j:jar:2.21.1:compile (version managed from 2.21.1)
+|  |  |  +- org.apache.logging.log4j:log4j-api:jar:2.21.1:compile (version managed from 2.21.1)
+|  |  |  \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 1.7.36; omitted for duplicate)
+|  |  \- org.slf4j:jul-to-slf4j:jar:2.0.9:compile (version managed from 2.0.9)
+|  |     \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 2.0.9; omitted for duplicate)
+|  +- jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile (version managed from 2.1.1)
+|  +- org.springframework:spring-core:jar:6.1.1:compile (version managed from 6.1.1; scope not updated to compile)
+|  |  \- org.springframework:spring-jcl:jar:6.1.1:compile (version managed from 6.1.1)
+|  \- org.yaml:snakeyaml:jar:2.2:compile (version managed from 2.2)
++- org.springframework.boot:spring-boot-configuration-processor:jar:3.2.0:compile
++- dev.langchain4j:langchain4j:jar:0.31.0:compile
+|  +- dev.langchain4j:langchain4j-core:jar:0.31.0:compile
+|  |  +- com.google.code.gson:gson:jar:2.10.1:compile (version managed from 2.10.1)
+|  |  \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 2.0.7; omitted for duplicate)
+|  +- org.apache.opennlp:opennlp-tools:jar:1.9.4:compile
+|  +- org.jsoup:jsoup:jar:1.16.1:compile
+|  \- org.slf4j:slf4j-api:jar:2.0.9:compile (version managed from 2.0.7)
++- org.bsc.langgraph4j:langgraph4j-core:jar:1.6.0-beta5:compile
+|  +- org.bsc.async:async-generator:jar:3.2.1:compile
+|  \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 2.0.9; omitted for duplicate)
++- org.bsc.langgraph4j:langgraph4j-langchain4j:jar:1.6.0-beta5:compile
+|  +- (dev.langchain4j:langchain4j:jar:1.0.1:compile - omitted for conflict with 0.31.0)
+|  \- (org.bsc.langgraph4j:langgraph4j-core:jar:1.6.0-beta5:compile - omitted for duplicate)
++- dev.langchain4j:langchain4j-open-ai:jar:0.31.0:compile
+|  +- (dev.langchain4j:langchain4j-core:jar:0.31.0:compile - omitted for duplicate)
+|  +- dev.ai4j:openai4j:jar:0.17.0:compile
+|  |  +- com.squareup.retrofit2:retrofit:jar:2.9.0:compile
+|  |  |  \- (com.squareup.okhttp3:okhttp:jar:4.12.0:compile - version managed from 3.14.9; omitted for duplicate)
+|  |  +- com.squareup.retrofit2:converter-gson:jar:2.9.0:compile
+|  |  |  \- (com.squareup.retrofit2:retrofit:jar:2.9.0:compile - omitted for duplicate)
+|  |  +- (com.google.code.gson:gson:jar:2.10.1:compile - version managed from 2.8.9; omitted for duplicate)
+|  |  +- com.squareup.okhttp3:okhttp:jar:4.12.0:compile (version managed from 4.12.0)
+|  |  |  +- com.squareup.okio:okio:jar:3.6.0:compile
+|  |  |  |  \- com.squareup.okio:okio-jvm:jar:3.6.0:compile
+|  |  |  |     +- (org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.9.20:compile - version managed from 1.9.10; omitted for duplicate)
+|  |  |  |     \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.9.20:compile (version managed from 1.9.10)
+|  |  |  \- org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.9.20:compile (version managed from 1.8.21)
+|  |  |     +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.9.20:compile (version managed from 1.9.20)
+|  |  |     |  \- org.jetbrains:annotations:jar:13.0:compile
+|  |  |     \- org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.9.20:compile (version managed from 1.9.20)
+|  |  |        \- (org.jetbrains.kotlin:kotlin-stdlib:jar:1.9.20:compile - version managed from 1.9.20; omitted for duplicate)
+|  |  +- com.squareup.okhttp3:okhttp-sse:jar:4.12.0:compile (version managed from 4.12.0)
+|  |  |  +- (com.squareup.okhttp3:okhttp:jar:4.12.0:compile - version managed from 4.12.0; omitted for duplicate)
+|  |  |  \- (org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.9.20:compile - version managed from 1.8.21; omitted for duplicate)
+|  |  \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 2.0.7; omitted for duplicate)
+|  \- com.knuddels:jtokkit:jar:1.0.0:compile
++- com.github.docker-java:docker-java:jar:3.3.6:compile
+|  +- com.github.docker-java:docker-java-core:jar:3.3.6:compile
+|  |  +- com.github.docker-java:docker-java-api:jar:3.3.6:compile
+|  |  |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.15.3:compile (version managed from 2.10.3)
+|  |  |  \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 1.7.30; omitted for duplicate)
+|  |  +- com.github.docker-java:docker-java-transport:jar:3.3.6:compile
+|  |  +- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 1.7.30; omitted for duplicate)
+|  |  +- commons-io:commons-io:jar:2.13.0:compile
+|  |  +- org.apache.commons:commons-compress:jar:1.21:compile
+|  |  +- org.apache.commons:commons-lang3:jar:3.13.0:compile (version managed from 3.12.0)
+|  |  +- com.fasterxml.jackson.core:jackson-databind:jar:2.15.3:compile (version managed from 2.10.3)
+|  |  |  +- (com.fasterxml.jackson.core:jackson-annotations:jar:2.15.3:compile - version managed from 2.15.3; omitted for duplicate)
+|  |  |  \- com.fasterxml.jackson.core:jackson-core:jar:2.15.3:compile (version managed from 2.15.3)
+|  |  +- com.google.guava:guava:jar:19.0:compile
+|  |  \- org.bouncycastle:bcpkix-jdk18on:jar:1.76:compile
+|  |     +- org.bouncycastle:bcprov-jdk18on:jar:1.76:compile
+|  |     \- org.bouncycastle:bcutil-jdk18on:jar:1.76:compile
+|  |        \- (org.bouncycastle:bcprov-jdk18on:jar:1.76:compile - omitted for duplicate)
+|  +- com.github.docker-java:docker-java-transport-jersey:jar:3.3.6:compile
+|  |  +- (com.github.docker-java:docker-java-core:jar:3.3.6:compile - omitted for duplicate)
+|  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar:2.15.3:compile (version managed from 2.10.3)
+|  |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar:2.15.3:compile (version managed from 2.15.3)
+|  |  |  |  +- (com.fasterxml.jackson.core:jackson-core:jar:2.15.3:compile - version managed from 2.15.3; omitted for duplicate)
+|  |  |  |  \- (com.fasterxml.jackson.core:jackson-databind:jar:2.15.3:compile - version managed from 2.15.3; omitted for duplicate)
+|  |  |  \- com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.15.3:compile (version managed from 2.15.3)
+|  |  |     +- (com.fasterxml.jackson.core:jackson-annotations:jar:2.15.3:compile - version managed from 2.15.3; omitted for duplicate)
+|  |  |     +- (com.fasterxml.jackson.core:jackson-core:jar:2.15.3:compile - version managed from 2.15.3; omitted for duplicate)
+|  |  |     +- (com.fasterxml.jackson.core:jackson-databind:jar:2.15.3:compile - version managed from 2.15.3; omitted for duplicate)
+|  |  |     +- (jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.1:compile - version managed from 2.3.3; omitted for duplicate)
+|  |  |     \- (jakarta.activation:jakarta.activation-api:jar:2.1.2:compile - version managed from 1.2.2; omitted for duplicate)
+|  |  +- org.glassfish.jersey.connectors:jersey-apache-connector:jar:3.1.3:compile (version managed from 2.30.1)
+|  |  |  +- (org.apache.httpcomponents:httpclient:jar:4.5.14:compile - omitted for conflict with 4.5.12)
+|  |  |  +- (org.glassfish.jersey.core:jersey-common:jar:3.1.3:compile - version managed from 3.1.3; omitted for duplicate)
+|  |  |  +- (org.glassfish.jersey.core:jersey-client:jar:3.1.3:compile - version managed from 3.1.3; omitted for duplicate)
+|  |  |  \- jakarta.ws.rs:jakarta.ws.rs-api:jar:3.1.0:compile (version managed from 3.1.0)
+|  |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:compile (version managed from 4.4.13)
+|  |  +- org.apache.httpcomponents:httpclient:jar:4.5.12:compile
+|  |  |  +- (org.apache.httpcomponents:httpcore:jar:4.4.16:compile - version managed from 4.4.13; omitted for duplicate)
+|  |  |  \- commons-codec:commons-codec:jar:1.16.0:compile (version managed from 1.11)
+|  |  +- (org.glassfish.jersey.core:jersey-client:jar:3.1.3:compile - version managed from 2.30.1; omitted for duplicate)
+|  |  +- (org.glassfish.jersey.inject:jersey-hk2:jar:3.1.3:compile - version managed from 2.30.1; omitted for duplicate)
+|  |  +- com.kohlschutter.junixsocket:junixsocket-common:jar:2.6.1:compile
+|  |  \- com.kohlschutter.junixsocket:junixsocket-native-common:jar:2.6.1:compile
+|  +- com.github.docker-java:docker-java-transport-netty:jar:3.3.6:compile
+|  |  +- (com.github.docker-java:docker-java-core:jar:3.3.6:compile - omitted for duplicate)
+|  |  +- io.netty:netty-codec-http:jar:4.1.101.Final:compile (version managed from 4.1.46.Final)
+|  |  |  +- io.netty:netty-common:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  +- io.netty:netty-buffer:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  |  \- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- io.netty:netty-transport:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  \- (io.netty:netty-resolver:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- io.netty:netty-codec:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  \- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  \- (io.netty:netty-handler:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  +- io.netty:netty-handler:jar:4.1.101.Final:compile (version managed from 4.1.46.Final)
+|  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- io.netty:netty-resolver:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  |  \- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- io.netty:netty-transport-native-unix-common:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  \- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  \- (io.netty:netty-codec:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  +- io.netty:netty-handler-proxy:jar:4.1.101.Final:compile (version managed from 4.1.46.Final)
+|  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-codec:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- io.netty:netty-codec-socks:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  |  \- (io.netty:netty-codec:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  \- (io.netty:netty-codec-http:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  +- io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.101.Final:compile (version managed from 4.1.46.Final)
+|  |  |  +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  +- (io.netty:netty-transport-native-unix-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |  \- io.netty:netty-transport-classes-epoll:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |  |     +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |     +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |     +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  |     \- (io.netty:netty-transport-native-unix-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |  \- io.netty:netty-transport-native-kqueue:jar:osx-x86_64:4.1.101.Final:compile (version managed from 4.1.46.Final)
+|  |     +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |     +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |     +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |     +- (io.netty:netty-transport-native-unix-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |     \- io.netty:netty-transport-classes-kqueue:jar:4.1.101.Final:compile (version managed from 4.1.101.Final)
+|  |        +- (io.netty:netty-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |        +- (io.netty:netty-buffer:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |        +- (io.netty:netty-transport:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  |        \- (io.netty:netty-transport-native-unix-common:jar:4.1.101.Final:compile - version managed from 4.1.101.Final; omitted for duplicate)
+|  \- org.slf4j:jcl-over-slf4j:jar:2.0.9:compile (version managed from 1.7.30)
+|     \- (org.slf4j:slf4j-api:jar:2.0.9:compile - version managed from 2.0.9; omitted for duplicate)
++- javax.ws.rs:javax.ws.rs-api:jar:2.1.1:compile
++- org.glassfish.jersey.core:jersey-client:jar:3.1.3:compile
+|  +- org.glassfish.jersey.core:jersey-common:jar:3.1.3:compile (version managed from 3.1.3)
+|  |  +- (jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile - version managed from 2.1.1; omitted for duplicate)
+|  |  +- (jakarta.inject:jakarta.inject-api:jar:2.0.1:compile - omitted for duplicate)
+|  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.3:compile
+|  \- jakarta.inject:jakarta.inject-api:jar:2.0.1:compile
++- org.glassfish.jersey.inject:jersey-hk2:jar:3.1.3:compile
+|  +- (org.glassfish.jersey.core:jersey-common:jar:3.1.3:compile - version managed from 3.1.3; omitted for duplicate)
+|  +- org.glassfish.hk2:hk2-locator:jar:3.0.4:compile
+|  |  +- org.glassfish.hk2.external:aopalliance-repackaged:jar:3.0.4:compile
+|  |  +- org.glassfish.hk2:hk2-api:jar:3.0.4:compile
+|  |  |  +- (org.glassfish.hk2:hk2-utils:jar:3.0.4:compile - omitted for duplicate)
+|  |  |  \- (org.glassfish.hk2.external:aopalliance-repackaged:jar:3.0.4:compile - omitted for duplicate)
+|  |  \- org.glassfish.hk2:hk2-utils:jar:3.0.4:compile
+|  \- org.javassist:javassist:jar:3.29.2-GA:compile
++- org.projectlombok:lombok:jar:1.18.30:compile
+\- org.springframework.boot:spring-boot-starter-test:jar:3.2.0:test
+   +- (org.springframework.boot:spring-boot-starter:jar:3.2.0:test - version managed from 3.2.0; omitted for duplicate)
+   +- org.springframework.boot:spring-boot-test:jar:3.2.0:test (version managed from 3.2.0)
+   |  \- (org.springframework.boot:spring-boot:jar:3.2.0:test - version managed from 3.2.0; omitted for duplicate)
+   +- org.springframework.boot:spring-boot-test-autoconfigure:jar:3.2.0:test (version managed from 3.2.0)
+   |  +- (org.springframework.boot:spring-boot:jar:3.2.0:test - version managed from 3.2.0; omitted for duplicate)
+   |  +- (org.springframework.boot:spring-boot-test:jar:3.2.0:test - version managed from 3.2.0; omitted for duplicate)
+   |  \- (org.springframework.boot:spring-boot-autoconfigure:jar:3.2.0:test - version managed from 3.2.0; omitted for duplicate)
+   +- com.jayway.jsonpath:json-path:jar:2.8.0:test (version managed from 2.8.0)
+   |  +- (net.minidev:json-smart:jar:2.5.0:test - version managed from 2.4.10; omitted for duplicate)
+   |  \- (org.slf4j:slf4j-api:jar:2.0.9:test - version managed from 1.7.36; omitted for duplicate)
+   +- jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.1:compile (version managed from 4.0.1)
+   |  \- jakarta.activation:jakarta.activation-api:jar:2.1.2:compile (version managed from 2.1.2)
+   +- net.minidev:json-smart:jar:2.5.0:test (version managed from 2.5.0)
+   |  \- net.minidev:accessors-smart:jar:2.5.0:test
+   |     \- org.ow2.asm:asm:jar:9.3:test
+   +- org.assertj:assertj-core:jar:3.24.2:test (version managed from 3.24.2)
+   |  \- net.bytebuddy:byte-buddy:jar:1.14.10:test (version managed from 1.12.21)
+   +- org.awaitility:awaitility:jar:4.2.0:test (version managed from 4.2.0)
+   |  \- (org.hamcrest:hamcrest:jar:2.2:test - version managed from 2.1; omitted for duplicate)
+   +- org.hamcrest:hamcrest:jar:2.2:test (version managed from 2.2)
+   +- org.junit.jupiter:junit-jupiter:jar:5.10.1:test (version managed from 5.10.1)
+   |  +- org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test (version managed from 5.10.1)
+   |  |  +- org.opentest4j:opentest4j:jar:1.3.0:test
+   |  |  +- org.junit.platform:junit-platform-commons:jar:1.10.1:test (version managed from 1.10.1)
+   |  |  |  \- (org.apiguardian:apiguardian-api:jar:1.1.2:test - omitted for duplicate)
+   |  |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+   |  +- org.junit.jupiter:junit-jupiter-params:jar:5.10.1:test (version managed from 5.10.1)
+   |  |  +- (org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test - version managed from 5.10.1; omitted for duplicate)
+   |  |  \- (org.apiguardian:apiguardian-api:jar:1.1.2:test - omitted for duplicate)
+   |  \- org.junit.jupiter:junit-jupiter-engine:jar:5.10.1:test (version managed from 5.10.1)
+   |     +- org.junit.platform:junit-platform-engine:jar:1.10.1:test (version managed from 1.10.1)
+   |     |  +- (org.opentest4j:opentest4j:jar:1.3.0:test - omitted for duplicate)
+   |     |  +- (org.junit.platform:junit-platform-commons:jar:1.10.1:test - version managed from 1.10.1; omitted for duplicate)
+   |     |  \- (org.apiguardian:apiguardian-api:jar:1.1.2:test - omitted for duplicate)
+   |     +- (org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test - version managed from 5.10.1; omitted for duplicate)
+   |     \- (org.apiguardian:apiguardian-api:jar:1.1.2:test - omitted for duplicate)
+   +- org.mockito:mockito-core:jar:5.7.0:test (version managed from 5.7.0)
+   |  +- (net.bytebuddy:byte-buddy:jar:1.14.10:test - version managed from 1.14.9; omitted for duplicate)
+   |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.10:test (version managed from 1.14.9)
+   |  \- org.objenesis:objenesis:jar:3.3:test
+   +- org.mockito:mockito-junit-jupiter:jar:5.7.0:test (version managed from 5.7.0)
+   |  +- (org.mockito:mockito-core:jar:5.7.0:test - version managed from 5.7.0; omitted for duplicate)
+   |  \- (org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test - version managed from 5.10.0; omitted for duplicate)
+   +- org.skyscreamer:jsonassert:jar:1.5.1:test (version managed from 1.5.1)
+   |  \- com.vaadin.external.google:android-json:jar:0.0.20131108.vaadin1:test
+   +- (org.springframework:spring-core:jar:6.1.1:test - version managed from 6.1.1; omitted for duplicate)
+   +- org.springframework:spring-test:jar:6.1.1:test (version managed from 6.1.1)
+   |  \- (org.springframework:spring-core:jar:6.1.1:test - version managed from 6.1.1; omitted for duplicate)
+   \- org.xmlunit:xmlunit-core:jar:2.9.1:test (version managed from 2.9.1)
+      \- (jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.1:test - version managed from 2.3.3; omitted for duplicate)

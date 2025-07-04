@@ -1,0 +1,58 @@
+# OpenManus Java Configuration
+openmanus:
+  app:
+    name: "OpenManus"
+    version: "1.0.0"
+    workspace-root: "./workspace"
+    log-level: "INFO"
+
+  llm:
+    default-llm:
+      model: "qwen-plus"
+      base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1/"
+      api-type: "openai"
+      temperature: 0.7
+      max-tokens: 8192
+      timeout: 30
+      # 阿里云百炼 API key
+      api-key: "sk-215d832f34f34d0b927e3ff36c8df6c1"
+
+  sandbox:
+    type: "docker"
+    use-sandbox: true
+    image: "python:3.11-slim"
+    work-dir: "/workspace"
+    memory-limit: "512m"
+    cpu-limit: 1.0
+    timeout: 120
+    network-enabled: true
+
+  browser:
+    type: "chrome"
+    headless: true
+    timeout: 30
+    user-agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+
+  proxy:
+    enabled: false
+    http-proxy: ""
+    https-proxy: ""
+
+  search:
+    engine: "google"
+    api-key: ""
+    max-results: 10
+
+  mcp:
+    enabled: false
+
+  runflow:
+    enabled: false
+    max-steps: 20
+    timeout: 300
+
+# Spring Boot配置
+logging:
+  level:
+    com.openmanus.java: INFO
+    root: INFO
