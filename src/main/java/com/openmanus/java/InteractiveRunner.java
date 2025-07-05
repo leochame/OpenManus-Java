@@ -9,7 +9,7 @@ import com.openmanus.java.tool.PythonTool;
 import com.openmanus.java.tool.FileTool;
 import com.openmanus.java.tool.AskHumanTool;
 import com.openmanus.java.tool.TerminateTool;
-import com.openmanus.java.tool.BashTool;
+import com.openmanus.java.tool.BrowserTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +48,10 @@ public class InteractiveRunner implements CommandLineRunner {
             // 初始化工具系统
             ToolRegistry toolRegistry = new ToolRegistry(
                     new PythonTool(properties),
+                    new BrowserTool(properties),
                     new FileTool(properties),
                     new AskHumanTool(),
-                    new TerminateTool(),
-                    new BashTool(properties));
+                    new TerminateTool());
 
             log.info("🔧 工具系统初始化完成，可用工具: {}", toolRegistry.getAllTools());
 
@@ -78,7 +78,7 @@ public class InteractiveRunner implements CommandLineRunner {
         System.out.println("🎉 欢迎使用 OpenManus Java 版本!");
         System.out.println("💡 您可以输入任务，让AI助手帮您完成");
         System.out.println("📝 输入 'exit' 或 'quit' 退出程序");
-        System.out.println("🔧 可用工具: Python执行、文件操作、命令行、人机交互等");
+        System.out.println("🔧 可用工具: Python执行、智能网页搜索(ReAct模式)、文件操作、人机交互等");
         System.out.println("=".repeat(60) + "\n");
 
         while (true) {
@@ -111,6 +111,10 @@ public class InteractiveRunner implements CommandLineRunner {
             } catch (Exception e) {
                 System.out.println("❌ 执行任务时出错: " + e.getMessage());
                 log.error("Task execution error", e);
+            } finally {
+                // 重置智能体状态，准备下一个任务
+                agent.cleanup();
+                log.debug("🔄 智能体状态已重置，准备接受新任务");
             }
         }
 

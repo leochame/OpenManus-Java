@@ -147,10 +147,12 @@ public abstract class BaseAgent {
                 }
 
                 if (currentStep >= maxSteps) {
-                    this.currentStep = 0;
-                    this.state = AgentState.IDLE;
                     results.add(String.format("Terminated: Reached max steps (%d)", maxSteps));
                 }
+
+                // Always reset state and step count when execution completes normally
+                this.currentStep = 0;
+                this.state = AgentState.IDLE;
 
             } catch (Exception e) {
                 this.state = AgentState.ERROR;
