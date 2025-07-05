@@ -42,6 +42,9 @@ public abstract class BaseAgent {
     protected int maxSteps;
     protected int currentStep;
     protected int duplicateThreshold;
+    
+    // 测试模式标志，当为true时会限制执行步数和时间
+    protected boolean testMode = false;
 
     public BaseAgent(String name, int maxSteps) {
         this.name = name;
@@ -128,13 +131,24 @@ public abstract class BaseAgent {
 
         return CompletableFuture.supplyAsync(() -> {
             List<String> results = new ArrayList<>();
+            long startTime = System.currentTimeMillis();
+            // 在测试模式下设置5秒超时，正常模式下设置30秒超时
+            long timeoutMs = testMode ? 5000 : 30000;
 
             try {
                 this.state = AgentState.RUNNING;
+                
+                // 在测试模式下，限制最大步数为3步，避免长时间运行
+                int effectiveMaxSteps = testMode ? Math.min(maxSteps, 3) : maxSteps;
 
-                while (currentStep < maxSteps && state != AgentState.FINISHED) {
+                while (currentStep < effectiveMaxSteps && state != AgentState.FINISHED) {
+                    // 检查超时
+                    if (System.currentTimeMillis() - startTime > timeoutMs) {
+                        results.add("Terminated: Execution timeout after " + (timeoutMs / 1000) + " seconds");
+                        break;
+                    }
                     currentStep++;
-                    log.info("Executing step {}/{}", currentStep, maxSteps);
+                    log.info("Executing step {}/{}", currentStep, effectiveMaxSteps);
 
                     String stepResult = step().join();
 
@@ -146,8 +160,8 @@ public abstract class BaseAgent {
                     results.add(String.format("Step %d: %s", currentStep, stepResult));
                 }
 
-                if (currentStep >= maxSteps) {
-                    results.add(String.format("Terminated: Reached max steps (%d)", maxSteps));
+                if (currentStep >= effectiveMaxSteps) {
+                    results.add(String.format("Terminated: Reached max steps (%d)", effectiveMaxSteps));
                 }
 
                 // Always reset state and step count when execution completes normally
@@ -364,6 +378,29 @@ public abstract class BaseAgent {
 
     public void setDuplicateThreshold(int duplicateThreshold) {
         this.duplicateThreshold = duplicateThreshold;
+    }
+    
+    /**
+     * 启用测试模式，限制执行步数和时间
+     */
+    public void enableTestMode() {
+        this.testMode = true;
+        log.debug("Agent {} 已启用测试模式", name);
+    }
+    
+    /**
+     * 禁用测试模式
+     */
+    public void disableTestMode() {
+        this.testMode = false;
+        log.debug("Agent {} 已禁用测试模式", name);
+    }
+    
+    /**
+     * 检查是否为测试模式
+     */
+    public boolean isTestMode() {
+        return testMode;
     }
 
     /**

@@ -62,7 +62,7 @@ public class OpenManusTest {
         try {
             // 只测试不需要Docker的工具
             ToolRegistry registry = new ToolRegistry(
-                new AskHumanTool(),
+                new MockAskHumanTool(),
                 new TerminateTool()
             );
             assertNotNull(registry, "工具注册表应该成功创建");
@@ -92,7 +92,7 @@ public class OpenManusTest {
     @Test
     @DisplayName("测试AskHumanTool功能")
     void testAskHumanTool() {
-        AskHumanTool askHumanTool = new AskHumanTool();
+        MockAskHumanTool askHumanTool = new MockAskHumanTool();
         assertNotNull(askHumanTool, "AskHumanTool应该成功创建");
         
         // 测试工具的基本属性

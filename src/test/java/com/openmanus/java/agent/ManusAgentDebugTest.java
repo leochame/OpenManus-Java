@@ -4,14 +4,24 @@ import com.openmanus.java.config.OpenManusProperties;
 import com.openmanus.java.llm.MockLlmClient;
 import com.openmanus.java.model.Memory;
 import com.openmanus.java.tool.ToolRegistry;
+import com.openmanus.java.tool.AskHumanTool;
+import com.openmanus.java.tool.MockAskHumanTool;
+import com.openmanus.java.tool.TerminateTool;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@TestPropertySource(properties = {
+    "spring.main.web-application-type=none",
+    "spring.main.lazy-initialization=true"
+})
 @ActiveProfiles("test")
+@Import(com.openmanus.java.config.TestConfig.class)
 class ManusAgentDebugTest {
 
     @Test
@@ -26,10 +36,13 @@ class ManusAgentDebugTest {
         // Create memory
         Memory memory = new Memory();
 
-        // Create tool registry
-        ToolRegistry toolRegistry = new ToolRegistry();
+        // Create tool registry with minimal tools
+        ToolRegistry toolRegistry = new ToolRegistry(
+            new MockAskHumanTool(),
+            new TerminateTool()
+        );
 
-        // Create ManusAgent
+        // Create ManusAgent with correct constructor parameters
         ManusAgent agent = new ManusAgent(mockLlm, memory, properties);
 
         // Test run method

@@ -61,23 +61,28 @@ class ManusAgentIntegrationTest {
         // Create a mock LLM client for testing
         MockLlmClient mockLlmClient = new MockLlmClient();
 
-        // Create ManusAgent with injected dependencies
-        manusAgent = new ManusAgent(mockLlmClient, memory, properties, toolRegistry, ToolChoice.AUTO,
+        // Create ManusAgent with test-specific tool registry to avoid blocking
+        ToolRegistry testToolRegistry = createTestToolRegistry();
+        manusAgent = new ManusAgent(mockLlmClient, memory, properties, testToolRegistry, ToolChoice.AUTO,
                 Set.of("terminate"));
+        
+        // 启用测试模式，限制执行步数和时间
+        manusAgent.enableTestMode();
     }
 
     private ToolRegistry createTestToolRegistry() {
         // Create registry with tool instances - ToolRegistry constructor handles
         // registration
+        // Use MockAskHumanTool for testing to avoid blocking on user input
         if (properties.getSandbox().isUseSandbox()) {
             return new ToolRegistry(
-                    new AskHumanTool(),
+                    new MockAskHumanTool("测试完成", "继续执行", "任务结束"),
                     new TerminateTool(),
                     new FileTool(properties),
                     new PythonTool(properties));
         } else {
             return new ToolRegistry(
-                    new AskHumanTool(),
+                    new MockAskHumanTool("测试完成", "继续执行", "任务结束"),
                     new TerminateTool(),
                     new FileTool(properties));
         }

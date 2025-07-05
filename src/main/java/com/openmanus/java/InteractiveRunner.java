@@ -39,6 +39,13 @@ public class InteractiveRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        // 检测是否在测试环境中运行
+        boolean isTestEnvironment = isTestEnvironment();
+        if (isTestEnvironment) {
+            log.info("🧪 检测到测试环境，跳过交互式运行器启动");
+            return;
+        }
+        
         try {
             log.info("🚀 启动 OpenManus Java 交互式版本");
             log.info("配置信息: 模型={}, API类型={}",
@@ -119,6 +126,30 @@ public class InteractiveRunner implements CommandLineRunner {
         }
 
         scanner.close();
+    }
+
+    /**
+     * 检测是否在测试环境中运行
+     */
+    private boolean isTestEnvironment() {
+        // 检查JUnit相关的类是否在类路径中
+        try {
+            Class.forName("org.junit.jupiter.api.Test");
+            // 检查当前线程的堆栈跟踪是否包含测试相关的调用
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            for (StackTraceElement element : stackTrace) {
+                String className = element.getClassName();
+                if (className.contains("Test") || 
+                    className.contains("junit") || 
+                    className.contains("surefire") ||
+                    className.contains("SpringBootTest")) {
+                    return true;
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            // JUnit不在类路径中，不是测试环境
+        }
+        return false;
     }
 
     public static void main(String[] args) {

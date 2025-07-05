@@ -129,26 +129,34 @@ public class Bash implements AutoCloseable {
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();
             
-            // Read output until sentinel is found
-            while (true) {
+            // Read output until sentinel is found or timeout occurs
+            int maxAttempts = (TIMEOUT_SECONDS * 1000) / OUTPUT_DELAY_MS; // 防止无限循环
+            int attempts = 0;
+            
+            while (attempts < maxAttempts) {
+                attempts++;
                 Thread.sleep(OUTPUT_DELAY_MS);
                 
+                // Check if process is still alive
+                if (process != null && !process.isAlive()) {
+                    // Process has terminated, return whatever we have
+                    break;
+                }
+                
                 String line;
+                boolean foundSentinel = false;
+                
                 while (reader.ready() && (line = reader.readLine()) != null) {
                     if (line.equals(SENTINEL)) {
-                        String outputStr = output.toString();
-                        if (outputStr.endsWith("\n")) {
-                            outputStr = outputStr.substring(0, outputStr.length() - 1);
-                        }
-                        
-                        String errorStr = error.toString();
-                        if (errorStr.endsWith("\n")) {
-                            errorStr = errorStr.substring(0, errorStr.length() - 1);
-                        }
-                        
-                        return new CLIResult(outputStr, errorStr, "", 0, true);
+                        foundSentinel = true;
+                        break;
                     }
                     output.append(line).append("\n");
+                }
+                
+                if (foundSentinel) {
+                    // Found sentinel, command completed
+                    break;
                 }
                 
                 // Read error stream
@@ -156,6 +164,20 @@ public class Bash implements AutoCloseable {
                     error.append(line).append("\n");
                 }
             }
+            
+            // Clean up output strings
+            String outputStr = output.toString();
+            if (outputStr.endsWith("\n")) {
+                outputStr = outputStr.substring(0, outputStr.length() - 1);
+            }
+            
+            String errorStr = error.toString();
+            if (errorStr.endsWith("\n")) {
+                errorStr = errorStr.substring(0, errorStr.length() - 1);
+            }
+            
+            return new CLIResult(outputStr, errorStr, "", 0, true);
+            
         } catch (Exception e) {
             logger.error("Error reading output: {}", e.getMessage(), e);
             return new CLIResult("", "Error reading output: " + e.getMessage(), "", -1, false);

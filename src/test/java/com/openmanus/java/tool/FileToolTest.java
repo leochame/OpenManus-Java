@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +17,13 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("test")
+@Import(com.openmanus.java.config.TestConfig.class)
+@TestPropertySource(properties = {
+    "spring.main.web-application-type=none",
+    "spring.main.lazy-initialization=true"
+})
 class FileToolTest {
 
     private FileTool fileTool;

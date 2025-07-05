@@ -40,6 +40,13 @@ public class MockLlmClient extends LlmClient {
     @Override
     public Message askTool(List<Message> messages, List<Message> systemMessages, 
                           List<ToolSpecification> toolSpecifications, ToolChoice toolChoice) {
+        // 在测试环境中快速返回，避免长时间等待
+        try {
+            Thread.sleep(50); // 模拟短暂的处理时间
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
         // Check if this looks like an error scenario or multi-tool workflow based on the user message
         boolean isErrorScenario = false;
         boolean isMultiToolWorkflow = false;
@@ -72,22 +79,28 @@ public class MockLlmClient extends LlmClient {
             return response;
         }
         
-        // Create a mock response that simulates calling the terminate tool
-        Message response = Message.assistantMessage(mockResponse);
+        // 在测试模式下，总是快速调用 terminate 工具来结束执行
+        Message response = Message.assistantMessage(mockResponse + " - 测试完成");
         
         // If tools are available and tool choice allows it, simulate a terminate tool call
         if (toolSpecifications != null && !toolSpecifications.isEmpty() && 
             (toolChoice == ToolChoice.AUTO || toolChoice == ToolChoice.REQUIRED)) {
             
-            // Find terminate tool
+            // 优先寻找 terminate 工具
             boolean hasTerminateTool = toolSpecifications.stream()
                 .anyMatch(tool -> "terminate".equals(tool.name()));
                 
             if (hasTerminateTool) {
                 // Create a mock terminate tool call
-                Function terminateFunction = new Function("terminate", "{\"message\":\"Test completed\"}");
-                ToolCall terminateCall = new ToolCall("call_123", "function", terminateFunction);
+                Function terminateFunction = new Function("terminate", "{\"message\":\"Test completed successfully\"}");
+                ToolCall terminateCall = new ToolCall("call_terminate_" + System.currentTimeMillis(), "function", terminateFunction);
                 response.setToolCalls(List.of(terminateCall));
+            } else if (!toolSpecifications.isEmpty()) {
+                // 如果没有 terminate 工具，使用第一个可用的工具
+                ToolSpecification firstTool = toolSpecifications.get(0);
+                Function toolFunction = new Function(firstTool.name(), "{\"message\":\"Test action completed\"}");
+                ToolCall toolCall = new ToolCall("call_" + System.currentTimeMillis(), "function", toolFunction);
+                response.setToolCalls(List.of(toolCall));
             }
         }
         

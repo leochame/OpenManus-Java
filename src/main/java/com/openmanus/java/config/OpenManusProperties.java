@@ -35,6 +35,9 @@ public class OpenManusProperties {
     @NestedConfigurationProperty
     private RunflowSettings runflow = new RunflowSettings();
     
+    @NestedConfigurationProperty
+    private VectorDatabaseSettings vectorDatabase = new VectorDatabaseSettings();
+    
     // Getter方法
     public AppSettings getApp() {
         return app;
@@ -68,6 +71,10 @@ public class OpenManusProperties {
         return runflow;
     }
     
+    public VectorDatabaseSettings getVectorDatabase() {
+        return vectorDatabase;
+    }
+    
     // Setter methods
     public void setSandbox(SandboxSettings sandbox) {
         this.sandbox = sandbox;
@@ -86,6 +93,10 @@ public class OpenManusProperties {
         
         public String getWorkspaceRoot() {
             return workspaceRoot;
+        }
+        
+        public void setWorkspaceRoot(String workspaceRoot) {
+            this.workspaceRoot = workspaceRoot;
         }
     }
     
@@ -309,5 +320,54 @@ public class OpenManusProperties {
         private boolean enabled = false;
         private int maxSteps = 20;
         private int timeout = 300;
+    }
+    
+    @Data
+    public static class VectorDatabaseSettings {
+        private boolean enabled = false;
+        private String host = "localhost";
+        private int port = 19530;
+        private String collectionName = "openmanus_memory";
+        private String indexType = "IVF_FLAT";
+        private String metricType = "L2";
+        private String username = "";
+        private String password = "";
+        private String databaseName = "default";
+        
+        public boolean isEnabled() {
+            return enabled;
+        }
+        
+        public String getHost() {
+            return host;
+        }
+        
+        public int getPort() {
+            return port;
+        }
+        
+        public String getCollectionName() {
+            return collectionName;
+        }
+        
+        public String getIndexType() {
+            return indexType;
+        }
+        
+        public String getMetricType() {
+            return metricType;
+        }
+        
+        public String getUsername() {
+            return username;
+        }
+        
+        public String getPassword() {
+            return password;
+        }
+        
+        public String getDatabaseName() {
+            return databaseName;
+        }
     }
 }

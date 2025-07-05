@@ -20,7 +20,23 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <langchain4j.version>0.31.0</langchain4j.version>
+        
+        <!-- Jackson 版本 - 与 langgraph4j 保持一致 -->
+        <jackson.version>2.17.2</jackson.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Jackson BOM for version management -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Starter -->
@@ -49,10 +65,40 @@
             <artifactId>langgraph4j-core</artifactId>
             <version>1.6.0-beta5</version>
         </dependency>
+        
+        <!-- LangGraph4j integration with LangChain4j -->
         <dependency>
             <groupId>org.bsc.langgraph4j</groupId>
             <artifactId>langgraph4j-langchain4j</artifactId>
             <version>1.6.0-beta5</version>
+        </dependency>
+        
+        <!-- Vector database for memory storage -->
+        <dependency>
+            <groupId>io.milvus</groupId>
+            <artifactId>milvus-sdk-java</artifactId>
+            <version>2.3.4</version>
+        </dependency>
+        
+        <!-- Embedding model for memory -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        
+        <!-- Milvus Vector Database -->
+        <dependency>
+            <groupId>io.milvus</groupId>
+            <artifactId>milvus-sdk-java</artifactId>
+            <version>2.3.4</version>
+        </dependency>
+        
+        <!-- LangChain4j Milvus Integration -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-milvus</artifactId>
+            <version>${langchain4j.version}</version>
         </dependency>
 
         <!-- LLM Provider (e.g., OpenAI) -->

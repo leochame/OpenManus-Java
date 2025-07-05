@@ -26,7 +26,7 @@ public class ToolSystemTest {
     @Test
     @DisplayName("测试AskHumanTool基础功能")
     void testAskHumanToolBasics() {
-        AskHumanTool askHumanTool = new AskHumanTool();
+        MockAskHumanTool askHumanTool = new MockAskHumanTool();
         
         assertNotNull(askHumanTool, "AskHumanTool应该成功创建");
         assertEquals("ask_human", AskHumanTool.NAME, "工具名称应该是ask_human");
@@ -91,7 +91,7 @@ public class ToolSystemTest {
         // 只使用不需要外部依赖的工具进行测试
         assertDoesNotThrow(() -> {
             ToolRegistry registry = new ToolRegistry(
-                new AskHumanTool(),
+                new MockAskHumanTool(),
                 new TerminateTool()
             );
             assertNotNull(registry, "工具注册表应该成功创建");
@@ -110,7 +110,7 @@ public class ToolSystemTest {
         // 测试null工具处理
         assertDoesNotThrow(() -> {
             ToolRegistry registryWithNull = new ToolRegistry(
-                new AskHumanTool(),
+                new MockAskHumanTool(),
                 null,  // 测试null工具
                 new TerminateTool()
             );

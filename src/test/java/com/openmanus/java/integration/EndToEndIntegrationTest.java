@@ -24,12 +24,18 @@ import static org.mockito.Mockito.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * 端到端集成测试类
  * 测试完整的工作流、多工具协作和异常场景处理
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@TestPropertySource(properties = {
+    "spring.main.web-application-type=none",
+    "spring.main.lazy-initialization=true",
+    "logging.level.com.openmanus.java.InteractiveRunner=DEBUG"
+})
 @EnableConfigurationProperties(OpenManusProperties.class)
 @Import(com.openmanus.java.config.TestConfig.class)
 public class EndToEndIntegrationTest {
@@ -55,7 +61,7 @@ public class EndToEndIntegrationTest {
         
         // 创建工具注册表（只使用不需要外部依赖的工具）
         toolRegistry = new ToolRegistry(
-            new AskHumanTool(),
+            new MockAskHumanTool("测试响应", "继续执行", "任务完成"),
             new TerminateTool()
         );
     }
