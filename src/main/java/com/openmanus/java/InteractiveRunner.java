@@ -37,6 +37,9 @@ public class InteractiveRunner implements CommandLineRunner {
     @Autowired
     private LlmClient llmClient;
 
+    @Autowired
+    private ToolRegistry toolRegistry;
+
     @Override
     public void run(String... args) throws Exception {
         // 检测是否在测试环境中运行
@@ -52,15 +55,7 @@ public class InteractiveRunner implements CommandLineRunner {
                     properties.getLlm().getDefaultLlm().getModel(),
                     properties.getLlm().getDefaultLlm().getApiType());
 
-            // 初始化工具系统
-            ToolRegistry toolRegistry = new ToolRegistry(
-                    new PythonTool(properties),
-                    new BrowserTool(properties),
-                    new FileTool(properties),
-                    new AskHumanTool(),
-                    new TerminateTool());
-
-            log.info("🔧 工具系统初始化完成，可用工具: {}", toolRegistry.getAllTools());
+            log.info("🔧 工具系统已就绪，可用工具: {}", toolRegistry.getAllTools());
 
             // 创建智能体
             Memory memory = new Memory();
