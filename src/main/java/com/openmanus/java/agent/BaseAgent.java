@@ -6,6 +6,7 @@ import com.openmanus.java.model.Memory;
 import com.openmanus.java.model.Message;
 import com.openmanus.java.model.Role;
 import com.openmanus.java.sandbox.SandboxClient;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * This corresponds to app/agent/base.py's BaseAgent.
  */
+@Data
 public abstract class BaseAgent {
 
     private static final Logger log = LoggerFactory.getLogger(BaseAgent.class);
