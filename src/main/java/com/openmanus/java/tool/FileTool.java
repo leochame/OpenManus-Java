@@ -1,420 +1,196 @@
 package com.openmanus.java.tool;
 
-import com.openmanus.java.config.OpenManusProperties;
-import com.openmanus.java.exception.ToolErrorException;
-import com.openmanus.java.sandbox.SandboxClient;
+import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 文件操作工具
+ * 使用 langchain4j 的 @Tool 注解
+ */
 @Component
-public class FileTool implements Closeable {
-    private static final Logger log = LoggerFactory.getLogger(FileTool.class);
+public class FileTool {
+    
+    private static final Logger logger = LoggerFactory.getLogger(FileTool.class);
 
-    private final SandboxClient sandboxClient;
-    private final boolean useSandbox;
-
-    public FileTool() {
-        this.useSandbox = false;
-        this.sandboxClient = null;
-    }
-
-    @Autowired
-    public FileTool(OpenManusProperties properties) {
-        OpenManusProperties.SandboxSettings sandboxSettings = properties.getSandbox();
-        this.useSandbox = sandboxSettings.isUseSandbox();
-        this.sandboxClient = useSandbox ? new SandboxClient(properties) : null;
-    }
-
-    public FileTool(SandboxClient sandboxClient) {
-        this.sandboxClient = sandboxClient;
-        this.useSandbox = sandboxClient != null;
-    }
-
-    @Tool(name = "file_operations", value = "Read content from a file.")
-    public String readFile(String path) throws Exception {
-        log.debug("Reading file: {} (sandbox: {})", path, useSandbox);
-
-        if (useSandbox) {
-            return readFileFromSandbox(path);
-        } else {
-            return readFileLocally(path);
-        }
-    }
-
-    @Tool("Write content to a file.")
-    public String writeFile(String path, String content) {
+    @Tool("读取文件内容")
+    public String readFile(@P("文件路径") String filePath) {
         try {
-            log.debug("Writing file: {} (sandbox: {})", path, useSandbox);
-
-            if (useSandbox) {
-                writeFileToSandbox(path, content);
-            } else {
-                writeFileLocally(path, content);
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                return "文件不存在: " + filePath;
             }
-
-            return "File written successfully to " + path;
-        } catch (Exception e) {
-            log.error("Error writing file {}: {}", path, e.getMessage(), e);
-            return "Error writing file: " + e.getMessage();
+            
+            if (!Files.isReadable(path)) {
+                return "文件不可读: " + filePath;
+        }
+            
+            String content = Files.readString(path);
+            return "文件内容:\n" + content;
+            
+        } catch (IOException e) {
+            logger.error("读取文件失败: {}", filePath, e);
+            return "读取文件失败: " + e.getMessage();
         }
     }
 
-    @Tool("Append content to a file.")
-    public String appendToFile(String path, String content) {
+    @Tool("写入文件内容")
+    public String writeFile(@P("文件路径") String filePath, @P("文件内容") String content) {
         try {
-            log.debug("Appending to file: {} (sandbox: {})", path, useSandbox);
-
-            if (useSandbox) {
-                appendToFileInSandbox(path, content);
-            } else {
-                appendToFileLocally(path, content);
-            }
-
-            return "Content appended successfully to " + path;
-        } catch (Exception e) {
-            log.error("Error appending to file {}: {}", path, e.getMessage(), e);
-            return "Error appending to file: " + e.getMessage();
+            Path path = Paths.get(filePath);
+            
+            // 确保父目录存在
+            Path parent = path.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
+        }
+            
+            Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            return "文件写入成功: " + filePath;
+            
+        } catch (IOException e) {
+            logger.error("写入文件失败: {}", filePath, e);
+            return "写入文件失败: " + e.getMessage();
         }
     }
 
-    @Tool("List files and directories in a given path.")
-    public String listDirectory(String path) throws Exception {
-        log.debug("Listing directory: {} (sandbox: {})", path, useSandbox);
-
-        if (useSandbox) {
-            return listDirectoryInSandbox(path);
-        } else {
-            return listDirectoryLocally(path);
-        }
-    }
-
-    @Tool("Check if a file or directory exists.")
-    public boolean fileExists(String path) {
+    @Tool("追加文件内容")
+    public String appendFile(@P("文件路径") String filePath, @P("追加内容") String content) {
         try {
-            log.debug("Checking file existence: {} (sandbox: {})", path, useSandbox);
-
-            if (useSandbox) {
-                return fileExistsInSandbox(path);
-            } else {
-                return Files.exists(Paths.get(path));
-            }
-        } catch (Exception e) {
-            log.error("Error checking file existence {}: {}", path, e.getMessage(), e);
-            return false;
+            Path path = Paths.get(filePath);
+            
+            // 确保父目录存在
+            Path parent = path.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
         }
+            
+            Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            return "内容追加成功: " + filePath;
+            
+        } catch (IOException e) {
+            logger.error("追加文件失败: {}", filePath, e);
+            return "追加文件失败: " + e.getMessage();
     }
-
-    @Tool("Check if a path points to a directory.")
-    public boolean isDirectory(String path) {
+    }
+    
+    @Tool("列出目录内容")
+    public String listDirectory(@P("目录路径") String dirPath) {
         try {
-            log.debug("Checking if directory: {} (sandbox: {})", path, useSandbox);
-
-            if (useSandbox) {
-                return isDirectoryInSandbox(path);
-            } else {
-                return Files.isDirectory(Paths.get(path));
+            Path path = Paths.get(dirPath);
+            if (!Files.exists(path)) {
+                return "目录不存在: " + dirPath;
+        }
+            
+            if (!Files.isDirectory(path)) {
+                return "不是目录: " + dirPath;
             }
-        } catch (Exception e) {
-            log.error("Error checking if directory {}: {}", path, e.getMessage(), e);
-            return false;
+            
+            List<String> items = Files.list(path)
+                .map(item -> {
+                    String name = item.getFileName().toString();
+                    if (Files.isDirectory(item)) {
+                        return "[DIR] " + name;
+                    } else {
+                        return "[FILE] " + name;
+    }
+                })
+                .collect(Collectors.toList());
+            
+            return "目录内容:\n" + String.join("\n", items);
+            
+        } catch (IOException e) {
+            logger.error("列出目录失败: {}", dirPath, e);
+            return "列出目录失败: " + e.getMessage();
         }
     }
 
-    // Local file operations
-    private String readFileLocally(String path) throws IOException {
-        return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
-    }
-
-    private void writeFileLocally(String path, String content) throws IOException {
-        Path filePath = Paths.get(path);
-        if (filePath.getParent() != null) {
-            Files.createDirectories(filePath.getParent());
-        }
-        Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private void appendToFileLocally(String path, String content) throws IOException {
-        Path filePath = Paths.get(path);
-        if (filePath.getParent() != null) {
-            Files.createDirectories(filePath.getParent());
-        }
-        Files.write(filePath, content.getBytes(StandardCharsets.UTF_8),
-                java.nio.file.StandardOpenOption.CREATE,
-                java.nio.file.StandardOpenOption.APPEND);
-    }
-
-    private String listDirectoryLocally(String path) throws IOException {
-        return Files.list(Paths.get(path))
-                .map(Path::getFileName)
-                .map(Path::toString)
-                .collect(Collectors.joining("\n"));
-    }
-
-    // Sandbox file operations
-    private String readFileFromSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("cat \"" + path + "\"", 30);
-        if (result.getExitCode() != 0) {
-            throw new ToolErrorException("Failed to read file in sandbox: " + result.getStderr());
-        }
-        return result.getStdout();
-    }
-
-    private void writeFileToSandbox(String path, String content) throws Exception {
-        // Create directory if needed
-        String dirPath = Paths.get(path).getParent() != null ? Paths.get(path).getParent().toString() : ".";
-        sandboxClient.executeBash("mkdir -p \"" + dirPath + "\"", 30);
-
-        // Write file using cat with here document to handle special characters
-        String command = String.format("cat > \"%s\" << 'EOF'\n%s\nEOF", path, content);
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash(command, 30);
-        if (result.getExitCode() != 0) {
-            throw new ToolErrorException("Failed to write file in sandbox: " + result.getStderr());
-        }
-    }
-
-    private void appendToFileInSandbox(String path, String content) throws Exception {
-        // Create directory if needed
-        String dirPath = Paths.get(path).getParent() != null ? Paths.get(path).getParent().toString() : ".";
-        sandboxClient.executeBash("mkdir -p \"" + dirPath + "\"", 30);
-
-        // Append to file using cat with here document
-        String command = String.format("cat >> \"%s\" << 'EOF'\n%s\nEOF", path, content);
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash(command, 30);
-        if (result.getExitCode() != 0) {
-            throw new ToolErrorException("Failed to append to file in sandbox: " + result.getStderr());
-        }
-    }
-
-    private String listDirectoryInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("ls -1 \"" + path + "\"", 30);
-        if (result.getExitCode() != 0) {
-            throw new ToolErrorException("Failed to list directory in sandbox: " + result.getStderr());
-        }
-        return result.getStdout().trim();
-    }
-
-    private boolean fileExistsInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient
-                .executeBash("test -e \"" + path + "\" && echo 'true' || echo 'false'", 30);
-        return "true".equals(result.getStdout().trim());
-    }
-
-    private boolean isDirectoryInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient
-                .executeBash("test -d \"" + path + "\" && echo 'true' || echo 'false'", 30);
-        return "true".equals(result.getStdout().trim());
-    }
-
-    /**
-     * Get file permissions
-     */
-    public String getFilePermissions(String path) {
+    @Tool("创建目录")
+    public String createDirectory(@P("目录路径") String dirPath) {
         try {
-            log.debug("Getting file permissions: {} (sandbox: {})", path, useSandbox);
-
-            if (useSandbox) {
-                return getFilePermissionsInSandbox(path);
-            } else {
-                return getFilePermissionsLocally(path);
-            }
-        } catch (Exception e) {
-            log.error("Error getting file permissions {}: {}", path, e.getMessage(), e);
-            return "Error getting file permissions: " + e.getMessage();
+            Path path = Paths.get(dirPath);
+            Files.createDirectories(path);
+            return "目录创建成功: " + dirPath;
+            
+        } catch (IOException e) {
+            logger.error("创建目录失败: {}", dirPath, e);
+            return "创建目录失败: " + e.getMessage();
         }
     }
 
-    /**
-     * Set file permissions
-     */
-    public String setFilePermissions(String path, String permissions) {
+    @Tool("删除文件或目录")
+    public String deleteFile(@P("文件或目录路径") String path) {
         try {
-            log.debug("Setting file permissions: {} to {} (sandbox: {})", path, permissions, useSandbox);
-
-            if (useSandbox) {
-                setFilePermissionsInSandbox(path, permissions);
-            } else {
-                setFilePermissionsLocally(path, permissions);
-            }
-
-            return "File permissions set successfully for " + path;
-        } catch (Exception e) {
-            log.error("Error setting file permissions {}: {}", path, e.getMessage(), e);
-            return "Error setting file permissions: " + e.getMessage();
-        }
-    }
-
-    private String getFilePermissionsLocally(String path) throws Exception {
-        // For local files, return basic permission info
         Path filePath = Paths.get(path);
         if (!Files.exists(filePath)) {
-            throw new Exception("File does not exist: " + path);
+                return "文件或目录不存在: " + path;
         }
 
-        boolean readable = Files.isReadable(filePath);
-        boolean writable = Files.isWritable(filePath);
-        boolean executable = Files.isExecutable(filePath);
-
-        return String.format("r%sw%sx%s", readable ? "" : "-", writable ? "" : "-", executable ? "" : "-");
-    }
-
-    private void setFilePermissionsLocally(String path, String permissions) throws Exception {
-        // For local files, we can only set basic permissions
-        Path filePath = Paths.get(path);
-        if (!Files.exists(filePath)) {
-            throw new Exception("File does not exist: " + path);
-        }
-
-        // This is a simplified implementation
-        // In a real implementation, you might want to use PosixFilePermissions
-        log.info("Setting permissions {} for file {} (simplified local implementation)", permissions, path);
-    }
-
-    private String getFilePermissionsInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("stat -c '%a' \"" + path + "\"", 30);
-        if (result.getExitCode() != 0) {
-            throw new Exception("Failed to get file permissions in sandbox: " + result.getStderr());
-        }
-        return result.getStdout().trim();
-    }
-
-    private void setFilePermissionsInSandbox(String path, String permissions) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("chmod " + permissions + " \"" + path + "\"",
-                30);
-        if (result.getExitCode() != 0) {
-            throw new Exception("Failed to set file permissions in sandbox: " + result.getStderr());
-        }
-    }
-
-    /**
-     * Get the tool name
-     */
-    public String getName() {
-        return "file_operations";
-    }
-
-    /**
-     * Get the tool description
-     */
-    public String getDescription() {
-        return "File operations tool for reading, writing, listing files and managing permissions";
-    }
-
-    /**
-     * Delete a file
-     */
-    public String deleteFile(String path) throws Exception {
-        log.debug("Deleting file: {} (sandbox: {})", path, useSandbox);
-
-        if (useSandbox) {
-            deleteFileInSandbox(path);
+            if (Files.isDirectory(filePath)) {
+                // 递归删除目录
+                deleteDirectoryRecursively(filePath);
+                return "目录删除成功: " + path;
         } else {
-            deleteFileLocally(path);
-        }
-
-        return "File deleted successfully: " + path;
-    }
-
-    /**
-     * Get file information
-     */
-    public String getFileInfo(String path) throws Exception {
-        log.debug("Getting file info: {} (sandbox: {})", path, useSandbox);
-
-        if (useSandbox) {
-            return getFileInfoInSandbox(path);
-        } else {
-            return getFileInfoLocally(path);
-        }
-    }
-
-    private void deleteFileLocally(String path) throws Exception {
-        Path filePath = Paths.get(path);
-        if (!Files.exists(filePath)) {
-            throw new Exception("File does not exist: " + path);
-        }
         Files.delete(filePath);
-    }
-
-    private void deleteFileInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("rm \"" + path + "\"", 30);
-        if (result.getExitCode() != 0) {
-            throw new Exception("Failed to delete file in sandbox: " + result.getStderr());
+                return "文件删除成功: " + path;
+            }
+            
+        } catch (IOException e) {
+            logger.error("删除失败: {}", path, e);
+            return "删除失败: " + e.getMessage();
         }
     }
-
-    private String getFileInfoLocally(String path) throws Exception {
-        Path filePath = Paths.get(path);
-        if (!Files.exists(filePath)) {
-            throw new Exception("File does not exist: " + path);
+    
+    private void deleteDirectoryRecursively(Path dir) throws IOException {
+        Files.walk(dir)
+            .sorted((a, b) -> b.compareTo(a)) // 先删除子文件，再删除父目录
+            .forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    logger.error("删除文件失败: {}", path, e);
+                }
+            });
+    }
+    
+    @Tool("检查文件是否存在")
+    public String fileExists(@P("文件路径") String filePath) {
+        Path path = Paths.get(filePath);
+        boolean exists = Files.exists(path);
+        return exists ? "文件存在: " + filePath : "文件不存在: " + filePath;
+        }
+    
+    @Tool("获取文件信息")
+    public String getFileInfo(@P("文件路径") String filePath) {
+        try {
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                return "文件不存在: " + filePath;
         }
 
         StringBuilder info = new StringBuilder();
-        info.append("Path: ").append(path).append("\n");
-        info.append("Size: ").append(Files.size(filePath)).append(" bytes\n");
-        info.append("Directory: ").append(Files.isDirectory(filePath)).append("\n");
-        info.append("Readable: ").append(Files.isReadable(filePath)).append("\n");
-        info.append("Writable: ").append(Files.isWritable(filePath)).append("\n");
-        info.append("Executable: ").append(Files.isExecutable(filePath)).append("\n");
-        info.append("Modified: ").append(Files.getLastModifiedTime(filePath));
+            info.append("文件信息:\n");
+            info.append("路径: ").append(path.toAbsolutePath()).append("\n");
+            info.append("大小: ").append(Files.size(path)).append(" 字节\n");
+            info.append("类型: ").append(Files.isDirectory(path) ? "目录" : "文件").append("\n");
+            info.append("可读: ").append(Files.isReadable(path)).append("\n");
+            info.append("可写: ").append(Files.isWritable(path)).append("\n");
 
         return info.toString();
-    }
-
-    private String getFileInfoInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("ls -la \"" + path + "\"", 30);
-        if (result.getExitCode() != 0) {
-            throw new Exception("Failed to get file info in sandbox: " + result.getStderr());
-        }
-        return result.getStdout().trim();
-    }
-
-    /**
-     * Create a directory
-     */
-    public String createDirectory(String path) {
-        try {
-            log.debug("Creating directory: {} (sandbox: {})", path, useSandbox);
-
-            if (useSandbox) {
-                createDirectoryInSandbox(path);
-            } else {
-                createDirectoryLocally(path);
-            }
-
-            return "Directory created successfully: " + path;
-        } catch (Exception e) {
-            log.error("Error creating directory {}: {}", path, e.getMessage(), e);
-            return "Error creating directory: " + e.getMessage();
-        }
-    }
-
-    private void createDirectoryLocally(String path) throws Exception {
-        Path dirPath = Paths.get(path);
-        Files.createDirectories(dirPath);
-    }
-
-    private void createDirectoryInSandbox(String path) throws Exception {
-        SandboxClient.ExecutionResult result = sandboxClient.executeBash("mkdir -p \"" + path + "\"", 30);
-        if (result.getExitCode() != 0) {
-            throw new Exception("Failed to create directory in sandbox: " + result.getStderr());
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (sandboxClient != null) {
-            sandboxClient.close();
+            
+        } catch (IOException e) {
+            logger.error("获取文件信息失败: {}", filePath, e);
+            return "获取文件信息失败: " + e.getMessage();
         }
     }
 }

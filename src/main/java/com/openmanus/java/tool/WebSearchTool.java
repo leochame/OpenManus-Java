@@ -234,12 +234,12 @@ public class WebSearchTool {
         this.searchEngines = Arrays.asList("serpapi", "duckduckgo", "bing"); // Available engines
     }
     
-    @Tool(DESCRIPTION)
+    @Tool(name = "web_search", value = DESCRIPTION)
     public String search(String query) throws ToolErrorException {
         return search(query, 5, "en", "us", false);
     }
     
-    @Tool("Search the web for real-time information with custom parameters.")
+    @Tool(name = "web_search_advanced", value = "Search the web for real-time information with custom parameters.")
     public String search(String query, int numResults, String lang, String country, boolean fetchContent) throws ToolErrorException {
         logger.debug("Searching for: {} (results: {}, lang: {}, country: {}, fetch_content: {})", 
                     query, numResults, lang, country, fetchContent);

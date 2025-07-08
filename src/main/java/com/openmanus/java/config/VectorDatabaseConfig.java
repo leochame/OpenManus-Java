@@ -6,6 +6,8 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 
 import com.openmanus.java.config.OpenManusProperties;
 import org.springframework.context.annotation.Bean;
@@ -136,8 +138,13 @@ public class VectorDatabaseConfig {
                 String query, int maxResults, double minScore) {
             try {
                 Embedding queryEmbedding = embeddingModel.embed(query).content();
-                List<EmbeddingMatch<Metadata>> matches = 
-                    embeddingStore.findRelevant(queryEmbedding, maxResults, minScore);
+                EmbeddingSearchResult<Metadata> searchResult = 
+                    embeddingStore.search(EmbeddingSearchRequest.builder()
+                        .queryEmbedding(queryEmbedding)
+                        .maxResults(maxResults)
+                        .minScore(minScore)
+                        .build());
+                List<EmbeddingMatch<Metadata>> matches = searchResult.matches();
                 
                 logger.debug("搜索完成: 查询='{}', 结果数={}", query, matches.size());
                 return matches;
@@ -182,11 +189,12 @@ public class VectorDatabaseConfig {
         public int size() {
             try {
                 // InMemoryEmbeddingStore 没有直接的 size 方法，我们通过搜索来估算
-                return embeddingStore.findRelevant(
-                    embeddingModel.embed("").content(), 
-                    Integer.MAX_VALUE, 
-                    0.0
-                ).size();
+                return embeddingStore.search(EmbeddingSearchRequest.builder()
+                    .queryEmbedding(embeddingModel.embed("").content())
+                    .maxResults(Integer.MAX_VALUE)
+                    .minScore(0.0)
+                    .build()
+                ).matches().size();
             } catch (Exception e) {
                 logger.warn("无法获取嵌入存储大小: {}", e.getMessage());
                 return 0;

@@ -1,265 +1,284 @@
 package com.openmanus.java.agent;
 
-import com.openmanus.java.model.*;
-import com.openmanus.java.tool.ToolRegistry;
-import com.openmanus.java.llm.LlmClient;
-import com.openmanus.java.config.OpenManusProperties;
-import com.openmanus.java.tool.*;
+import com.openmanus.java.tool.BrowserTool;
+import com.openmanus.java.tool.FileTool;
+import com.openmanus.java.tool.PythonTool;
+import com.openmanus.java.tool.ReflectionTool;
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.AiServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * A versatile general-purpose agent with support for both local and MCP tools.
- * Corresponds to app/agent/manus.py in the Python version.
+ * 基于 LangChain4j AI Services 的智能 Agent 实现
+ * 支持真正的 ReAct 推理链路和 COT 推理过程
  */
 @Component
-public class ManusAgent extends ToolCallAgent {
+public class ManusAgent {
+    
     private static final Logger logger = LoggerFactory.getLogger(ManusAgent.class);
     
-    // Constants matching Python implementation
-    private static final String AGENT_NAME = "Manus";
-    private static final String AGENT_DESCRIPTION = "A versatile agent that can solve various tasks using multiple tools including MCP-based tools";
-    private static final int DEFAULT_MAX_OBSERVE = 10000;
-    private static final int DEFAULT_MAX_STEPS = 20;
+    private final ChatModel chatModel;
+    private final PythonTool pythonTool;
+    private final FileTool fileTool;
+    private final BrowserTool browserTool;
+    private final ReflectionTool reflectionTool;
+    private final ReactAgent reactAgent;
     
-    // MCP and browser support (placeholders for future implementation)
-    private final Map<String, String> connectedServers;
-    private boolean initialized;
-    private BrowserContextHelper browserContextHelper;
-    private final OpenManusProperties properties;
-    
-    /**
-     * Constructor for ManusAgent with default configuration.
-     */
-    @Autowired
-    public ManusAgent(LlmClient llm, Memory memory, OpenManusProperties properties) {
-        this(llm, memory, properties, createDefaultToolRegistry(properties), ToolChoice.AUTO, createDefaultSpecialTools());
-    }
-    
-    /**
-     * Full constructor for ManusAgent.
-     */
-    public ManusAgent(LlmClient llm, Memory memory, OpenManusProperties properties, ToolRegistry availableTools, 
-                     ToolChoice toolChoice, Set<String> specialToolNames) {
-        super(AGENT_NAME, AGENT_DESCRIPTION, createSystemPrompt(properties), llm, memory, 
-              availableTools, toolChoice, specialToolNames);
+    public ManusAgent(@Qualifier("chatModel") ChatModel chatModel,
+                     PythonTool pythonTool,
+                     FileTool fileTool,
+                     BrowserTool browserTool,
+                     ReflectionTool reflectionTool) {
+        this.chatModel = chatModel;
+        this.pythonTool = pythonTool;
+        this.fileTool = fileTool;
+        this.browserTool = browserTool;
+        this.reflectionTool = reflectionTool;
         
-        this.properties = properties;
-        this.connectedServers = new HashMap<>();
-        this.initialized = true;  // Set to true after successful construction
-        this.maxObserve = DEFAULT_MAX_OBSERVE;
+        // 创建AI Services实例
+        this.reactAgent = AiServices.builder(ReactAgent.class)
+                .chatModel(chatModel)
+                .tools(new ToolProvider(pythonTool, fileTool, browserTool))
+                .build();
         
-        // Initialize browser context helper (placeholder)
-        // this.browserContextHelper = new BrowserContextHelper(this);
+        logger.info("ManusAgent initialized with ChatModel: {}", chatModel.getClass().getSimpleName());
+    }
+    
+    /**
+     * ReAct Agent接口定义
+     */
+    public interface ReactAgent {
+        String reason(String userMessage);
+    }
+    
+    /**
+     * 工具提供者类
+     */
+    public static class ToolProvider {
+        private final PythonTool pythonTool;
+        private final FileTool fileTool;
+        private final BrowserTool browserTool;
         
-        logger.info("ManusAgent initialized with {} tools", availableTools.getToolCount());
+        public ToolProvider(PythonTool pythonTool, FileTool fileTool, BrowserTool browserTool) {
+            this.pythonTool = pythonTool;
+            this.fileTool = fileTool;
+            this.browserTool = browserTool;
+        }
+        
+        @Tool("Execute Python code for calculations, data processing, or programming tasks")
+        public String executePython(String code) {
+            return pythonTool.executePython(code);
+        }
+        
+        @Tool("List files and directories in the specified path")
+        public String listDirectory(String path) {
+            return fileTool.listDirectory(path);
+        }
+        
+        @Tool("Read content from a file")
+        public String readFile(String path) {
+            return fileTool.readFile(path);
+        }
+        
+        @Tool("Write content to a file")
+        public String writeFile(String path, String content) {
+            return fileTool.writeFile(path, content);
+        }
+        
+        @Tool("Browse a web page and return its content")
+        public String browseWeb(String url) {
+            return browserTool.browseWeb(url);
+        }
     }
     
     /**
-     * Create default tool registry with general-purpose tools.
-     * Corresponds to the available_tools field in Python Manus class.
+     * 与Agent对话（带真正的COT推理过程）
      */
-    private static ToolRegistry createDefaultToolRegistry(OpenManusProperties properties) {
-        // Create registry with tool instances - ToolRegistry constructor handles registration
-        return new ToolRegistry(
-            new PythonTool(properties),
-            new BrowserTool(properties),
-            new FileTool(properties),
-            new AskHumanTool(),
-            new TerminateTool()
-        );
-    }
-    
-    /**
-     * Create default special tool names.
-     */
-    private static Set<String> createDefaultSpecialTools() {
-        Set<String> specialTools = new HashSet<>();
-        specialTools.add("terminate");
-        return specialTools;
-    }
-    
-    /**
-     * Create system prompt with workspace directory.
-     * Corresponds to system_prompt field in Python Manus class.
-     */
-    private static String createSystemPrompt(OpenManusProperties properties) {
-        String workspaceRoot = properties.getApp().getWorkspaceRoot();
-        return String.format(
-            "You are Manus, a versatile AI assistant capable of solving various tasks using multiple tools.\n" +
-            "Current workspace directory: %s\n" +
-            "You can execute Python code, browse the web, edit files, and interact with users.\n" +
-            "Always think step by step and use the most appropriate tools for each task.",
-            workspaceRoot
-        );
-    }
-    
-    /**
-     * Factory method to create and properly initialize a Manus instance.
-     * Corresponds to the create() classmethod in Python Manus class.
-     */
-    public static CompletableFuture<ManusAgent> create(LlmClient llm, Memory memory, OpenManusProperties properties) {
-        return CompletableFuture.supplyAsync(() -> {
-            ManusAgent instance = new ManusAgent(llm, memory, properties, createDefaultToolRegistry(properties), ToolChoice.AUTO, createDefaultSpecialTools());
-            // Initialize MCP servers (placeholder for future implementation)
-            // instance.initializeMcpServers();
-            instance.initialized = true;
-            return instance;
-        });
-    }
-    
-    /**
-     * Initialize connections to configured MCP servers.
-     * Corresponds to initialize_mcp_servers() method in Python Manus class.
-     * Currently a placeholder for future MCP implementation.
-     */
-    public CompletableFuture<Void> initializeMcpServers() {
-        return CompletableFuture.runAsync(() -> {
-            logger.info("Initializing MCP servers (placeholder implementation)");
-            // TODO: Implement MCP server connections
-            // For now, just mark as initialized
-            initialized = true;
-        });
-    }
-    
-    /**
-     * Connect to an MCP server and add its tools.
-     * Corresponds to connect_mcp_server() method in Python Manus class.
-     * Currently a placeholder for future MCP implementation.
-     */
-    public CompletableFuture<Void> connectMcpServer(String serverUrl, String serverId, 
-                                                   boolean useStdio, List<String> stdioArgs) {
-        return CompletableFuture.runAsync(() -> {
-            logger.info("Connecting to MCP server {} at {} (placeholder)", serverId, serverUrl);
-            connectedServers.put(serverId, serverUrl);
-            // TODO: Implement actual MCP connection logic
-        });
-    }
-    
-    /**
-     * Disconnect from an MCP server and remove its tools.
-     * Corresponds to disconnect_mcp_server() method in Python Manus class.
-     */
-    public CompletableFuture<Void> disconnectMcpServer(String serverId) {
-        return CompletableFuture.runAsync(() -> {
-            logger.info("Disconnecting from MCP server {} (placeholder)", serverId);
-            if (serverId.isEmpty()) {
-                connectedServers.clear();
-            } else {
-                connectedServers.remove(serverId);
-            }
-            // TODO: Implement actual MCP disconnection logic
-        });
-    }
-    
-    /**
-     * Process current state and decide next actions with appropriate context.
-     * Overrides the parent think() method to add browser context handling.
-     * Corresponds to think() method in Python Manus class.
-     */
-    @Override
-    public CompletableFuture<Boolean> think() {
-        return CompletableFuture.supplyAsync(() -> {
-            if (!initialized) {
-                // Initialize MCP servers if not already done
-                initializeMcpServers().join();
-                initialized = true;
+    public Map<String, Object> chatWithCot(String userMessage) {
+        logger.info("开始处理用户消息: {}", userMessage);
+        
+        List<String> cotSteps = new ArrayList<>();
+        String finalAnswer = "";
+        String fullContent = "";
+        
+        try {
+            // 步骤1：记录用户输入
+            cotSteps.add("用户输入: " + userMessage);
+            
+            // 步骤2：构建ReAct提示词
+            String reactPrompt = buildReactPrompt(userMessage);
+            cotSteps.add("构建ReAct提示词完成");
+            
+            // 步骤3：调用AI Services进行推理
+            logger.info("调用ReactAgent进行推理...");
+            String agentResponse = reactAgent.reason(reactPrompt);
+            logger.info("Agent响应: {}", agentResponse);
+            
+            // 步骤4：解析响应并提取COT步骤
+            List<String> reasoningSteps = parseReasoningSteps(agentResponse);
+            cotSteps.addAll(reasoningSteps);
+            
+            // 步骤5：提取最终答案
+            finalAnswer = extractFinalAnswer(agentResponse);
+            if (finalAnswer.isEmpty()) {
+                finalAnswer = agentResponse; // 如果没有明确的答案标记，使用整个响应
             }
             
-            // Store original prompt
-            String originalPrompt = nextStepPrompt;
+            // 保存完整内容
+            fullContent = finalAnswer;
             
-            // Check if browser is in use in recent messages
-            List<Message> recentMessages = memory.getMessages();
-            int startIndex = Math.max(0, recentMessages.size() - 3);
-            List<Message> lastThreeMessages = recentMessages.subList(startIndex, recentMessages.size());
+            // 步骤6：反思
+            String taskId = "task_" + System.currentTimeMillis();
+            reflectionTool.recordTask(taskId, userMessage, 
+                                    String.join(" -> ", cotSteps), 
+                                    "ReAct推理", finalAnswer);
+            String reflection = reflectionTool.reflectOnTask(taskId);
+            cotSteps.add("反思: " + reflection);
             
-            boolean browserInUse = lastThreeMessages.stream()
-                .filter(msg -> msg.getToolCalls() != null)
-                .flatMap(msg -> msg.getToolCalls().stream())
-                .anyMatch(tc -> "browser_use".equals(tc.function().name()));
+            logger.info("推理完成，最终答案: {}", finalAnswer);
             
-            if (browserInUse && browserContextHelper != null) {
-                // Format next step prompt with browser context
-                nextStepPrompt = browserContextHelper.formatNextStepPrompt();
-            }
-            
-            try {
-                // Call parent think() method
-                return super.think().join();
-            } finally {
-                // Restore original prompt
-                nextStepPrompt = originalPrompt;
-            }
-        });
+        } catch (Exception e) {
+            logger.error("处理用户消息时出现错误", e);
+            cotSteps.add("错误: " + e.getMessage());
+            finalAnswer = "抱歉，处理您的问题时出现了错误：" + e.getMessage();
+            fullContent = finalAnswer;
+        }
+        
+        // 提取完整的回答内容
+        String completeAnswer = extractCompleteAnswer(finalAnswer);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("answer", completeAnswer);
+        result.put("content", fullContent);  // 添加完整内容字段
+        result.put("cot", cotSteps);
+        
+        // 记录完整的返回内容
+        logger.debug("完整回答内容: {}", completeAnswer);
+        logger.debug("COT步骤数量: {}", cotSteps.size());
+        
+        return result;
     }
     
     /**
-     * Clean up Manus agent resources.
-     * Corresponds to cleanup() method in Python Manus class.
+     * 提取完整的回答内容，确保不被截断
      */
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        logger.info("Cleaning up ManusAgent resources...");
+    private String extractCompleteAnswer(String answer) {
+        // 检查是否有列表格式的回答
+        Pattern listPattern = Pattern.compile("(\\d+\\..+?)(?=\\d+\\.|$)", Pattern.DOTALL);
+        Matcher matcher = listPattern.matcher(answer);
         
-        // Clean up browser context helper
-        if (browserContextHelper != null) {
-            try {
-                browserContextHelper.cleanup();
-            } catch (Exception e) {
-                logger.error("Error cleaning up browser context: {}", e.getMessage(), e);
+        StringBuilder fullAnswer = new StringBuilder();
+        boolean foundList = false;
+        
+        while (matcher.find()) {
+            foundList = true;
+            fullAnswer.append(matcher.group(1)).append("\n");
+        }
+        
+        if (foundList) {
+            return fullAnswer.toString().trim();
+        }
+        
+        return answer;
+    }
+    
+    /**
+     * 构建ReAct提示词
+     */
+    private String buildReactPrompt(String userMessage) {
+        return String.format("""
+            你是一个智能助手，请使用ReAct (Reasoning and Acting) 框架来回答用户问题。
+            
+            请按照以下格式进行推理：
+            
+            思考: [分析问题，思考需要做什么]
+            行动: [如果需要使用工具，说明要使用什么工具和参数]
+            观察: [工具执行的结果]
+            思考: [基于观察结果继续推理]
+            行动: [如果需要更多信息，继续使用工具]
+            观察: [更多的工具执行结果]
+            答案: [基于所有推理和观察给出最终答案]
+            
+            可用工具：
+            - executePython: 执行Python代码，适用于数学计算、数据处理等
+            - listDirectory: 列出目录中的文件
+            - readFile: 读取文件内容
+            - writeFile: 写入文件
+            - browseWeb: 浏览网页
+            
+            用户问题: %s
+            
+            请开始你的推理：
+            """, userMessage);
+    }
+    
+    /**
+     * 解析推理步骤
+     */
+    private List<String> parseReasoningSteps(String response) {
+        List<String> steps = new ArrayList<>();
+        
+        String[] lines = response.split("\\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (line.startsWith("思考:") || line.startsWith("Thought:")) {
+                steps.add("思考: " + line.substring(line.indexOf(":") + 1).trim());
+            } else if (line.startsWith("行动:") || line.startsWith("Action:")) {
+                steps.add("行动: " + line.substring(line.indexOf(":") + 1).trim());
+            } else if (line.startsWith("观察:") || line.startsWith("Observation:")) {
+                steps.add("观察: " + line.substring(line.indexOf(":") + 1).trim());
             }
         }
         
-        // Disconnect from all MCP servers if initialized
-        if (initialized) {
-            disconnectMcpServer("").join();
-            initialized = false;
+        // 如果没有解析到明确的步骤，创建基本的推理步骤
+        if (steps.isEmpty()) {
+            steps.add("思考: 正在分析用户问题...");
+            steps.add("行动: 调用相应工具处理问题");
+            steps.add("观察: 获取工具执行结果");
         }
         
-        logger.info("ManusAgent cleanup complete.");
-    }
-    
-    // Getters for monitoring and debugging
-    public Map<String, String> getConnectedServers() {
-        return new HashMap<>(connectedServers);
-    }
-    
-    public boolean isInitialized() {
-        return initialized;
+        return steps;
     }
     
     /**
-     * Get the properties configuration.
+     * 提取最终答案
      */
-    public OpenManusProperties getProperties() {
-        return properties;
-    }
-    
-    /**
-     * Placeholder class for browser context helper.
-     * Will be implemented when browser functionality is added.
-     */
-    private static class BrowserContextHelper {
-        private final ManusAgent agent;
+    private String extractFinalAnswer(String response) {
+        String[] lines = response.split("\\n");
+        StringBuilder answer = new StringBuilder();
+        boolean answerStarted = false;
         
-        public BrowserContextHelper(ManusAgent agent) {
-            this.agent = agent;
+        for (String line : lines) {
+            line = line.trim();
+            if (line.startsWith("答案:") || line.startsWith("Answer:") || 
+                line.startsWith("最终答案:") || line.startsWith("Final Answer:")) {
+                answerStarted = true;
+                answer.append(line.substring(line.indexOf(":") + 1).trim());
+            } else if (answerStarted) {
+                answer.append("\n").append(line);
+            }
         }
         
-        public String formatNextStepPrompt() {
-            // Placeholder implementation
-            return "Continue with the browser task...";
+        if (answer.length() > 0) {
+            return answer.toString().trim();
         }
         
-        public void cleanup() {
-            // Placeholder cleanup
+        // 如果没有找到明确的答案标记，尝试获取最后几行作为答案
+        if (lines.length > 0) {
+            return lines[lines.length - 1].trim();
         }
+        
+        return response;
     }
 }

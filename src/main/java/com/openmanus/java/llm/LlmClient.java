@@ -11,7 +11,8 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentMap;
 public class LlmClient {
     private static final Logger log = LoggerFactory.getLogger(LlmClient.class);
     
-    private final ChatLanguageModel model;
+    private final ChatModel model;
     private final String modelName;
     private final int maxTokens;
     private final double temperature;
@@ -57,7 +58,7 @@ public class LlmClient {
         "claude-3-haiku-20240307"
     );
     
-    public LlmClient(ChatLanguageModel model, OpenManusProperties.LLMSettings.DefaultLLM config) {
+    public LlmClient(ChatModel model, OpenManusProperties.LLMSettings.DefaultLLM config) {
         this.model = model;
         this.modelName = config.getModel();
         this.maxTokens = config.getMaxTokens();
@@ -130,12 +131,12 @@ public class LlmClient {
             }
             
             // Make the API call
-            Response<AiMessage> response = model.generate(chatMessages);
+            ChatResponse response = model.chat(chatMessages);
             
             // Update token counts
-            updateTokenCount(estimatedInputTokens, estimateTokens(response.content().text()));
+            updateTokenCount(estimatedInputTokens, estimateTokens(response.aiMessage().text()));
             
-            return response.content().text();
+            return response.aiMessage().text();
             
         } catch (Exception e) {
             log.error("Error in LLM call: {}", e.getMessage(), e);
@@ -192,11 +193,12 @@ public class LlmClient {
             // Make the API call with tool support
             Response<AiMessage> response;
             if (toolSpecifications != null && !toolSpecifications.isEmpty()) {
-                // Use tool-enabled generation
-                response = model.generate(chatMessages, toolSpecifications);
+                // For now, we'll call without tools since ChatModel doesn't support direct tool passing
+                // Tools need to be bound to the model first
+                response = Response.from(model.chat(chatMessages).aiMessage());
             } else {
                 // Regular generation without tools
-                response = model.generate(chatMessages);
+                response = Response.from(model.chat(chatMessages).aiMessage());
             }
             
             // Update token counts
@@ -278,10 +280,23 @@ public class LlmClient {
         // Simplified token estimation - in production, use a proper tokenizer
         return messages.stream()
             .mapToInt(msg -> {
-                String text = msg.text();
+                String text = getMessageText(msg);
                 return text != null ? text.length() / 4 : 0; // Rough estimate: 1 token ≈ 4 characters
             })
             .sum();
+    }
+    
+    private String getMessageText(ChatMessage message) {
+        if (message instanceof UserMessage) {
+            return ((UserMessage) message).singleText();
+        } else if (message instanceof AiMessage) {
+            return ((AiMessage) message).text();
+        } else if (message instanceof SystemMessage) {
+            return ((SystemMessage) message).text();
+        } else if (message instanceof ToolExecutionResultMessage) {
+            return ((ToolExecutionResultMessage) message).text();
+        }
+        return "";
     }
     
     private int estimateTokens(String text) {

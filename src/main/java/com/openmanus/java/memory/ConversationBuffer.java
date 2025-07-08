@@ -82,7 +82,7 @@ public class ConversationBuffer {
         // 系统消息单独处理
         if (message instanceof SystemMessage) {
             systemMessages.add(message);
-            logger.debug("添加系统消息: {}", truncateText(message.text(), 100));
+            logger.debug("添加系统消息: {}", truncateText(getMessageText(message), 100));
             return;
         }
         
@@ -91,7 +91,7 @@ public class ConversationBuffer {
         
         logger.debug("添加消息: 类型={}, 内容={}", 
                     message.getClass().getSimpleName(), 
-                    truncateText(message.text(), 100));
+                    truncateText(getMessageText(message), 100));
         
         // 检查是否需要清理
         if (shouldCleanup()) {
@@ -246,10 +246,10 @@ public class ConversationBuffer {
     private int estimateTokenCount() {
         // 简单估算：1个token约等于4个字符
         return messages.stream()
-                .mapToInt(entry -> entry.getMessage().text().length() / 4)
+                .mapToInt(entry -> getMessageText(entry.getMessage()).length() / 4)
                 .sum() +
                systemMessages.stream()
-                .mapToInt(msg -> msg.text().length() / 4)
+                .mapToInt(msg -> getMessageText(msg).length() / 4)
                 .sum();
     }
     
@@ -267,6 +267,22 @@ public class ConversationBuffer {
         if (text == null) return "null";
         if (text.length() <= maxLength) return text;
         return text.substring(0, maxLength) + "...";
+    }
+    
+    /**
+     * 从ChatMessage中获取文本内容
+     */
+    private String getMessageText(ChatMessage message) {
+        if (message instanceof UserMessage) {
+            return ((UserMessage) message).singleText();
+        } else if (message instanceof AiMessage) {
+            return ((AiMessage) message).text();
+        } else if (message instanceof SystemMessage) {
+            return ((SystemMessage) message).text();
+        } else if (message instanceof ToolExecutionResultMessage) {
+            return ((ToolExecutionResultMessage) message).text();
+        }
+        return "";
     }
     
     /**

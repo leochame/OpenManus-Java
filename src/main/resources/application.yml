@@ -8,18 +8,18 @@ openmanus:
 
   llm:
     default-llm:
-      model: "qwen-plus"
+      model: "qwen-max"
       base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1/"
       api-type: "openai"
       temperature: 0.7
       max-tokens: 8192
       timeout: 120
       # 阿里云百炼 API key
-      api-key: "sk-215d832f34f34d0b927e3ff36c8df6c1"
+      api-key: "sk-9ced5f4658584abe9b786a0876e850c4"
 
   sandbox:
     type: "docker"
-    use-sandbox: true
+    use-sandbox: false
     image: "python:3.11-slim"
     work-dir: "/workspace"
     memory-limit: "512m"
@@ -43,8 +43,8 @@ openmanus:
     api-key: ""
     max-results: 10
 
-  mcp:
-    enabled: false
+  # MCP配置已移除，现在直接使用langchain4j-mcp的DefaultMcpClient
+  # 如需使用MCP工具，请在业务代码中直接new DefaultMcpClient
 
   runflow:
     enabled: false
@@ -52,7 +52,58 @@ openmanus:
     timeout: 300
 
 # Spring Boot配置
+server:
+  port: 8089
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: openmanus-java-web
+  
+  # Web相关配置
+  web:
+    resources:
+      static-locations: classpath:/static/
+      cache:
+        period: 0 # 开发环境不缓存静态资源
+
+  # JSON配置
+  jackson:
+    date-format: "yyyy-MM-dd HH:mm:ss"
+    time-zone: "Asia/Shanghai"
+    default-property-inclusion: NON_NULL
+
+  # WebSocket配置
+  websocket:
+    servlet:
+      allowed-origins: "*"
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+
+# OpenAPI/Swagger配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
 logging:
   level:
     com.openmanus.java: INFO
     root: INFO
+    org.springframework.web: DEBUG

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenManus Java - 智能对话</title>
+    
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Element Plus UI Library -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus"></script>
+    
+    <!-- Element Plus Icons -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    
+    <!-- Markdown renderer -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.8em;
+            text-align: center;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 15px;
+            height: calc(100vh - 140px);
+        }
+        
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .cot-panel {
+            width: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cot-panel.active {
+            width: 45%;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .cot-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+            scrollbar-width: thin;
+            scrollbar-color: #ccc #f8f9fa;
+        }
+        
+        /* 自定义滚动条样式 */
+        .cot-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .cot-content::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+        
+        .cot-content::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 10px;
+            border: 2px solid #f8f9fa;
+        }
+        
+        .cot-content::-webkit-scrollbar-thumb:hover {
+            background-color: #aaa;
+        }
+        
+        .cot-header {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .message.user {
+            text-align: right;
+        }
+        
+        .message.assistant {
+            text-align: left;
+        }
+        
+        .message-content {
+            display: inline-block;
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .message.assistant .message-content {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #e9ecef;
+        }
+        
+        .message-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 5px;
+            gap: 8px;
+        }
+        
+        .cot-step {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid #28a745;
+            font-size: 0.9em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .cot-step-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #28a745;
+        }
+        
+        .chat-input {
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-group .el-input {
+            flex: 1;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 18px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #6c757d;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        /* 长回答折叠样式 */
+        .answer-container {
+            position: relative;
+        }
+        
+        .answer-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .answer-content.collapsed {
+            max-height: 200px;
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+        
+        .toggle-answer {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 10px;
+            }
+            
+            .main-content {
+                flex-direction: column;
+                height: calc(100vh - 120px);
+            }
+            
+            .cot-panel.active {
+                width: 100%;
+                margin-top: 15px;
+                height: 300px;
+            }
+            
+            .chat-panel {
+                height: calc(100vh - 435px);
+            }
+            
+            .cot-content {
+                max-height: 250px;
+            }
+            
+            .answer-content.collapsed {
+                max-height: 150px;
+            }
+        }
+        
+        /* 代码块样式优化 */
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 12px;
+            overflow: auto;
+            margin: 10px 0;
+        }
+        
+        code {
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+            font-size: 85%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="app-container">
+            <!-- 头部 -->
+            <div class="chat-header">
+                <h1>🤖 OpenManus Java - 智能对话</h1>
+                <p style="text-align: center; margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">
+                    基于 langchain4j 和 langgraph4j 的智能 Agent，支持 ReAct 推理和工具调用
+                </p>
+            </div>
+            
+            <div class="main-content">
+                <!-- 左侧聊天面板 -->
+                <div class="chat-panel">
+                    <!-- 消息区域 -->
+                    <div class="chat-messages" ref="messagesContainer">
+                        <div v-if="messages.length === 0" class="empty-state">
+                            <div class="empty-state-icon">
+                                <el-icon><ChatDotRound /></el-icon>
+                            </div>
+                            <span>开始你的对话吧！</span>
+                        </div>
+                        
+                        <div v-for="(message, index) in messages" :key="index" 
+                             :class="['message', message.role]">
+                            <div class="message-content">
+                                <div v-if="message.role === 'user'">
+                                    {{ message.content }}
+                                </div>
+                                <div v-else class="answer-container">
+                                    <!-- 回答内容 -->
+                                    <div :class="['answer-content', { 'collapsed': isLongAnswer(message) && !expandedAnswers[index] }]">
+                                        <div v-html="renderMarkdown(message.answer || message.content)"></div>
+                                    </div>
+                                    
+                                    <!-- 展开/收起按钮 -->
+                                    <div v-if="isLongAnswer(message)" class="toggle-answer">
+                                        <el-button size="small" @click="toggleAnswer(index)" type="info" plain>
+                                            {{ expandedAnswers[index] ? '收起回答' : '展开完整回答' }}
+                                            <el-icon>
+                                                <component :is="expandedAnswers[index] ? 'ArrowUp' : 'ArrowDown'" />
+                                            </el-icon>
+                                        </el-button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div v-if="message.role === 'assistant' && message.cot && message.cot.length > 0" 
+                                 class="message-actions">
+                                <el-button size="small" type="primary" plain @click="showCot(index)">
+                                    <el-icon><View /></el-icon> 查看推理过程
+                                </el-button>
+                            </div>
+                        </div>
+                        
+                        <!-- 加载指示器 -->
+                        <div v-if="loading" class="message assistant">
+                            <div class="message-content">
+                                <div class="typing-indicator">
+                                    <span>AI 正在思考中</span>
+                                    <div class="typing-dots">
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 错误信息 -->
+                        <div v-if="error" class="error">
+                            {{ error }}
+                        </div>
+                    </div>
+                    
+                    <!-- 输入区域 -->
+                    <div class="chat-input">
+                        <div class="input-group">
+                            <el-input
+                                v-model="inputMessage"
+                                placeholder="输入你的问题..."
+                                @keyup.enter="sendMessage"
+                                :disabled="loading"
+                                clearable>
+                            </el-input>
+                            <el-button 
+                                type="primary" 
+                                @click="sendMessage"
+                                :loading="loading"
+                                :disabled="!inputMessage.trim()">
+                                <el-icon><Promotion /></el-icon>
+                                发送
+                            </el-button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧思考链面板 -->
+                <div class="cot-panel" :class="{ active: activeCotIndex !== null }">
+                    <div v-if="activeCotIndex !== null" style="height: 100%; display: flex; flex-direction: column;">
+                        <div class="cot-header">
+                            <h3 style="margin: 0;">推理过程 (Chain of Thought)</h3>
+                            <el-button size="small" circle @click="hideCot">
+                                <el-icon><Close /></el-icon>
+                            </el-button>
+                        </div>
+                        
+                        <div class="cot-content" ref="cotContentContainer">
+                            <div v-for="(step, stepIndex) in activeCotSteps" :key="stepIndex" class="cot-step">
+                                <div class="cot-step-header">步骤 {{ stepIndex + 1 }}</div>
+                                <div v-html="renderMarkdown(step)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, nextTick, watch } = Vue;
+        const { ElMessage } = ElementPlus;
+        
+        createApp({
+            setup() {
+                const messages = ref([]);
+                const inputMessage = ref('');
+                const loading = ref(false);
+                const error = ref('');
+                const messagesContainer = ref(null);
+                const cotContentContainer = ref(null);
+                const activeCotIndex = ref(null);
+                const expandedAnswers = reactive({});
+                
+                // 计算当前显示的思考链步骤
+                const activeCotSteps = computed(() => {
+                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
+                        return messages.value[activeCotIndex.value].cot || [];
+                    }
+                    return [];
+                });
+                
+                // 监听思考链变化，自动滚动到顶部
+                watch(activeCotIndex, (newVal) => {
+                    if (newVal !== null) {
+                        nextTick(() => {
+                            if (cotContentContainer.value) {
+                                cotContentContainer.value.scrollTop = 0;
+                            }
+                        });
+                    }
+                });
+                
+                // 判断是否为长回答（超过500个字符）
+                const isLongAnswer = (message) => {
+                    const content = message.answer || message.content || '';
+                    return content.length > 500;
+                };
+                
+                // 切换回答的展开/收起状态
+                const toggleAnswer = (index) => {
+                    expandedAnswers[index] = !expandedAnswers[index];
+                    nextTick(() => {
+                        scrollToBottom();
+                    });
+                };
+                
+                // 渲染 Markdown
+                const renderMarkdown = (text) => {
+                    if (!text) return '';
+                    try {
+                        const rendered = marked.parse(text);
+                        nextTick(() => {
+                            document.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightElement(block);
+                            });
+                        });
+                        return rendered;
+                    } catch (e) {
+                        return text;
+                    }
+                };
+                
+                // 显示思考链
+                const showCot = (messageIndex) => {
+                    activeCotIndex.value = messageIndex;
+                };
+                
+                // 隐藏思考链
+                const hideCot = () => {
+                    activeCotIndex.value = null;
+                };
+                
+                // 发送消息
+                const sendMessage = async () => {
+                    if (!inputMessage.value.trim() || loading.value) return;
+                    
+                    const userMessage = inputMessage.value.trim();
+                    
+                    // 添加用户消息
+                    messages.value.push({
+                        role: 'user',
+                        content: userMessage
+                    });
+                    
+                    // 清空输入框
+                    inputMessage.value = '';
+                    
+                    // 显示加载状态
+                    loading.value = true;
+                    error.value = '';
+                    
+                    try {
+                        // 滚动到底部
+                        await nextTick();
+                        scrollToBottom();
+                        
+                        // 发送请求
+                        const response = await fetch('/api/agent/chat/cot', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: userMessage
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log("API返回数据:", data);
+                        
+                        // 添加 AI 回复 - 确保使用完整内容
+                        const messageIndex = messages.value.length;
+                        const fullContent = data.content || data.answer || '';
+                        
+                        messages.value.push({
+                            role: 'assistant',
+                            content: fullContent,
+                            answer: data.answer,
+                            cot: data.cot || []
+                        });
+                        
+                        // 默认设置长回答为折叠状态
+                        if (isLongAnswer(messages.value[messageIndex])) {
+                            expandedAnswers[messageIndex] = false;
+                        }
+                        
+                        // 隐藏思考链面板
+                        hideCot();
+                        
+                        // 滚动到底部
+                        await nextTick();
+                        scrollToBottom();
+                        
+                    } catch (err) {
+                        console.error('发送消息失败:', err);
+                        error.value = `发送消息失败: ${err.message}`;
+                        ElMessage.error('发送消息失败，请重试');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+                
+                // 滚动到底部
+                const scrollToBottom = () => {
+                    if (messagesContainer.value) {
+                        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+                    }
+                };
+                
+                return {
+                    messages,
+                    inputMessage,
+                    loading,
+                    error,
+                    messagesContainer,
+                    cotContentContainer,
+                    activeCotIndex,
+                    activeCotSteps,
+                    expandedAnswers,
+                    isLongAnswer,
+                    toggleAnswer,
+                    sendMessage,
+                    renderMarkdown,
+                    showCot,
+                    hideCot
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

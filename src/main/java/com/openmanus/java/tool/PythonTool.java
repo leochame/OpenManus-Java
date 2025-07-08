@@ -1,157 +1,107 @@
 package com.openmanus.java.tool;
 
-import com.openmanus.java.config.OpenManusProperties;
-import com.openmanus.java.sandbox.SandboxClient;
+import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.Closeable;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 /**
- * Python code execution tool that uses sandbox for secure execution.
- * Corresponds to python_execute.py in the Python version.
- * 
- * Features:
- * - Timeout support (default 5 seconds)
- * - Secure execution in sandbox
- * - Captures stdout and stderr
- * - Returns structured result with success status
+ * Python 代码执行工具
+ * 使用 langchain4j 的 @Tool 注解
  */
-@Slf4j
 @Component
-public class PythonTool implements Closeable {
-    private static final Logger log = LoggerFactory.getLogger(PythonTool.class);
-
-    private final SandboxClient sandboxClient;
-    private static final int DEFAULT_TIMEOUT_SECONDS = 5;
+public class PythonTool {
     
-    public static final String NAME = "python_execute";
-    public static final String DESCRIPTION = "Executes Python code string. Note: Only print outputs are visible, function return values are not captured. Use print statements to see results.";
+    private static final Logger logger = LoggerFactory.getLogger(PythonTool.class);
 
-    @Autowired
-    public PythonTool(OpenManusProperties properties) {
-        this.sandboxClient = new SandboxClient(properties);
-    }
-    
-    public PythonTool(SandboxClient sandboxClient) {
-        this.sandboxClient = sandboxClient;
-    }
-
-    @Tool(DESCRIPTION)
-    public Map<String, Object> execute(String code) {
-        return execute(code, DEFAULT_TIMEOUT_SECONDS);
-    }
-    
-    /**
-     * Execute Python code with custom timeout.
-     * Mimics the Python version's behavior with structured return.
-     * 
-     * @param code Python code to execute
-     * @param timeoutSeconds Timeout in seconds
-     * @return Map containing 'observation' and 'success' keys
-     */
-    public Map<String, Object> execute(String code, int timeoutSeconds) {
-        Map<String, Object> result = new HashMap<>();
-        
+    @Tool("执行 Python 代码")
+    public String executePython(@P("Python 代码") String code) {
         try {
-            log.debug("Executing Python code: {}", code.substring(0, Math.min(code.length(), 100)));
+            // 创建临时文件
+            String tempDir = System.getProperty("java.io.tmpdir");
+            String fileName = "python_" + UUID.randomUUID().toString().substring(0, 8) + ".py";
+            Path filePath = Paths.get(tempDir, fileName);
             
-            // Execute with timeout using CompletableFuture
-            CompletableFuture<SandboxClient.ExecutionResult> future = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return sandboxClient.executePython(code, timeoutSeconds);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+            // 写入代码到文件
+            Files.write(filePath, code.getBytes());
+            
+            // 执行 Python 代码
+            ProcessBuilder processBuilder = new ProcessBuilder("python3", filePath.toString());
+            processBuilder.redirectErrorStream(true);
+            
+            Process process = processBuilder.start();
+            
+            // 读取输出
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
                 }
-            });
-            
-            SandboxClient.ExecutionResult execResult;
-            try {
-                execResult = future.get(timeoutSeconds, TimeUnit.SECONDS);
-            } catch (TimeoutException e) {
-                future.cancel(true);
-                result.put("observation", "Execution timeout after " + timeoutSeconds + " seconds");
-                result.put("success", false);
-                return result;
             }
             
-            // Build observation string similar to Python version
-            StringBuilder observation = new StringBuilder();
+            // 等待进程完成
+            int exitCode = process.waitFor();
             
-            if (!execResult.getStdout().isEmpty()) {
-                observation.append(execResult.getStdout());
+            // 清理临时文件
+            Files.deleteIfExists(filePath);
+            
+            if (exitCode == 0) {
+                return "执行成功:\n" + output.toString();
+            } else {
+                return "执行失败 (退出码: " + exitCode + "):\n" + output.toString();
             }
             
-            if (!execResult.getStderr().isEmpty()) {
-                if (observation.length() > 0) {
-                    observation.append("\n");
-                }
-                observation.append(execResult.getStderr());
+        } catch (IOException | InterruptedException e) {
+            logger.error("Python 执行失败", e);
+            return "执行失败: " + e.getMessage();
             }
-            
-            boolean success = execResult.getExitCode() == 0;
-            String finalObservation = observation.toString();
-            
-            result.put("observation", finalObservation);
-            result.put("success", success);
-            
-            log.debug("Python execution result - success: {}, observation: {}", success, 
-                     finalObservation.substring(0, Math.min(finalObservation.length(), 100)));
-            
-            return result;
-            
-        } catch (Exception e) {
-            log.error("Error executing Python code: {}", e.getMessage(), e);
-            result.put("observation", e.getMessage());
-            result.put("success", false);
-            return result;
-        }
     }
     
-    /**
-     * Convenience method that returns a string representation for tool calls.
-     * This method is used when the tool is called from LangChain4j.
-     */
-    public String executeForTool(String code) {
-        Map<String, Object> result = execute(code);
-        boolean success = (Boolean) result.get("success");
-        String observation = (String) result.get("observation");
+    @Tool("执行 Python 文件")
+    public String executePythonFile(@P("Python 文件路径") String filePath) {
+        try {
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                return "文件不存在: " + filePath;
+                }
+            
+            // 执行 Python 文件
+            ProcessBuilder processBuilder = new ProcessBuilder("python3", filePath);
+            processBuilder.redirectErrorStream(true);
+            
+            Process process = processBuilder.start();
+            
+            // 读取输出
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+            
+            // 等待进程完成
+            int exitCode = process.waitFor();
         
-        if (success) {
-            return observation.isEmpty() ? "Code executed successfully (no output)" : observation;
+            if (exitCode == 0) {
+                return "执行成功:\n" + output.toString();
         } else {
-            return "Error: " + observation;
-        }
+                return "执行失败 (退出码: " + exitCode + "):\n" + output.toString();
     }
     
-    /**
-     * Get the tool name
-     */
-    public String getName() {
-        return NAME;
-    }
-    
-    /**
-     * Get the tool description
-     */
-    public String getDescription() {
-        return DESCRIPTION;
-    }
-    
-    @Override
-    public void close() throws IOException {
-        if (sandboxClient != null) {
-            sandboxClient.close();
+        } catch (IOException | InterruptedException e) {
+            logger.error("Python 文件执行失败", e);
+            return "执行失败: " + e.getMessage();
         }
     }
 }

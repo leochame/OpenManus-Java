@@ -1,25 +1,89 @@
+# OpenManus Java Test Configuration
 openmanus:
+  app:
+    name: "OpenManus-Test"
+    version: "1.0.0"
+    workspace-root: "./test-workspace"
+    log-level: "DEBUG"
+
+  llm:
+    default-llm:
+      model: "qwen-plus"
+      base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1/"
+      api-type: "openai"
+      temperature: 0.7
+      max-tokens: 8192
+      timeout: 120
+      api-key: "test-api-key"
+
   sandbox:
-    use-sandbox: true
-    image: python:3.11-slim
-    work-dir: /workspace
+    type: "docker"
+    use-sandbox: false
+    image: "python:3.11-slim"
+    work-dir: "/workspace"
+    memory-limit: "512m"
+    cpu-limit: 1.0
     timeout: 120
-    docker-host: tcp://localhost:2376
-    docker-tls-verify: false
+    network-enabled: true
+
+  browser:
+    type: "chrome"
+    headless: true
+    timeout: 30
+    user-agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+
+  proxy:
+    enabled: false
+    http-proxy: ""
+    https-proxy: ""
+
+  search:
+    engine: "google"
+    api-key: ""
+    max-results: 10
+
+  # MCP配置已移除，现在直接使用langchain4j-mcp的DefaultMcpClient
+  # 如需使用MCP工具，请在业务代码中直接new DefaultMcpClient
+
+  runflow:
+    enabled: false
+    max-steps: 20
+    timeout: 300
+
+# Spring Boot测试配置
+server:
+  port: 0  # 使用随机端口
 
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
+  application:
+    name: openmanus-java-test
+  
+  # 测试环境配置
+  profiles:
+    active: test
+  
+  # JSON配置
+  jackson:
+    date-format: "yyyy-MM-dd HH:mm:ss"
+    time-zone: "Asia/Shanghai"
+    default-property-inclusion: NON_NULL
 
+# 测试日志配置
 logging:
   level:
-    com.openmanus: DEBUG
-    org.springframework: WARN
+    com.openmanus.java: DEBUG
+    # com.openmanus.java.mcp: DEBUG  # MCP相关日志已移除
+    com.openmanus.java.tool: DEBUG
     root: INFO
+    org.springframework.web: WARN
+
+# 测试监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always

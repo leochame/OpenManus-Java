@@ -17,11 +17,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <langchain4j.version>0.31.0</langchain4j.version>
-        
-        <!-- Jackson 版本 - 与 langgraph4j 保持一致 -->
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
+        <langchain4j.version>1.1.0</langchain4j.version>
         <jackson.version>2.17.2</jackson.version>
     </properties>
 
@@ -39,10 +37,52 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- 强制使用特定版本的Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
         <!-- Spring Boot Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        
+        <!-- Spring Boot Web Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        
+        <!-- Spring Boot WebSocket Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        
+        <!-- Spring Boot Actuator for monitoring -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        
+        <!-- OpenAPI/Swagger for API documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.2.0</version>
         </dependency>
         
         <!-- Spring Boot Configuration Processor -->
@@ -80,32 +120,25 @@
             <version>2.3.4</version>
         </dependency>
         
-        <!-- Embedding model for memory -->
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
-            <version>${langchain4j.version}</version>
-        </dependency>
-        
-        <!-- Milvus Vector Database -->
-        <dependency>
-            <groupId>io.milvus</groupId>
-            <artifactId>milvus-sdk-java</artifactId>
-            <version>2.3.4</version>
-        </dependency>
-        
-        <!-- LangChain4j Milvus Integration -->
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-milvus</artifactId>
-            <version>${langchain4j.version}</version>
-        </dependency>
-
-        <!-- LLM Provider (e.g., OpenAI) -->
+        <!-- LangChain4j OpenAI Integration (for LLM and embeddings) -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
             <version>${langchain4j.version}</version>
+        </dependency>
+        
+        <!-- MCP Support - 使用可用版本 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-mcp</artifactId>
+            <version>1.0.0-beta5</version>
+        </dependency>
+        
+        <!-- Jsoup for HTML parsing -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.18.1</version>
         </dependency>
 
         <!-- Docker Client -->
@@ -122,8 +155,19 @@
             <version>2.1.1</version>
         </dependency>
         
-        <!-- Note: Removed Jersey dependencies to avoid version conflicts.
-             Docker-java now uses Netty transport instead of Jersey transport. -->
+        <!-- JAXB API for Java 9+ compatibility -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        
+        <!-- JAXB Implementation -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.1</version>
+        </dependency>
         
         <!-- Netty native transport for macOS (required for docker-java Netty transport) -->
         <dependency>
@@ -154,6 +198,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>com.openmanus.java.WebApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
@@ -291,7 +336,7 @@
                                     <version>3.6.0</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <version>21</version>
+                                    <version>23</version>
                                 </requireJavaVersion>
                                 <bannedDependencies>
                                     <excludes>
@@ -315,4 +360,4 @@
             </plugin>
         </plugins>
     </build>
-</project>
+</project> 

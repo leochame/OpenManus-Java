@@ -4,6 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import lombok.Data;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Spring Boot配置属性类，用于自动绑定application.yml中的配置
@@ -65,6 +68,10 @@ public class OpenManusProperties {
     
     public MCPSettings getMcp() {
         return mcp;
+    }
+    
+    public void setMcp(MCPSettings mcp) {
+        this.mcp = mcp;
     }
     
     public RunflowSettings getRunflow() {
@@ -311,8 +318,182 @@ public class OpenManusProperties {
     @Data
     public static class MCPSettings {
         private boolean enabled = false;
-        private String host = "localhost";
-        private int port = 8080;
+        private List<MCPServerConfig> servers = new ArrayList<>();
+        private int connectionTimeout = 30000;
+        private int readTimeout = 60000;
+        private boolean logEvents = false;
+        
+        public boolean isEnabled() {
+            return enabled;
+        }
+        
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+        
+        public List<MCPServerConfig> getServers() {
+            return servers;
+        }
+        
+        public void setServers(List<MCPServerConfig> servers) {
+            this.servers = servers;
+        }
+        
+        public int getConnectionTimeout() {
+            return connectionTimeout;
+        }
+        
+        public void setConnectionTimeout(int connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
+        }
+        
+        public int getReadTimeout() {
+            return readTimeout;
+        }
+        
+        public void setReadTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+        }
+        
+        public boolean isLogEvents() {
+            return logEvents;
+        }
+        
+        public void setLogEvents(boolean logEvents) {
+            this.logEvents = logEvents;
+        }
+        
+        @Data
+        public static class MCPServerConfig {
+            private String id;
+            private String name;
+            private String type; // "stdio", "http", "websocket"
+            private TransportType transport = TransportType.STDIO;
+            private String command; // for stdio transport
+            private List<String> args = new ArrayList<>(); // for stdio transport
+            private String url; // for http/websocket transport
+            private String host; // for http transport
+            private int port; // for http transport
+            private Map<String, String> env = new HashMap<>(); // environment variables
+            private Map<String, String> environment = new HashMap<>(); // environment variables (alias)
+            private boolean enabled = true;
+            private int timeout = 30000;
+            
+            public enum TransportType {
+                STDIO, HTTP, WEBSOCKET
+            }
+            
+            public MCPServerConfig() {}
+            
+            public MCPServerConfig(String name, String type) {
+                this.name = name;
+                this.type = type;
+            }
+            
+            public String getId() {
+                return id != null ? id : name;
+            }
+            
+            public void setId(String id) {
+                this.id = id;
+            }
+            
+            public String getName() {
+                return name;
+            }
+            
+            public void setName(String name) {
+                this.name = name;
+            }
+            
+            public String getType() {
+                return type;
+            }
+            
+            public void setType(String type) {
+                this.type = type;
+            }
+            
+            public TransportType getTransport() {
+                return transport;
+            }
+            
+            public void setTransport(TransportType transport) {
+                this.transport = transport;
+            }
+            
+            public String getCommand() {
+                return command;
+            }
+            
+            public void setCommand(String command) {
+                this.command = command;
+            }
+            
+            public List<String> getArgs() {
+                return args;
+            }
+            
+            public void setArgs(List<String> args) {
+                this.args = args;
+            }
+            
+            public String getUrl() {
+                return url;
+            }
+            
+            public void setUrl(String url) {
+                this.url = url;
+            }
+            
+            public String getHost() {
+                return host;
+            }
+            
+            public void setHost(String host) {
+                this.host = host;
+            }
+            
+            public int getPort() {
+                return port;
+            }
+            
+            public void setPort(int port) {
+                this.port = port;
+            }
+            
+            public Map<String, String> getEnv() {
+                return env;
+            }
+            
+            public void setEnv(Map<String, String> env) {
+                this.env = env;
+            }
+            
+            public Map<String, String> getEnvironment() {
+                return environment.isEmpty() ? env : environment;
+            }
+            
+            public void setEnvironment(Map<String, String> environment) {
+                this.environment = environment;
+            }
+            
+            public boolean isEnabled() {
+                return enabled;
+            }
+            
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+            
+            public int getTimeout() {
+                return timeout;
+            }
+            
+            public void setTimeout(int timeout) {
+                this.timeout = timeout;
+            }
+        }
     }
     
     @Data
