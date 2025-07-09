@@ -75,31 +75,6 @@ public class ManusAgent {
             this.fileTool = fileTool;
             this.browserTool = browserTool;
         }
-        
-        @Tool("Execute Python code for calculations, data processing, or programming tasks")
-        public String executePython(String code) {
-            return pythonTool.executePython(code);
-        }
-        
-        @Tool("List files and directories in the specified path")
-        public String listDirectory(String path) {
-            return fileTool.listDirectory(path);
-        }
-        
-        @Tool("Read content from a file")
-        public String readFile(String path) {
-            return fileTool.readFile(path);
-        }
-        
-        @Tool("Write content to a file")
-        public String writeFile(String path, String content) {
-            return fileTool.writeFile(path, content);
-        }
-        
-        @Tool("Browse a web page and return its content")
-        public String browseWeb(String url) {
-            return browserTool.browseWeb(url);
-        }
     }
     
     /**

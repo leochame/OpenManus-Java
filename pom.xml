@@ -17,8 +17,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <langchain4j.version>1.1.0</langchain4j.version>
         <jackson.version>2.17.2</jackson.version>
     </properties>
@@ -266,7 +266,7 @@
                 <version>3.3.0</version>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
-                    <encoding>UTF-8</encoding>
+<!--                    <encoding>UTF-8</encoding>-->
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>false</failsOnError>
                     <linkXRef>false</linkXRef>
@@ -336,7 +336,7 @@
                                     <version>3.6.0</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <version>23</version>
+                                    <version>21</version>
                                 </requireJavaVersion>
                                 <bannedDependencies>
                                     <excludes>
@@ -360,4 +360,4 @@
             </plugin>
         </plugins>
     </build>
-</project> 
+</project>

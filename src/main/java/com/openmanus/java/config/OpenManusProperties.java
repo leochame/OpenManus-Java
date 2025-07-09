@@ -1,5 +1,6 @@
 package com.openmanus.java.config;
 
+import jdk.jfr.DataAmount;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.util.Map;
 /**
  * Spring Boot配置属性类，用于自动绑定application.yml中的配置
  */
+@Data
 @ConfigurationProperties(prefix = "openmanus")
 public class OpenManusProperties {
     
@@ -40,56 +42,7 @@ public class OpenManusProperties {
     
     @NestedConfigurationProperty
     private VectorDatabaseSettings vectorDatabase = new VectorDatabaseSettings();
-    
-    // Getter方法
-    public AppSettings getApp() {
-        return app;
-    }
-    
-    public LLMSettings getLlm() {
-        return llm;
-    }
-    
-    public SandboxSettings getSandbox() {
-        return sandbox;
-    }
-    
-    public BrowserSettings getBrowser() {
-        return browser;
-    }
-    
-    public ProxySettings getProxy() {
-        return proxy;
-    }
-    
-    public SearchSettings getSearch() {
-        return search;
-    }
-    
-    public MCPSettings getMcp() {
-        return mcp;
-    }
-    
-    public void setMcp(MCPSettings mcp) {
-        this.mcp = mcp;
-    }
-    
-    public RunflowSettings getRunflow() {
-        return runflow;
-    }
-    
-    public VectorDatabaseSettings getVectorDatabase() {
-        return vectorDatabase;
-    }
-    
-    // Setter methods
-    public void setSandbox(SandboxSettings sandbox) {
-        this.sandbox = sandbox;
-    }
-    
-    public void setLlm(LLMSettings llm) {
-        this.llm = llm;
-    }
+
     
     @Data
     public static class AppSettings {
@@ -106,7 +59,7 @@ public class OpenManusProperties {
             this.workspaceRoot = workspaceRoot;
         }
     }
-    
+    @Data
     public static class LLMSettings {
         private DefaultLLM defaultLlm = new DefaultLLM();
         
@@ -117,7 +70,7 @@ public class OpenManusProperties {
         public void setDefaultLlm(DefaultLLM defaultLlm) {
             this.defaultLlm = defaultLlm;
         }
-        
+        @Data
         public static class DefaultLLM {
             private String model = "gpt-4-turbo-preview";
             private String apiType = "openai";
@@ -126,63 +79,7 @@ public class OpenManusProperties {
             private double temperature = 0.7;
             private int maxTokens = 4096;
             private int timeout = 30;
-            
-            // Getter和Setter方法
-            public String getModel() {
-                return model;
-            }
-            
-            public void setModel(String model) {
-                this.model = model;
-            }
-            
-            public String getApiType() {
-                return apiType;
-            }
-            
-            public void setApiType(String apiType) {
-                this.apiType = apiType;
-            }
-            
-            public String getBaseUrl() {
-                return baseUrl;
-            }
-            
-            public void setBaseUrl(String baseUrl) {
-                this.baseUrl = baseUrl;
-            }
-            
-            public String getApiKey() {
-                return apiKey;
-            }
-            
-            public void setApiKey(String apiKey) {
-                this.apiKey = apiKey;
-            }
-            
-            public double getTemperature() {
-                return temperature;
-            }
-            
-            public void setTemperature(double temperature) {
-                this.temperature = temperature;
-            }
-            
-            public int getMaxTokens() {
-                return maxTokens;
-            }
-            
-            public void setMaxTokens(int maxTokens) {
-                this.maxTokens = maxTokens;
-            }
-            
-            public int getTimeout() {
-                return timeout;
-            }
-            
-            public void setTimeout(int timeout) {
-                this.timeout = timeout;
-            }
+
         }
     }
     
@@ -196,50 +93,6 @@ public class OpenManusProperties {
         private double cpuLimit = 1.0;
         private int timeout = 120;
         private boolean networkEnabled = true;
-        
-        public boolean isUseSandbox() {
-            return useSandbox;
-        }
-        
-        public void setUseSandbox(boolean useSandbox) {
-            this.useSandbox = useSandbox;
-        }
-        
-        public int getTimeout() {
-            return timeout;
-        }
-        
-        public String getImage() {
-            return image;
-        }
-        
-        public String getWorkDir() {
-            return workDir;
-        }
-        
-        public String getMemoryLimit() {
-            return memoryLimit;
-        }
-        
-        public double getCpuLimit() {
-            return cpuLimit;
-        }
-        
-        public boolean isNetworkEnabled() {
-            return networkEnabled;
-        }
-        
-        public void setWorkDir(String workDir) {
-            this.workDir = workDir;
-        }
-        
-        public void setTimeout(int timeout) {
-            this.timeout = timeout;
-        }
-        
-        public void setImage(String image) {
-            this.image = image;
-        }
     }
     
     @Data
@@ -254,14 +107,6 @@ public class OpenManusProperties {
         private String wssUrl;
         private String cdpUrl;
         private int maxContentLength = 2000;
-        
-        public boolean isHeadless() {
-            return headless;
-        }
-        
-        public boolean isDisableSecurity() {
-            return disableSecurity;
-        }
     }
     
     @Data
@@ -281,38 +126,6 @@ public class OpenManusProperties {
         private int maxRetries = 3;
         private String lang = "en";
         private String country = "us";
-        
-        public String getEngine() {
-            return engine;
-        }
-        
-        public String getApiKey() {
-            return apiKey;
-        }
-        
-        public int getMaxResults() {
-            return maxResults;
-        }
-        
-        public List<String> getFallbackEngines() {
-            return fallbackEngines;
-        }
-        
-        public int getRetryDelay() {
-            return retryDelay;
-        }
-        
-        public int getMaxRetries() {
-            return maxRetries;
-        }
-        
-        public String getLang() {
-            return lang;
-        }
-        
-        public String getCountry() {
-            return country;
-        }
     }
     
     @Data
@@ -322,47 +135,6 @@ public class OpenManusProperties {
         private int connectionTimeout = 30000;
         private int readTimeout = 60000;
         private boolean logEvents = false;
-        
-        public boolean isEnabled() {
-            return enabled;
-        }
-        
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-        
-        public List<MCPServerConfig> getServers() {
-            return servers;
-        }
-        
-        public void setServers(List<MCPServerConfig> servers) {
-            this.servers = servers;
-        }
-        
-        public int getConnectionTimeout() {
-            return connectionTimeout;
-        }
-        
-        public void setConnectionTimeout(int connectionTimeout) {
-            this.connectionTimeout = connectionTimeout;
-        }
-        
-        public int getReadTimeout() {
-            return readTimeout;
-        }
-        
-        public void setReadTimeout(int readTimeout) {
-            this.readTimeout = readTimeout;
-        }
-        
-        public boolean isLogEvents() {
-            return logEvents;
-        }
-        
-        public void setLogEvents(boolean logEvents) {
-            this.logEvents = logEvents;
-        }
-        
         @Data
         public static class MCPServerConfig {
             private String id;
@@ -382,116 +154,16 @@ public class OpenManusProperties {
             public enum TransportType {
                 STDIO, HTTP, WEBSOCKET
             }
-            
+
             public MCPServerConfig() {}
-            
+
             public MCPServerConfig(String name, String type) {
                 this.name = name;
                 this.type = type;
             }
-            
+
             public String getId() {
                 return id != null ? id : name;
-            }
-            
-            public void setId(String id) {
-                this.id = id;
-            }
-            
-            public String getName() {
-                return name;
-            }
-            
-            public void setName(String name) {
-                this.name = name;
-            }
-            
-            public String getType() {
-                return type;
-            }
-            
-            public void setType(String type) {
-                this.type = type;
-            }
-            
-            public TransportType getTransport() {
-                return transport;
-            }
-            
-            public void setTransport(TransportType transport) {
-                this.transport = transport;
-            }
-            
-            public String getCommand() {
-                return command;
-            }
-            
-            public void setCommand(String command) {
-                this.command = command;
-            }
-            
-            public List<String> getArgs() {
-                return args;
-            }
-            
-            public void setArgs(List<String> args) {
-                this.args = args;
-            }
-            
-            public String getUrl() {
-                return url;
-            }
-            
-            public void setUrl(String url) {
-                this.url = url;
-            }
-            
-            public String getHost() {
-                return host;
-            }
-            
-            public void setHost(String host) {
-                this.host = host;
-            }
-            
-            public int getPort() {
-                return port;
-            }
-            
-            public void setPort(int port) {
-                this.port = port;
-            }
-            
-            public Map<String, String> getEnv() {
-                return env;
-            }
-            
-            public void setEnv(Map<String, String> env) {
-                this.env = env;
-            }
-            
-            public Map<String, String> getEnvironment() {
-                return environment.isEmpty() ? env : environment;
-            }
-            
-            public void setEnvironment(Map<String, String> environment) {
-                this.environment = environment;
-            }
-            
-            public boolean isEnabled() {
-                return enabled;
-            }
-            
-            public void setEnabled(boolean enabled) {
-                this.enabled = enabled;
-            }
-            
-            public int getTimeout() {
-                return timeout;
-            }
-            
-            public void setTimeout(int timeout) {
-                this.timeout = timeout;
             }
         }
     }
@@ -514,41 +186,5 @@ public class OpenManusProperties {
         private String username = "";
         private String password = "";
         private String databaseName = "default";
-        
-        public boolean isEnabled() {
-            return enabled;
-        }
-        
-        public String getHost() {
-            return host;
-        }
-        
-        public int getPort() {
-            return port;
-        }
-        
-        public String getCollectionName() {
-            return collectionName;
-        }
-        
-        public String getIndexType() {
-            return indexType;
-        }
-        
-        public String getMetricType() {
-            return metricType;
-        }
-        
-        public String getUsername() {
-            return username;
-        }
-        
-        public String getPassword() {
-            return password;
-        }
-        
-        public String getDatabaseName() {
-            return databaseName;
-        }
     }
 }

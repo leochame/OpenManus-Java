@@ -2,6 +2,7 @@ package com.openmanus.java.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.langchain4j.model.openai.internal.chat.ToolCall;
 import java.util.List;
 
 /**

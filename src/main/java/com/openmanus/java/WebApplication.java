@@ -2,8 +2,6 @@ package com.openmanus.java;
 
 import com.openmanus.java.agent.ManusAgent;
 import com.openmanus.java.config.OpenManusProperties;
-import com.openmanus.java.llm.LlmClient;
-import com.openmanus.java.model.Memory;
 import com.openmanus.java.sandbox.SandboxClient;
 import com.openmanus.java.tool.BrowserTool;
 import com.openmanus.java.tool.FileTool;
@@ -17,6 +15,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 import java.util.Map;
@@ -25,8 +24,7 @@ import java.util.Map;
  * OpenManus 主应用类
  * 基于 langchain4j 和 langgraph4j 的极简 AI Agent 框架
  */
-@SpringBootApplication
-@ComponentScan(basePackages = "com.openmanus.java")
+@SpringBootApplication(scanBasePackages = "com.openmanus.java")
 public class WebApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(WebApplication.class);
@@ -36,10 +34,6 @@ public class WebApplication {
         SpringApplication.run(WebApplication.class, args);
         logger.info("🎉 OpenManus-Java 启动成功！");
     }
-
-
-
-
 
     /**
      * 配置 Python 工具
@@ -128,4 +122,4 @@ public class WebApplication {
             }
         };
     }
-} 
+}
