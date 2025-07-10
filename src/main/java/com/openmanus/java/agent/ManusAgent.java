@@ -1,27 +1,33 @@
 package com.openmanus.java.agent;
 
+import com.openmanus.java.nodes.ActNode;
+import com.openmanus.java.nodes.ObserveNode;
+import com.openmanus.java.nodes.ThinkNode;
+import com.openmanus.java.state.OpenManusAgentState;
 import com.openmanus.java.tool.BrowserTool;
 import com.openmanus.java.tool.FileTool;
 import com.openmanus.java.tool.PythonTool;
 import com.openmanus.java.tool.ReflectionTool;
-import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.service.AiServices;
+import org.bsc.langgraph4j.CompiledGraph;
+import org.bsc.langgraph4j.StateGraph;
+import org.bsc.langgraph4j.action.AsyncEdgeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
+
+import static org.bsc.langgraph4j.StateGraph.END;
+import static org.bsc.langgraph4j.StateGraph.START;
+import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
 
 /**
- * 基于 LangChain4j AI Services 的智能 Agent 实现
- * 支持真正的 ReAct 推理链路和 COT 推理过程
+ * 基于 LangGraph4j StateGraph 架构的智能 Agent 实现
+ * 支持完整的 ReAct 推理循环和反思机制
  */
 @Component
 public class ManusAgent {
@@ -33,7 +39,7 @@ public class ManusAgent {
     private final FileTool fileTool;
     private final BrowserTool browserTool;
     private final ReflectionTool reflectionTool;
-    private final ReactAgent reactAgent;
+    private final CompiledGraph<OpenManusAgentState> compiledGraph;
     
     public ManusAgent(@Qualifier("chatModel") ChatModel chatModel,
                      PythonTool pythonTool,
@@ -46,214 +52,238 @@ public class ManusAgent {
         this.browserTool = browserTool;
         this.reflectionTool = reflectionTool;
         
-        // 创建AI Services实例
-        this.reactAgent = AiServices.builder(ReactAgent.class)
-                .chatModel(chatModel)
-                .tools(new ToolProvider(pythonTool, fileTool, browserTool))
-                .build();
+        // 构建StateGraph工作流
+        this.compiledGraph = buildStateGraph();
         
-        logger.info("ManusAgent initialized with ChatModel: {}", chatModel.getClass().getSimpleName());
+        logger.info("ManusAgent initialized with StateGraph architecture using ChatModel: {}", 
+                   chatModel.getClass().getSimpleName());
     }
     
     /**
-     * ReAct Agent接口定义
+     * 构建基于StateGraph的ReAct工作流
      */
-    public interface ReactAgent {
-        String reason(String userMessage);
-    }
-    
-    /**
-     * 工具提供者类
-     */
-    public static class ToolProvider {
-        private final PythonTool pythonTool;
-        private final FileTool fileTool;
-        private final BrowserTool browserTool;
-        
-        public ToolProvider(PythonTool pythonTool, FileTool fileTool, BrowserTool browserTool) {
-            this.pythonTool = pythonTool;
-            this.fileTool = fileTool;
-            this.browserTool = browserTool;
+    private CompiledGraph<OpenManusAgentState> buildStateGraph() {
+        try {
+            // 创建React节点
+            ThinkNode thinkNode = new ThinkNode(chatModel);
+            ActNode actNode = new ActNode(chatModel, pythonTool, fileTool, browserTool);
+            ObserveNode observeNode = new ObserveNode(chatModel);
+            
+            // 定义条件边：根据状态决定下一步
+            AsyncEdgeAction<OpenManusAgentState> routeNext = edge_async(state -> {
+                // 检查是否有最终答案
+                String finalAnswer = state.getFinalAnswer();
+                if (!finalAnswer.isEmpty()) {
+                    logger.info("发现最终答案，结束推理循环");
+                    return END;
+                }
+                
+                // 检查是否有错误
+                if (state.hasError()) {
+                    logger.warn("发现错误，结束推理: {}", state.getError());
+                    return END;
+                }
+                
+                // 检查是否达到最大迭代次数
+                if (state.isMaxIterationsReached()) {
+                    logger.warn("达到最大推理次数: {}", state.getMaxIterations());
+                    return END;
+                }
+                
+                // 根据当前状态决定下一步
+                String currentState = state.getCurrentState();
+                switch (currentState) {
+                    case "start":
+                    case "thinking":
+                        return "think";
+                    case "acting": 
+                        return "act";
+                    case "observing":
+                        return "observe";
+                    case "reflecting":
+                        return "reflect";
+                    default:
+                        return "think"; // 默认进入思考状态
+                }
+            });
+            
+            // 构建StateGraph（这里使用简化的构造方式）
+            StateGraph<OpenManusAgentState> graph = new StateGraph<OpenManusAgentState>(
+                OpenManusAgentState.SCHEMA, 
+                initData -> new OpenManusAgentState(initData)
+            )
+                // 添加节点
+                .addNode("think", thinkNode)
+                .addNode("act", actNode) 
+                .addNode("observe", observeNode)
+                .addNode("reflect", this::reflectNode)
+                
+                // 添加边
+                .addEdge(START, "think")  // 从开始进入思考状态
+                .addConditionalEdges("think", routeNext, Map.of(
+                    "think", "think",
+                    "act", "act", 
+                    "observe", "observe",
+                    "reflect", "reflect",
+                    END, END
+                ))
+                .addConditionalEdges("act", routeNext, Map.of(
+                    "think", "think",
+                    "act", "act",
+                    "observe", "observe", 
+                    "reflect", "reflect",
+                    END, END
+                ))
+                .addConditionalEdges("observe", routeNext, Map.of(
+                    "think", "think",
+                    "act", "act",
+                    "observe", "observe",
+                    "reflect", "reflect", 
+                    END, END
+                ))
+                .addConditionalEdges("reflect", routeNext, Map.of(
+                    "think", "think",
+                    "act", "act",
+                    "observe", "observe",
+                    "reflect", "reflect",
+                    END, END
+                ));
+            
+            return graph.compile();
+            
+        } catch (Exception e) {
+            logger.error("构建StateGraph失败", e);
+            throw new RuntimeException("Failed to build StateGraph", e);
         }
     }
     
     /**
-     * 与Agent对话（带真正的COT推理过程）
+     * 反思节点实现
+     */
+    private CompletableFuture<Map<String, Object>> reflectNode(OpenManusAgentState state) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                logger.info("开始反思阶段...");
+                
+                String taskId = state.getTaskId();
+                if (taskId.isEmpty()) {
+                    taskId = "task_" + System.currentTimeMillis();
+                }
+                
+                // 记录任务到反思工具
+                String reasoningSteps = state.getReasoningSteps().toString();
+                String currentAnswer = state.getFinalAnswer();
+                if (currentAnswer.isEmpty()) {
+                    currentAnswer = "推理进行中...";
+                }
+                
+                reflectionTool.recordTask(taskId, state.getUserInput(), 
+                                        reasoningSteps, "ReAct推理", currentAnswer);
+                
+                // 进行反思
+                String reflection = reflectionTool.reflectOnTask(taskId);
+                
+                logger.info("反思完成: {}", reflection);
+                
+                return Map.of(
+                    "reflections", reflection,
+                    "current_state", "thinking", // 反思后继续思考
+                    "task_id", taskId
+                );
+                
+            } catch (Exception e) {
+                logger.error("反思节点执行失败", e);
+                return Map.of(
+                    "error", "反思过程中发生错误: " + e.getMessage(),
+                    "current_state", "error"
+                );
+            }
+        });
+    }
+    
+    /**
+     * 与Agent对话（使用StateGraph架构）
      */
     public Map<String, Object> chatWithCot(String userMessage) {
         logger.info("开始处理用户消息: {}", userMessage);
         
-        List<String> cotSteps = new ArrayList<>();
-        String finalAnswer = "";
-        String fullContent = "";
-        
         try {
-            // 步骤1：记录用户输入
-            cotSteps.add("用户输入: " + userMessage);
+            // 创建初始状态
+            Map<String, Object> initialData = Map.of(
+                "user_input", userMessage,
+                "session_id", "session_" + System.currentTimeMillis(),
+                "task_id", "task_" + System.currentTimeMillis(),
+                "current_state", "start",
+                "max_iterations", 10
+            );
             
-            // 步骤2：构建ReAct提示词
-            String reactPrompt = buildReactPrompt(userMessage);
-            cotSteps.add("构建ReAct提示词完成");
+            // 执行StateGraph工作流
+            logger.info("启动StateGraph推理流程...");
+            OpenManusAgentState finalState = null;
             
-            // 步骤3：调用AI Services进行推理
-            logger.info("调用ReactAgent进行推理...");
-            String agentResponse = reactAgent.reason(reactPrompt);
-            logger.info("Agent响应: {}", agentResponse);
-            
-            // 步骤4：解析响应并提取COT步骤
-            List<String> reasoningSteps = parseReasoningSteps(agentResponse);
-            cotSteps.addAll(reasoningSteps);
-            
-            // 步骤5：提取最终答案
-            finalAnswer = extractFinalAnswer(agentResponse);
-            if (finalAnswer.isEmpty()) {
-                finalAnswer = agentResponse; // 如果没有明确的答案标记，使用整个响应
+            // 流式执行图并获取最终状态
+            for (var nodeOutput : compiledGraph.stream(initialData)) {
+                finalState = nodeOutput.state();
+                logger.debug("节点执行完成: {}, 当前状态: {}", 
+                           nodeOutput.node(), finalState.getCurrentState());
             }
             
-            // 保存完整内容
-            fullContent = finalAnswer;
+            if (finalState == null) {
+                throw new RuntimeException("StateGraph执行未产生最终状态");
+            }
             
-            // 步骤6：反思
-            String taskId = "task_" + System.currentTimeMillis();
-            reflectionTool.recordTask(taskId, userMessage, 
-                                    String.join(" -> ", cotSteps), 
-                                    "ReAct推理", finalAnswer);
-            String reflection = reflectionTool.reflectOnTask(taskId);
-            cotSteps.add("反思: " + reflection);
+            // 构建返回结果
+            Map<String, Object> result = new HashMap<>();
             
-            logger.info("推理完成，最终答案: {}", finalAnswer);
+            String finalAnswer = finalState.getFinalAnswer();
+            if (finalAnswer.isEmpty() && finalState.hasError()) {
+                finalAnswer = "抱歉，处理您的问题时出现了错误：" + finalState.getError();
+            } else if (finalAnswer.isEmpty()) {
+                finalAnswer = "推理过程已完成，但未能得出明确答案。";
+            }
+            
+            result.put("answer", finalAnswer);
+            result.put("content", finalAnswer);
+            result.put("cot", extractCotSteps(finalState));
+            result.put("reasoning_steps", finalState.getReasoningSteps());
+            result.put("tool_calls", finalState.getToolCalls());
+            result.put("observations", finalState.getObservations());
+            result.put("reflections", finalState.getReflections());
+            result.put("iteration_count", finalState.getIterationCount());
+            
+            logger.info("推理完成，迭代次数: {}, 最终答案: {}", 
+                       finalState.getIterationCount(), finalAnswer);
+            
+            return result;
             
         } catch (Exception e) {
             logger.error("处理用户消息时出现错误", e);
-            cotSteps.add("错误: " + e.getMessage());
-            finalAnswer = "抱歉，处理您的问题时出现了错误：" + e.getMessage();
-            fullContent = finalAnswer;
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("answer", "抱歉，处理您的问题时出现了错误：" + e.getMessage());
+            errorResult.put("content", errorResult.get("answer"));
+            errorResult.put("cot", new String[]{"错误: " + e.getMessage()});
+            return errorResult;
         }
-        
-        // 提取完整的回答内容
-        String completeAnswer = extractCompleteAnswer(finalAnswer);
-        
-        Map<String, Object> result = new HashMap<>();
-        result.put("answer", completeAnswer);
-        result.put("content", fullContent);  // 添加完整内容字段
-        result.put("cot", cotSteps);
-        
-        // 记录完整的返回内容
-        logger.debug("完整回答内容: {}", completeAnswer);
-        logger.debug("COT步骤数量: {}", cotSteps.size());
-        
-        return result;
     }
     
     /**
-     * 提取完整的回答内容，确保不被截断
+     * 从最终状态中提取COT步骤
      */
-    private String extractCompleteAnswer(String answer) {
-        // 检查是否有列表格式的回答
-        Pattern listPattern = Pattern.compile("(\\d+\\..+?)(?=\\d+\\.|$)", Pattern.DOTALL);
-        Matcher matcher = listPattern.matcher(answer);
-        
-        StringBuilder fullAnswer = new StringBuilder();
-        boolean foundList = false;
-        
-        while (matcher.find()) {
-            foundList = true;
-            fullAnswer.append(matcher.group(1)).append("\n");
-        }
-        
-        if (foundList) {
-            return fullAnswer.toString().trim();
-        }
-        
-        return answer;
+    private String[] extractCotSteps(OpenManusAgentState finalState) {
+        return finalState.getReasoningSteps().stream()
+                .map(step -> step.get("type") + ": " + step.get("content"))
+                .toArray(String[]::new);
     }
     
     /**
-     * 构建ReAct提示词
+     * 获取Agent状态信息
      */
-    private String buildReactPrompt(String userMessage) {
-        return String.format("""
-            你是一个智能助手，请使用ReAct (Reasoning and Acting) 框架来回答用户问题。
-            
-            请按照以下格式进行推理：
-            
-            思考: [分析问题，思考需要做什么]
-            行动: [如果需要使用工具，说明要使用什么工具和参数]
-            观察: [工具执行的结果]
-            思考: [基于观察结果继续推理]
-            行动: [如果需要更多信息，继续使用工具]
-            观察: [更多的工具执行结果]
-            答案: [基于所有推理和观察给出最终答案]
-            
-            可用工具：
-            - executePython: 执行Python代码，适用于数学计算、数据处理等
-            - listDirectory: 列出目录中的文件
-            - readFile: 读取文件内容
-            - writeFile: 写入文件
-            - browseWeb: 浏览网页
-            
-            用户问题: %s
-            
-            请开始你的推理：
-            """, userMessage);
-    }
-    
-    /**
-     * 解析推理步骤
-     */
-    private List<String> parseReasoningSteps(String response) {
-        List<String> steps = new ArrayList<>();
-        
-        String[] lines = response.split("\\n");
-        for (String line : lines) {
-            line = line.trim();
-            if (line.startsWith("思考:") || line.startsWith("Thought:")) {
-                steps.add("思考: " + line.substring(line.indexOf(":") + 1).trim());
-            } else if (line.startsWith("行动:") || line.startsWith("Action:")) {
-                steps.add("行动: " + line.substring(line.indexOf(":") + 1).trim());
-            } else if (line.startsWith("观察:") || line.startsWith("Observation:")) {
-                steps.add("观察: " + line.substring(line.indexOf(":") + 1).trim());
-            }
-        }
-        
-        // 如果没有解析到明确的步骤，创建基本的推理步骤
-        if (steps.isEmpty()) {
-            steps.add("思考: 正在分析用户问题...");
-            steps.add("行动: 调用相应工具处理问题");
-            steps.add("观察: 获取工具执行结果");
-        }
-        
-        return steps;
-    }
-    
-    /**
-     * 提取最终答案
-     */
-    private String extractFinalAnswer(String response) {
-        String[] lines = response.split("\\n");
-        StringBuilder answer = new StringBuilder();
-        boolean answerStarted = false;
-        
-        for (String line : lines) {
-            line = line.trim();
-            if (line.startsWith("答案:") || line.startsWith("Answer:") || 
-                line.startsWith("最终答案:") || line.startsWith("Final Answer:")) {
-                answerStarted = true;
-                answer.append(line.substring(line.indexOf(":") + 1).trim());
-            } else if (answerStarted) {
-                answer.append("\n").append(line);
-            }
-        }
-        
-        if (answer.length() > 0) {
-            return answer.toString().trim();
-        }
-        
-        // 如果没有找到明确的答案标记，尝试获取最后几行作为答案
-        if (lines.length > 0) {
-            return lines[lines.length - 1].trim();
-        }
-        
-        return response;
+    public Map<String, Object> getAgentInfo() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("architecture", "LangGraph4j StateGraph");
+        info.put("model", chatModel.getClass().getSimpleName());
+        info.put("nodes", new String[]{"think", "act", "observe", "reflect"});
+        info.put("tools", new String[]{"PythonTool", "FileTool", "BrowserTool", "ReflectionTool"});
+        return info;
     }
 }

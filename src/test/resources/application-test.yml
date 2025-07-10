@@ -58,10 +58,6 @@ spring:
   application:
     name: openmanus-java-test
   
-  # 测试环境配置
-  profiles:
-    active: test
-  
   # JSON配置
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"

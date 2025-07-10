@@ -113,6 +113,13 @@
             <version>1.6.0-beta5</version>
         </dependency>
         
+        <!-- LangGraph4j Studio for Spring Boot (可视化调试) -->
+        <dependency>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-studio-springboot</artifactId>
+            <version>1.6.0-beta5</version>
+        </dependency>
+        
         <!-- Vector database for memory storage -->
         <dependency>
             <groupId>io.milvus</groupId>
