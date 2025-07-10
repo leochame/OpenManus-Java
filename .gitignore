@@ -199,18 +199,32 @@ out/
 *.swo
 *~
 
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
+# Additional cleanup
+# Checkstyle reports
+checkstyle-result.xml
+checkstyle-checker.xml
+checkstyle-cachefile
 
-# Custom ignore patterns
-error.log
-*.pid
+# SpotBugs reports
+spotbugs.xml
+spotbugsXml.xml
+
+# Maven generated files
+maven-archiver/
+maven-status/
+generated-sources/
+generated-test-sources/
+
+# Application logs
+*.log.*
+logs/
+
+# Temporary workspace files
 workspace/
-dependency-tree.txt
+temp/
+tmp/
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
