@@ -56,6 +56,10 @@ server:
   port: 8089
   servlet:
     context-path: /
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
   error:
     include-message: always
     include-binding-errors: always
@@ -76,6 +80,13 @@ spring:
     date-format: "yyyy-MM-dd HH:mm:ss"
     time-zone: "Asia/Shanghai"
     default-property-inclusion: NON_NULL
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    property-naming-strategy: SNAKE_CASE
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_PROPERTIES: true
 
   # WebSocket配置
   websocket:
