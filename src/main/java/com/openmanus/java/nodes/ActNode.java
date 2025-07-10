@@ -152,13 +152,14 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                     break;
                 case "direct_answer":
                     // Directly return final answer
-                    return Map.of(
-                        "final_answer", actionInfo.content,
-                        "reasoning_steps", Map.of(
-                            "type", "direct_answer",
-                            "content", "Direct answer: " + actionInfo.content
-                        )
-                    );
+                    Map<String, Object> directAnswerResult = new HashMap<>();
+                    directAnswerResult.put("final_answer", actionInfo.content);
+                    directAnswerResult.put("reasoning_steps", Map.of(
+                        "type", "direct_answer",
+                        "content", "Direct answer: " + actionInfo.content
+                    ));
+                    directAnswerResult.put("metadata", Map.of("next_action", "direct_answer"));
+                    return directAnswerResult;
                 case "need_info":
                     result = "Need more information: " + actionInfo.content;
                     break;
@@ -180,7 +181,10 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
             
             // Add observation result
             updates.put("observations", result);
-            updates.put("metadata", Map.of("last_action_result", result));
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("last_action_result", result);
+            metadata.put("next_action", "observe");
+            updates.put("metadata", metadata);
             
             return updates;
             
