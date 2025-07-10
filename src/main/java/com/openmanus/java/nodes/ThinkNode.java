@@ -7,6 +7,8 @@ import dev.langchain4j.model.input.PromptTemplate;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
  * 
  * 负责分析用户问题，制定解决计划，决定下一步行动
  */
+@Component
 public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(ThinkNode.class);
@@ -36,9 +39,12 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
         请进行深度思考分析：
         
         1. **问题理解**: 分析用户问题的核心需求和目标
-        2. **现状评估**: 基于已有信息和观察结果评估当前进展
-        3. **下一步规划**: 决定接下来需要采取什么行动
-        4. **工具选择**: 如果需要使用工具，选择最合适的工具
+        2. **问题分类**: 判断问题类型（简单计算/复杂计算/信息查询/工具操作等）
+        3. **现状评估**: 基于已有信息和观察结果评估当前进展
+        4. **解决策略**: 
+           - 对于简单问题（如基础数学计算），直接给出答案
+           - 对于复杂问题，决定是否需要使用工具
+        5. **工具选择**: 如果需要使用工具，选择最合适的工具
         
         可用工具：
         - executePython: 执行Python代码进行计算、数据处理等
@@ -54,17 +60,24 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
         **思考分析:**
         [详细的思考过程，包括问题分析、策略制定等]
         
-        **下一步行动:**
-        - 行动类型: [工具调用/直接回答/需要更多信息]
+        **问题类型:**
+        [简单计算/复杂计算/信息查询/工具操作]
+        
+        **解决方案:**
+        - 方案类型: [直接回答/工具调用/需要更多信息]
         - 具体计划: [具体要做什么]
         - 预期结果: [希望得到什么结果]
         
-        **工具使用（如果适用）:**
+        **如果是直接回答:**
+        DIRECT_ANSWER: [答案内容]
+        
+        **如果需要工具调用:**
         - 工具名称: [工具名]
         - 参数: [具体参数]
         - 理由: [为什么选择这个工具]
         """);
     
+    @Autowired
     public ThinkNode(ChatModel chatModel) {
         this.chatModel = chatModel;
     }
@@ -186,6 +199,11 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     private String analyzeThinkingResult(String thinkingResult) {
         String lowerResult = thinkingResult.toLowerCase();
         
+        // 检查是否有直接答案
+        if (lowerResult.contains("direct_answer:")) {
+            return "direct_answer";
+        }
+        
         // 检查是否需要工具调用
         if (lowerResult.contains("executepython") || lowerResult.contains("python")) {
             return "tool_call_python";
@@ -194,20 +212,15 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
         } else if (lowerResult.contains("writefile") || lowerResult.contains("写入文件")) {
             return "tool_call_file";
         } else if (lowerResult.contains("browseweb") || lowerResult.contains("浏览网页")) {
-            return "tool_call_browser";
-        } else if (lowerResult.contains("searchweb") || lowerResult.contains("搜索")) {
-            return "tool_call_search";
+            return "tool_call_web";
+        } else if (lowerResult.contains("searchweb") || lowerResult.contains("搜索网络")) {
+            return "tool_call_web";
         } else if (lowerResult.contains("askhuman") || lowerResult.contains("询问用户")) {
-            return "ask_human";
-        } else if (lowerResult.contains("直接回答") || lowerResult.contains("可以回答") || 
-                  lowerResult.contains("sufficient") || lowerResult.contains("足够")) {
-            return "direct_answer";
-        } else if (lowerResult.contains("需要更多信息") || lowerResult.contains("信息不足")) {
-            return "need_more_info";
+            return "need_info";
         }
         
-        // 默认进入行动阶段
-        return "action";
+        // 默认继续思考
+        return "continue_thinking";
     }
     
     /**

@@ -7,6 +7,7 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * - 消息压缩和摘要
  * - 重要消息保留
  */
+@Component
 public class ConversationBuffer {
     
     private static final Logger logger = LoggerFactory.getLogger(ConversationBuffer.class);

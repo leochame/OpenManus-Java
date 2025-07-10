@@ -7,6 +7,8 @@ import dev.langchain4j.model.input.PromptTemplate;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
  * 
  * 负责分析行动结果，评估进展情况，决定是否需要继续推理或可以给出最终答案
  */
+@Component
 public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(ObserveNode.class);
@@ -67,6 +70,7 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
         [基于所有信息给出的完整答案]
         """);
     
+    @Autowired
     public ObserveNode(ChatModel chatModel) {
         this.chatModel = chatModel;
     }

@@ -10,6 +10,8 @@ import dev.langchain4j.model.input.PromptTemplate;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +24,7 @@ import java.util.regex.Pattern;
  * 
  * 负责执行具体的工具调用，基于思考节点的决策执行相应的行动
  */
+@Component
 public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(ActNode.class);
@@ -74,6 +77,7 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
         NEED_INFO: [需要什么信息]
         """);
     
+    @Autowired
     public ActNode(ChatModel chatModel, PythonTool pythonTool, 
                    FileTool fileTool, BrowserTool browserTool) {
         this.chatModel = chatModel;
@@ -147,9 +151,13 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                     result = executeToolCall(actionInfo);
                     break;
                 case "direct_answer":
+                    // 直接返回最终答案
                     return Map.of(
                         "final_answer", actionInfo.content,
-                        "reasoning_steps", Map.of("type", "direct_answer", "content", actionInfo.content)
+                        "reasoning_steps", Map.of(
+                            "type", "direct_answer",
+                            "content", "直接回答: " + actionInfo.content
+                        )
                     );
                 case "need_info":
                     result = "需要更多信息: " + actionInfo.content;
@@ -223,47 +231,41 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
     private ActionInfo parseActionDecision(String decision) {
         ActionInfo info = new ActionInfo();
         
-        // 检查直接答案
-        Pattern directAnswerPattern = Pattern.compile("DIRECT_ANSWER:\\s*(.+)", Pattern.DOTALL);
-        Matcher directMatcher = directAnswerPattern.matcher(decision);
-        if (directMatcher.find()) {
+        // 检查是否是直接回答
+        if (decision.contains("DIRECT_ANSWER:")) {
             info.type = "direct_answer";
-            info.content = directMatcher.group(1).trim();
+            String[] parts = decision.split("DIRECT_ANSWER:");
+            if (parts.length > 1) {
+                info.content = parts[1].trim();
+            }
             return info;
         }
         
-        // 检查需要更多信息
-        Pattern needInfoPattern = Pattern.compile("NEED_INFO:\\s*(.+)", Pattern.DOTALL);
-        Matcher needMatcher = needInfoPattern.matcher(decision);
-        if (needMatcher.find()) {
+        // 检查是否需要更多信息
+        if (decision.contains("NEED_INFO:")) {
             info.type = "need_info";
-            info.content = needMatcher.group(1).trim();
+            String[] parts = decision.split("NEED_INFO:");
+            if (parts.length > 1) {
+                info.content = parts[1].trim();
+            }
             return info;
         }
         
         // 解析工具调用
-        Pattern actionPattern = Pattern.compile("ACTION:\\s*(.+?)\\s*INPUT:\\s*(.+?)(?:\\s*REASON:\\s*(.+))?", 
-                                              Pattern.DOTALL);
-        Matcher actionMatcher = actionPattern.matcher(decision);
-        if (actionMatcher.find()) {
+        if (decision.contains("ACTION:")) {
             info.type = "action";
-            info.action = actionMatcher.group(1).trim();
-            info.input = actionMatcher.group(2).trim();
-            info.reason = actionMatcher.groupCount() > 2 && actionMatcher.group(3) != null ? 
-                         actionMatcher.group(3).trim() : "";
-            
-            // 清理输入参数（移除引号）
-            if (info.input.startsWith("\"") && info.input.endsWith("\"")) {
-                info.input = info.input.substring(1, info.input.length() - 1);
+            String[] lines = decision.split("\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.startsWith("ACTION:")) {
+                    info.action = line.substring("ACTION:".length()).trim();
+                } else if (line.startsWith("INPUT:")) {
+                    info.input = line.substring("INPUT:".length()).trim();
+                } else if (line.startsWith("REASON:")) {
+                    info.reason = line.substring("REASON:".length()).trim();
+                }
             }
-            
-            return info;
         }
-        
-        // 如果无法解析，默认为观察
-        info.type = "observe";
-        info.content = decision;
-        logger.warn("无法解析行动决策，将进入观察阶段: {}", decision.substring(0, Math.min(100, decision.length())));
         
         return info;
     }

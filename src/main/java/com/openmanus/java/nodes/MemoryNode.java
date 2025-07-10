@@ -11,6 +11,7 @@ import dev.langchain4j.model.input.PromptTemplate;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
  * - 重要信息识别和保存
  * - 上下文相关记忆调用
  */
+@Component
 public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(MemoryNode.class);

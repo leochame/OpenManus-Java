@@ -14,6 +14,7 @@ import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.action.AsyncEdgeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -39,18 +40,28 @@ public class ManusAgent {
     private final FileTool fileTool;
     private final BrowserTool browserTool;
     private final ReflectionTool reflectionTool;
+    private final ThinkNode thinkNode;
+    private final ActNode actNode;
+    private final ObserveNode observeNode;
     private final CompiledGraph<OpenManusAgentState> compiledGraph;
     
+    @Autowired
     public ManusAgent(@Qualifier("chatModel") ChatModel chatModel,
                      PythonTool pythonTool,
                      FileTool fileTool,
                      BrowserTool browserTool,
-                     ReflectionTool reflectionTool) {
+                     ReflectionTool reflectionTool,
+                     ThinkNode thinkNode,
+                     ActNode actNode,
+                     ObserveNode observeNode) {
         this.chatModel = chatModel;
         this.pythonTool = pythonTool;
         this.fileTool = fileTool;
         this.browserTool = browserTool;
         this.reflectionTool = reflectionTool;
+        this.thinkNode = thinkNode;
+        this.actNode = actNode;
+        this.observeNode = observeNode;
         
         // 构建StateGraph工作流
         this.compiledGraph = buildStateGraph();
@@ -64,11 +75,6 @@ public class ManusAgent {
      */
     private CompiledGraph<OpenManusAgentState> buildStateGraph() {
         try {
-            // 创建React节点
-            ThinkNode thinkNode = new ThinkNode(chatModel);
-            ActNode actNode = new ActNode(chatModel, pythonTool, fileTool, browserTool);
-            ObserveNode observeNode = new ObserveNode(chatModel);
-            
             // 定义条件边：根据状态决定下一步
             AsyncEdgeAction<OpenManusAgentState> routeNext = edge_async(state -> {
                 // 检查是否有最终答案
