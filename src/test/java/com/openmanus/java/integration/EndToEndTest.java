@@ -8,6 +8,9 @@ import com.openmanus.java.tool.BrowserTool;
 import com.openmanus.java.tool.FileTool;
 import com.openmanus.java.tool.PythonTool;
 import com.openmanus.java.tool.ReflectionTool;
+import com.openmanus.java.nodes.ThinkNode;
+import com.openmanus.java.nodes.ActNode;
+import com.openmanus.java.nodes.ObserveNode;
 import dev.langchain4j.model.chat.ChatModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,8 +68,14 @@ public class EndToEndTest {
         // 设置Mock行为
         setupMockBehaviors();
         
+        // 创建节点组件
+        ThinkNode thinkNode = new ThinkNode(chatModel);
+        ActNode actNode = new ActNode(chatModel, pythonTool, fileTool, browserTool);
+        ObserveNode observeNode = new ObserveNode(chatModel);
+        
         // 创建ManusAgent实例
-        manusAgent = new ManusAgent(chatModel, pythonTool, fileTool, browserTool, reflectionTool);
+        manusAgent = new ManusAgent(chatModel, pythonTool, fileTool, browserTool, reflectionTool,
+                                  thinkNode, actNode, observeNode);
         
         // 创建AgentController实例
         agentController = new AgentController();

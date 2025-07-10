@@ -65,7 +65,13 @@ public class StateGraphIntegrationTest {
             .build();
         when(chatModel.chat(any(ChatRequest.class))).thenReturn(mockResponse);
         
-        manusAgent = new ManusAgent(chatModel, pythonTool, fileTool, browserTool, reflectionTool);
+        // 创建节点组件
+        ThinkNode thinkNode = new ThinkNode(chatModel);
+        ActNode actNode = new ActNode(chatModel, pythonTool, fileTool, browserTool);
+        ObserveNode observeNode = new ObserveNode(chatModel);
+        
+        manusAgent = new ManusAgent(chatModel, pythonTool, fileTool, browserTool, reflectionTool,
+                                  thinkNode, actNode, observeNode);
     }
     
     @Test
