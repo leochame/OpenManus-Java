@@ -15,9 +15,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Think Node - React框架的思考节点
+ * Think Node - React framework thinking node
  * 
- * 负责分析用户问题，制定解决计划，决定下一步行动
+ * Responsible for analyzing user problems, formulating solution plans, and deciding next actions
  */
 @Component
 public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
@@ -26,55 +26,55 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private final ChatModel chatModel;
     
-    // 思考提示词模板
+    // Thinking prompt template
     private static final PromptTemplate THINK_PROMPT = PromptTemplate.from("""
-        你是一个智能助手，正在使用ReAct（Reasoning and Acting）框架来解决问题。
+        You are an intelligent assistant using the ReAct (Reasoning and Acting) framework to solve problems.
         
-        当前情况：
-        - 用户问题: {{user_input}}
-        - 推理步骤: {{iteration}}/{{max_iterations}}
-        - 之前的推理: {{previous_reasoning}}
-        - 之前的观察: {{previous_observations}}
+        Current situation:
+        - User question: {{user_input}}
+        - Reasoning step: {{iteration}}/{{max_iterations}}
+        - Previous reasoning: {{previous_reasoning}}
+        - Previous observations: {{previous_observations}}
         
-        请进行深度思考分析：
+        Please conduct deep thinking analysis:
         
-        1. **问题理解**: 分析用户问题的核心需求和目标
-        2. **问题分类**: 判断问题类型（简单计算/复杂计算/信息查询/工具操作等）
-        3. **现状评估**: 基于已有信息和观察结果评估当前进展
-        4. **解决策略**: 
-           - 对于简单问题（如基础数学计算），直接给出答案
-           - 对于复杂问题，决定是否需要使用工具
-        5. **工具选择**: 如果需要使用工具，选择最合适的工具
+        1. **Problem Understanding**: Analyze the core needs and goals of the user's question
+        2. **Problem Classification**: Determine the problem type (simple calculation/complex calculation/information query/tool operation, etc.)
+        3. **Current Status Assessment**: Evaluate current progress based on available information and observation results
+        4. **Solution Strategy**: 
+           - For simple problems (such as basic math calculations), provide direct answers
+           - For complex problems, decide whether tools are needed
+        5. **Tool Selection**: If tools are needed, choose the most appropriate tool
         
-        可用工具：
-        - executePython: 执行Python代码进行计算、数据处理等
-        - readFile: 读取文件内容
-        - writeFile: 写入文件内容
-        - listDirectory: 列出目录内容
-        - browseWeb: 浏览网页获取信息
-        - searchWeb: 搜索网络信息
-        - askHuman: 询问用户以获取更多信息
+        Available tools:
+        - executePython: Execute Python code for calculations, data processing, etc.
+        - readFile: Read file content
+        - writeFile: Write file content
+        - listDirectory: List directory contents
+        - browseWeb: Browse web pages to get information
+        - searchWeb: Search for network information
+        - askHuman: Ask user for more information
         
-        请以以下格式回答：
+        Please answer in the following format:
         
-        **思考分析:**
-        [详细的思考过程，包括问题分析、策略制定等]
+        **Thinking Analysis:**
+        [Detailed thinking process, including problem analysis, strategy formulation, etc.]
         
-        **问题类型:**
-        [简单计算/复杂计算/信息查询/工具操作]
+        **Problem Type:**
+        [Simple calculation/Complex calculation/Information query/Tool operation]
         
-        **解决方案:**
-        - 方案类型: [直接回答/工具调用/需要更多信息]
-        - 具体计划: [具体要做什么]
-        - 预期结果: [希望得到什么结果]
+        **Solution:**
+        - Solution type: [Direct answer/Tool call/Need more information]
+        - Specific plan: [What specifically to do]
+        - Expected result: [What result is expected]
         
-        **如果是直接回答:**
-        DIRECT_ANSWER: [答案内容]
+        **If direct answer:**
+        DIRECT_ANSWER: [Answer content]
         
-        **如果需要工具调用:**
-        - 工具名称: [工具名]
-        - 参数: [具体参数]
-        - 理由: [为什么选择这个工具]
+        **If tool call needed:**
+        - Tool name: [Tool name]
+        - Parameters: [Specific parameters]
+        - Reason: [Why choose this tool]
         """);
     
     @Autowired
@@ -86,21 +86,21 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     public CompletableFuture<Map<String, Object>> apply(OpenManusAgentState state) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("开始思考阶段 - 用户问题: {}", state.getUserInput());
+                logger.info("Start thinking phase - User question: {}", state.getUserInput());
                 
-                // 检查是否已达到最大迭代次数
+                // Check if max iterations reached
                 if (state.isMaxIterationsReached()) {
-                    logger.warn("达到最大推理次数: {}", state.getMaxIterations());
+                    logger.warn("Max reasoning iterations reached: {}", state.getMaxIterations());
                     Map<String, Object> errorUpdates = new HashMap<>();
-                    errorUpdates.put("error", "推理次数超过限制，无法继续处理");
+                    errorUpdates.put("error", "Max reasoning iterations reached, cannot continue processing");
                     Map<String, Object> errorReasoning = new HashMap<>();
                     errorReasoning.put("type", "error");
-                    errorReasoning.put("content", "达到最大推理次数限制");
+                    errorReasoning.put("content", "Max reasoning iterations limit reached");
                     errorUpdates.put("reasoning_steps", errorReasoning);
                     return errorUpdates;
                 }
                 
-                // 准备思考提示词的参数
+                // Prepare parameters for thinking prompt
                 Map<String, Object> promptVariables = new HashMap<>();
                 promptVariables.put("user_input", state.getUserInput());
                 promptVariables.put("iteration", state.getIterationCount());
@@ -108,22 +108,22 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
                 promptVariables.put("previous_reasoning", formatPreviousReasoning(state));
                 promptVariables.put("previous_observations", formatPreviousObservations(state));
                 
-                // 生成思考提示词
+                // Generate thinking prompt
                 Prompt prompt = THINK_PROMPT.apply(promptVariables);
                 
-                // 调用LLM进行思考
-                logger.debug("调用LLM进行思考分析...");
+                // Call LLM for thinking
+                logger.debug("Calling LLM for thinking analysis...");
                 String thinkingResult = chatModel.chat(prompt.text());
                 
-                // 记录思考结果
-                logger.info("思考完成，结果长度: {} 字符", thinkingResult.length());
+                // Log thinking result
+                logger.info("Thinking completed, result length: {} characters", thinkingResult.length());
                 
-                // 分析思考结果，决定下一步行动
+                // Analyze thinking result to determine next action
                 String nextAction = analyzeThinkingResult(thinkingResult);
                 
-                logger.info("思考节点完成 - 下一步行动: {}", nextAction);
+                logger.info("Think node completed - Next action: {}", nextAction);
                 
-                // 返回状态更新
+                // Return state updates
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("current_state", "thinking");
                 Map<String, Object> reasoningStep = new HashMap<>();
@@ -138,12 +138,12 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
                 return updates;
                 
             } catch (Exception e) {
-                logger.error("思考节点执行失败", e);
+                logger.error("Think node execution failed", e);
                 Map<String, Object> errorUpdates = new HashMap<>();
-                errorUpdates.put("error", "思考过程中发生错误: " + e.getMessage());
+                errorUpdates.put("error", "Error during thinking: " + e.getMessage());
                 Map<String, Object> errorReasoning = new HashMap<>();
                 errorReasoning.put("type", "error");
-                errorReasoning.put("content", "思考失败: " + e.getMessage());
+                errorReasoning.put("content", "Thinking failed: " + e.getMessage());
                 errorUpdates.put("reasoning_steps", errorReasoning);
                 return errorUpdates;
             }
@@ -151,17 +151,17 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 格式化之前的推理步骤
+     * Format previous reasoning steps
      */
     private String formatPreviousReasoning(OpenManusAgentState state) {
         StringBuilder sb = new StringBuilder();
         var steps = state.getReasoningSteps();
         
         if (steps.isEmpty()) {
-            return "无之前推理记录";
+            return "No previous reasoning record";
         }
         
-        int displayCount = Math.min(steps.size(), 3); // 只显示最近3步
+        int displayCount = Math.min(steps.size(), 3); // Only show recent 3 steps
         for (int i = steps.size() - displayCount; i < steps.size(); i++) {
             Map<String, Object> step = steps.get(i);
             sb.append(String.format("- [%s] %s\n", 
@@ -173,17 +173,17 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 格式化之前的观察结果
+     * Format previous observations
      */
     private String formatPreviousObservations(OpenManusAgentState state) {
         StringBuilder sb = new StringBuilder();
         var observations = state.getObservations();
         
         if (observations.isEmpty()) {
-            return "无观察记录";
+            return "No observation record";
         }
         
-        int displayCount = Math.min(observations.size(), 2); // 只显示最近2个观察
+        int displayCount = Math.min(observations.size(), 2); // Only show recent 2 observations
         for (int i = observations.size() - displayCount; i < observations.size(); i++) {
             String obs = observations.get(i);
             sb.append(String.format("- %s\n", 
@@ -194,37 +194,37 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 分析思考结果，确定下一步行动
+     * Analyze thinking result to determine next action
      */
     private String analyzeThinkingResult(String thinkingResult) {
         String lowerResult = thinkingResult.toLowerCase();
         
-        // 检查是否有直接答案
+        // Check for direct answer
         if (lowerResult.contains("direct_answer:")) {
             return "direct_answer";
         }
         
-        // 检查是否需要工具调用
+        // Check if tool call is needed
         if (lowerResult.contains("executepython") || lowerResult.contains("python")) {
             return "tool_call_python";
-        } else if (lowerResult.contains("readfile") || lowerResult.contains("读取文件")) {
+        } else if (lowerResult.contains("readfile") || lowerResult.contains("read file")) {
             return "tool_call_file";
-        } else if (lowerResult.contains("writefile") || lowerResult.contains("写入文件")) {
+        } else if (lowerResult.contains("writefile") || lowerResult.contains("write file")) {
             return "tool_call_file";
-        } else if (lowerResult.contains("browseweb") || lowerResult.contains("浏览网页")) {
+        } else if (lowerResult.contains("browseweb") || lowerResult.contains("browse web")) {
             return "tool_call_web";
-        } else if (lowerResult.contains("searchweb") || lowerResult.contains("搜索网络")) {
+        } else if (lowerResult.contains("searchweb") || lowerResult.contains("search web")) {
             return "tool_call_web";
-        } else if (lowerResult.contains("askhuman") || lowerResult.contains("询问用户")) {
+        } else if (lowerResult.contains("askhuman") || lowerResult.contains("ask human")) {
             return "need_info";
         }
         
-        // 默认继续思考
+        // Default to continue thinking
         return "continue_thinking";
     }
     
     /**
-     * 截断文本到指定长度
+     * Truncate text to specified length
      */
     private String truncateText(String text, int maxLength) {
         if (text == null) return "";

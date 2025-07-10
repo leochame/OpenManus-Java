@@ -1,39 +1,34 @@
 package com.openmanus.java.workflow;
-
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.CompiledGraph;
-import org.bsc.langgraph4j.action.AsyncNodeAction;
-import org.bsc.langgraph4j.action.EdgeAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.openmanus.java.state.OpenManusAgentState;
 import com.openmanus.java.nodes.ThinkNode;
 import com.openmanus.java.nodes.ActNode;
 import com.openmanus.java.nodes.ObserveNode;
 import com.openmanus.java.nodes.ReflectNode;
 import com.openmanus.java.nodes.MemoryNode;
-
 import java.util.Map;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
 
 /**
- * React Agent工作流 - 基于langgraph4j StateGraph实现的完整React推理框架
+ * React Agent Workflow - Complete React reasoning framework based on langgraph4j StateGraph
  * 
- * 该工作流实现了Think->Act->Observe->Reflect循环，支持：
- * - 多轮推理迭代
- * - 条件边路由
- * - 错误处理和重试
- * - 内存管理集成
- * - 反思和自我优化
+ * This workflow implements Think->Act->Observe->Reflect cycle, supporting:
+ * - Multi-round reasoning iterations
+ * - Conditional edge routing
+ * - Error handling and retry
+ * - Memory management integration
+ * - Reflection and self-optimization
  */
 @Component
 public class ReactAgentWorkflow {
+    
     private static final Logger logger = LoggerFactory.getLogger(ReactAgentWorkflow.class);
     
     @Autowired
@@ -52,27 +47,27 @@ public class ReactAgentWorkflow {
     private MemoryNode memoryNode;
     
     /**
-     * 构建React Agent的StateGraph工作流
+     * Build React Agent StateGraph workflow
      */
     public CompiledGraph<OpenManusAgentState> buildWorkflow() {
         try {
-            logger.info("开始构建ReactAgent StateGraph工作流...");
+            logger.info("Start building ReactAgent StateGraph workflow...");
             
-            // 创建StateGraph
+            // Create StateGraph
             StateGraph<OpenManusAgentState> stateGraph = new StateGraph<>(OpenManusAgentState.SCHEMA, OpenManusAgentState::new);
             
             return stateGraph
-                // 添加节点
+                // Add nodes
                 .addNode("think", thinkNode)
                 .addNode("act", actNode)
                 .addNode("observe", observeNode)
                 .addNode("reflect", reflectNode)
                 .addNode("memory", memoryNode)
                 
-                // 设置入口点
+                // Set entry point
                 .addEdge(StateGraph.START, "think")
                 
-                // 添加条件边 - Think节点的路由逻辑
+                // Add conditional edges - Think node routing logic
                 .addConditionalEdges("think", 
                     edge_async(this::routeFromThink),
                     Map.of(
@@ -82,7 +77,7 @@ public class ReactAgentWorkflow {
                     )
                 )
                 
-                // 添加条件边 - Act节点的路由逻辑  
+                // Add conditional edges - Act node routing logic  
                 .addConditionalEdges("act",
                     edge_async(this::routeFromAct), 
                     Map.of(
@@ -92,7 +87,7 @@ public class ReactAgentWorkflow {
                     )
                 )
                 
-                // 添加条件边 - Observe节点的路由逻辑
+                // Add conditional edges - Observe node routing logic
                 .addConditionalEdges("observe",
                     edge_async(this::routeFromObserve),
                     Map.of(
@@ -103,7 +98,7 @@ public class ReactAgentWorkflow {
                     )
                 )
                 
-                // 添加条件边 - Reflect节点的路由逻辑
+                // Add conditional edges - Reflect node routing logic
                 .addConditionalEdges("reflect",
                     edge_async(this::routeFromReflect),
                     Map.of(
@@ -114,161 +109,161 @@ public class ReactAgentWorkflow {
                     )
                 )
                 
-                // Memory节点总是回到Think重新开始
+                // Memory node always returns to Think to restart
                 .addEdge("memory", "think")
                 
-                // 编译工作流
+                // Compile workflow
                 .compile();
                 
         } catch (Exception e) {
-            logger.error("构建ReactAgent工作流失败", e);
+            logger.error("Failed to build ReactAgent workflow", e);
             throw new RuntimeException("Failed to build ReactAgent workflow", e);
         }
     }
     
     /**
-     * Think节点的路由逻辑
+     * Think node routing logic
      */
     private String routeFromThink(OpenManusAgentState state) throws Exception {
         try {
-            // 检查是否有错误
+            // Check for errors
             if (state.hasError()) {
-                logger.warn("Think节点检测到错误，路由到error");
+                logger.warn("Think node detected error, routing to error");
                 return "error";
             }
             
-            // 检查是否达到最大迭代次数
+            // Check if max iterations reached
             if (state.isMaxIterationsReached()) {
-                logger.info("达到最大迭代次数，路由到finished");
+                logger.info("Max iterations reached, routing to finished");
                 return "finished";
             }
             
-            // 检查是否有最终答案
+            // Check if final answer exists
             if (!state.getFinalAnswer().isEmpty()) {
-                logger.info("已有最终答案，路由到finished");
+                logger.info("Final answer exists, routing to finished");
                 return "finished";
             }
             
-            // 检查是否需要执行工具调用
+            // Check if tool call is needed
             if (!state.getToolCalls().isEmpty()) {
-                logger.info("需要执行工具调用，路由到act");
+                logger.info("Tool call needed, routing to act");
                 return "act";
             }
             
-            // 默认继续思考
-            logger.info("继续思考，路由到think");
+            // Default continue thinking
+            logger.info("Continue thinking, routing to think");
             return "think";
             
         } catch (Exception e) {
-            logger.error("Think节点路由逻辑异常", e);
+            logger.error("Think node routing logic exception", e);
             return "error";
         }
     }
     
     /**
-     * Act节点的路由逻辑
+     * Act node routing logic
      */
     private String routeFromAct(OpenManusAgentState state) throws Exception {
         try {
-            // 检查是否有错误
+            // Check for errors
             if (state.hasError()) {
-                logger.warn("Act节点检测到错误，路由到error");
+                logger.warn("Act node detected error, routing to error");
                 return "error";
             }
             
-            // 检查工具调用是否完成
+            // Check if tool call is completed
             if (!state.getObservations().isEmpty()) {
-                logger.info("工具调用完成，路由到observe");
+                logger.info("Tool call completed, routing to observe");
                 return "observe";
             }
             
-            // 默认继续执行
-            logger.info("继续执行，路由到act");
+            // Default continue execution
+            logger.info("Continue execution, routing to act");
             return "act";
             
         } catch (Exception e) {
-            logger.error("Act节点路由逻辑异常", e);
+            logger.error("Act node routing logic exception", e);
             return "error";
         }
     }
     
     /**
-     * Observe节点的路由逻辑
+     * Observe node routing logic
      */
     private String routeFromObserve(OpenManusAgentState state) throws Exception {
         try {
-            // 检查是否有错误
+            // Check for errors
             if (state.hasError()) {
-                logger.warn("Observe节点检测到错误，路由到error");
+                logger.warn("Observe node detected error, routing to error");
                 return "error";
             }
             
-            // 检查是否需要反思
+            // Check if reflection is needed
             if (state.getIterationCount() > 3) {
-                logger.info("迭代次数较多，需要反思，路由到reflect");
+                logger.info("Many iterations, reflection needed, routing to reflect");
                 return "reflect";
             }
             
-            // 检查是否有最终答案
+            // Check if final answer exists
             if (!state.getFinalAnswer().isEmpty()) {
-                logger.info("已有最终答案，路由到finished");
+                logger.info("Final answer exists, routing to finished");
                 return "finished";
             }
             
-            // 默认继续思考
-            logger.info("继续思考，路由到think");
+            // Default continue thinking
+            logger.info("Continue thinking, routing to think");
             return "think";
             
         } catch (Exception e) {
-            logger.error("Observe节点路由逻辑异常", e);
+            logger.error("Observe node routing logic exception", e);
             return "error";
         }
     }
     
     /**
-     * Reflect节点的路由逻辑
+     * Reflect node routing logic
      */
     private String routeFromReflect(OpenManusAgentState state) throws Exception {
         try {
-            // 检查是否有错误
+            // Check for errors
             if (state.hasError()) {
-                logger.warn("Reflect节点检测到错误，路由到error");
+                logger.warn("Reflect node detected error, routing to error");
                 return "error";
             }
             
-            // 检查是否需要更新内存
+            // Check if memory update is needed
             if (!state.getReflections().isEmpty()) {
-                logger.info("需要更新内存，路由到memory");
+                logger.info("Memory update needed, routing to memory");
                 return "memory";
             }
             
-            // 检查是否有最终答案
+            // Check if final answer exists
             if (!state.getFinalAnswer().isEmpty()) {
-                logger.info("已有最终答案，路由到finished");
+                logger.info("Final answer exists, routing to finished");
                 return "finished";
             }
             
-            // 默认继续思考
-            logger.info("继续思考，路由到think");
+            // Default continue thinking
+            logger.info("Continue thinking, routing to think");
             return "think";
             
         } catch (Exception e) {
-            logger.error("Reflect节点路由逻辑异常", e);
+            logger.error("Reflect node routing logic exception", e);
             return "error";
         }
     }
     
     /**
-     * 检查状态是否有错误
+     * Check if state has errors
      */
     private boolean hasError(OpenManusAgentState state) {
-        // 简单的错误检查逻辑
+        // Simple error checking logic
         String currentStep = state.getCurrentStep();
         return currentStep != null && currentStep.contains("error");
     }
     
     /**
-     * 提取观察内容
+     * Extract observation contents
      */
     private String extractObservationContents(List<String> observations) {
         if (observations == null || observations.isEmpty()) {
@@ -283,17 +278,17 @@ public class ReactAgentWorkflow {
     }
     
     /**
-     * 生成工作流状态摘要
+     * Generate workflow status summary
      */
     public String generateWorkflowSummary(OpenManusAgentState state) {
         StringBuilder summary = new StringBuilder();
-        summary.append("=== ReactAgent工作流状态摘要 ===\n");
+        summary.append("=== ReactAgent Workflow Status Summary ===\n");
         summary.append(state.getReactSummary());
-        summary.append("\n=== 工作流统计 ===\n");
-        summary.append("消息总数: ").append(state.getMessages().size()).append("\n");
-        summary.append("工具调用数: ").append(state.getToolCalls().size()).append("\n");
-        summary.append("观察记录: ").append(extractObservationContents(state.getObservations())).append("\n");
-        summary.append("反思记录数: ").append(state.getReflections().size()).append("\n");
+        summary.append("\n=== Workflow Statistics ===\n");
+        summary.append("Total messages: ").append(state.getMessages().size()).append("\n");
+        summary.append("Tool calls: ").append(state.getToolCalls().size()).append("\n");
+        summary.append("Observations: ").append(extractObservationContents(state.getObservations())).append("\n");
+        summary.append("Reflection records: ").append(state.getReflections().size()).append("\n");
         
         return summary.toString();
     }

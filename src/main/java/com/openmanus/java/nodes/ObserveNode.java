@@ -15,9 +15,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Observe Node - React框架的观察节点
+ * Observe Node - Observation node in the React framework
  * 
- * 负责分析行动结果，评估进展情况，决定是否需要继续推理或可以给出最终答案
+ * Responsible for analyzing action results, evaluating progress, and deciding whether
+ * to continue processing or provide a final answer.
  */
 @Component
 public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
@@ -26,48 +27,48 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private final ChatModel chatModel;
     
-    // 观察分析提示词模板
+    // Observation analysis prompt template
     private static final PromptTemplate OBSERVE_PROMPT = PromptTemplate.from("""
-        作为一个智能助手，请分析刚才执行的行动结果，并决定下一步的推理方向。
+        As an intelligent assistant, please analyze the results of the recent action and determine the next reasoning direction.
         
-        **用户原始问题：**
+        **Original User Question:**
         {{user_input}}
         
-        **当前推理进度：**
-        - 推理步骤: {{iteration}}/{{max_iterations}}
-        - 当前状态: {{current_state}}
+        **Current Reasoning Progress:**
+        - Reasoning Step: {{iteration}}/{{max_iterations}}
+        - Current State: {{current_state}}
         
-        **最近的推理历史：**
+        **Recent Reasoning History:**
         {{recent_reasoning}}
         
-        **最新的行动结果：**
+        **Latest Action Result:**
         {{latest_action_result}}
         
-        **所有观察结果：**
+        **All Observations:**
         {{all_observations}}
         
-        请基于以上信息进行深度分析：
+        Please perform a deep analysis based on the above information:
         
-        1. **结果评估**: 分析最新行动的执行结果是否有效
-        2. **进展评估**: 评估当前是否已经获得足够信息来回答用户问题
-        3. **问题解决度**: 判断用户问题的解决程度（0-100%）
-        4. **下一步决策**: 决定是否需要继续推理、调用更多工具，还是可以给出答案
+        1. **Result Evaluation**: Analyze if the execution of the latest action was effective
+        2. **Progress Assessment**: Evaluate if we have gathered enough information to answer the user's question
+        3. **Solution Completeness**: Determine the solution progress (0-100%)
+        4. **Next Step Decision**: Decide whether to continue reasoning, call more tools, or provide an answer
         
-        请严格按照以下格式回答：
+        Please respond strictly in the following format:
         
-        **观察分析：**
-        [详细分析行动结果和当前进展]
+        **Observation Analysis:**
+        [Detailed analysis of action results and current progress]
         
-        **解决程度：**
-        [数字]% - [简要说明]
+        **Solution Progress:**
+        [number]% - [brief explanation]
         
-        **下一步决策：**
-        - 决策: [CONTINUE_THINKING/DIRECT_ANSWER/NEED_REFLECTION/ERROR]
-        - 理由: [决策原因]
-        - 建议: [如果继续推理，下一步应该做什么]
+        **Next Step Decision:**
+        - Decision: [CONTINUE_THINKING/DIRECT_ANSWER/NEED_REFLECTION/ERROR]
+        - Reason: [decision rationale]
+        - Suggestion: [what should be done next if continuing reasoning]
         
-        **最终答案（如果决策是DIRECT_ANSWER）：**
-        [基于所有信息给出的完整答案]
+        **Final Answer (if decision is DIRECT_ANSWER):**
+        [Complete answer based on all information]
         """);
     
     @Autowired
@@ -79,9 +80,9 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     public CompletableFuture<Map<String, Object>> apply(OpenManusAgentState state) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("开始观察阶段 - 分析行动结果");
+                logger.info("Starting observation phase - Analyzing action results");
                 
-                // 准备观察分析的参数
+                // Prepare observation analysis parameters
                 Map<String, Object> promptVariables = new HashMap<>();
                 promptVariables.put("user_input", state.getUserInput());
                 promptVariables.put("iteration", state.getIterationCount());
@@ -91,90 +92,67 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
                 promptVariables.put("latest_action_result", getLatestActionResult(state));
                 promptVariables.put("all_observations", formatAllObservations(state));
                 
-                // 生成观察分析提示词
+                // Generate observation analysis prompt
                 Prompt prompt = OBSERVE_PROMPT.apply(promptVariables);
                 
-                // 调用LLM进行观察分析
-                logger.debug("调用LLM进行观察分析...");
+                // Call LLM for observation analysis
+                logger.debug("Calling LLM for observation analysis...");
                 String observationResult = chatModel.chat(prompt.text());
                 
-                logger.info("观察分析完成，结果长度: {} 字符", observationResult.length());
+                logger.info("Observation analysis completed, result length: {} characters", observationResult.length());
                 
-                // 解析观察结果
+                // Parse observation result
                 ObservationDecision decision = parseObservationResult(observationResult);
                 
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("current_state", "observing");
                 updates.put("reasoning_steps", Map.of("type", "observation", "content", observationResult));
-                updates.put("metadata", Map.of(
-                    "observation_decision", decision.decision,
-                    "solution_progress", decision.solutionProgress
-                ));
                 
-                // 根据决策更新状态
+                // Handle different decisions
                 switch (decision.decision.toLowerCase()) {
                     case "direct_answer":
-                        if (decision.finalAnswer != null && !decision.finalAnswer.trim().isEmpty()) {
-                            updates.put("final_answer", decision.finalAnswer);
-                            logger.info("观察节点决定给出最终答案");
-                        } else {
-                            // 如果没有明确的答案，基于现有信息生成答案
-                            String generatedAnswer = generateAnswerFromObservations(state);
-                            updates.put("final_answer", generatedAnswer);
-                            logger.info("观察节点生成最终答案");
-                        }
+                        logger.info("Observation node decided to provide final answer");
+                        updates.put("final_answer", decision.finalAnswer);
                         break;
-                        
                     case "continue_thinking":
-                        updates.put("current_state", "continue_thinking");
-                        Map<String, Object> metadata = new HashMap<>((Map<String, Object>) updates.get("metadata"));
-                        metadata.put("next_suggestion", decision.suggestion);
-                        updates.put("metadata", metadata);
-                        logger.info("观察节点决定继续推理");
+                        logger.info("Observation node decided to continue reasoning");
                         break;
-                        
                     case "need_reflection":
-                        updates.put("current_state", "need_reflection");
-                        logger.info("观察节点决定需要反思");
+                        logger.info("Observation node decided reflection is needed");
                         break;
-                        
                     case "error":
-                        updates.put("error", "观察阶段发现错误: " + decision.reason);
-                        logger.warn("观察节点发现错误: {}", decision.reason);
+                        logger.warn("Observation node detected error: {}", decision.reason);
+                        updates.put("error", decision.reason);
                         break;
-                        
                     default:
-                        logger.warn("未知的观察决策: {}", decision.decision);
-                        updates.put("current_state", "continue_thinking");
+                        logger.warn("Unknown observation decision: {}", decision.decision);
+                        updates.put("error", "Unknown observation decision: " + decision.decision);
                 }
                 
                 return updates;
                 
             } catch (Exception e) {
-                logger.error("观察节点执行失败", e);
-                Map<String, Object> errorUpdates = new HashMap<>();
-                errorUpdates.put("error", "观察过程中发生错误: " + e.getMessage());
-                Map<String, Object> errorReasoning = new HashMap<>();
-                errorReasoning.put("type", "error");
-                errorReasoning.put("content", "观察失败: " + e.getMessage());
-                errorUpdates.put("reasoning_steps", errorReasoning);
-                return errorUpdates;
+                logger.error("Observation node execution failed", e);
+                return Map.of(
+                    "error", "Observation failed: " + e.getMessage(),
+                    "reasoning_steps", Map.of("type", "error", "content", "Observation failed: " + e.getMessage())
+                );
             }
         });
     }
     
     /**
-     * 格式化最近的推理步骤
+     * Format recent reasoning steps
      */
     private String formatRecentReasoning(OpenManusAgentState state) {
         StringBuilder sb = new StringBuilder();
         var steps = state.getReasoningSteps();
         
         if (steps.isEmpty()) {
-            return "无推理历史";
+            return "No reasoning history";
         }
         
-        // 显示最近5步推理
+        // Show last 5 reasoning steps
         int startIndex = Math.max(0, steps.size() - 5);
         for (int i = startIndex; i < steps.size(); i++) {
             Map<String, Object> step = steps.get(i);
@@ -188,22 +166,22 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 获取最新的行动结果
+     * Get latest action result
      */
     private String getLatestActionResult(OpenManusAgentState state) {
         String result = (String) state.getMetadata().get("last_action_result");
-        return result != null ? result : "无行动结果";
+        return result != null ? result : "No action result";
     }
     
     /**
-     * 格式化所有观察结果
+     * Format all observations
      */
     private String formatAllObservations(OpenManusAgentState state) {
         StringBuilder sb = new StringBuilder();
         var observations = state.getObservations();
         
         if (observations.isEmpty()) {
-            return "无观察记录";
+            return "No observation records";
         }
         
         for (int i = 0; i < observations.size(); i++) {
@@ -217,34 +195,34 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 解析观察结果
+     * Parse observation result
      */
     private ObservationDecision parseObservationResult(String result) {
         ObservationDecision decision = new ObservationDecision();
         
-        // 解析解决程度
-        var progressMatch = result.matches(".*解决程度：.*?(\\d+)%.*");
+        // Parse solution progress
+        var progressMatch = result.matches(".*Solution Progress:.*?(\\d+)%.*");
         if (progressMatch) {
             try {
                 decision.solutionProgress = Integer.parseInt(
-                    result.replaceAll(".*解决程度：.*?(\\d+)%.*", "$1"));
+                    result.replaceAll(".*Solution Progress:.*?(\\d+)%.*", "$1"));
             } catch (NumberFormatException e) {
-                decision.solutionProgress = 50; // 默认值
+                decision.solutionProgress = 50; // Default value
             }
         }
         
-        // 解析决策
-        if (result.toLowerCase().contains("决策: direct_answer") || 
+        // Parse decision
+        if (result.toLowerCase().contains("decision: direct_answer") || 
             result.toLowerCase().contains("direct_answer")) {
             decision.decision = "direct_answer";
             
-            // 提取最终答案
+            // Extract final answer
             String[] lines = result.split("\n");
             boolean inAnswerSection = false;
             StringBuilder answerBuilder = new StringBuilder();
             
             for (String line : lines) {
-                if (line.contains("最终答案") && line.contains("：")) {
+                if (line.contains("Final Answer") && line.contains(":")) {
                     inAnswerSection = true;
                     continue;
                 }
@@ -265,7 +243,7 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
         } else if (result.toLowerCase().contains("error")) {
             decision.decision = "error";
         } else {
-            // 根据解决程度自动决策
+            // Auto-decide based on solution progress
             if (decision.solutionProgress >= 80) {
                 decision.decision = "direct_answer";
             } else if (decision.solutionProgress < 20) {
@@ -275,14 +253,14 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
             }
         }
         
-        // 提取理由和建议
+        // Extract reason and suggestion
         String[] lines = result.split("\n");
         for (String line : lines) {
-            if (line.contains("理由:") || line.contains("理由：")) {
-                decision.reason = line.substring(line.indexOf("理由") + 3).trim();
+            if (line.contains("Reason:")) {
+                decision.reason = line.substring(line.indexOf("Reason:") + 7).trim();
             }
-            if (line.contains("建议:") || line.contains("建议：")) {
-                decision.suggestion = line.substring(line.indexOf("建议") + 3).trim();
+            if (line.contains("Suggestion:")) {
+                decision.suggestion = line.substring(line.indexOf("Suggestion:") + 11).trim();
             }
         }
         
@@ -290,16 +268,16 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 基于观察结果生成答案
+     * Generate answer from observations
      */
     private String generateAnswerFromObservations(OpenManusAgentState state) {
         StringBuilder sb = new StringBuilder();
-        sb.append("基于以下分析过程，我给出如下回答：\n\n");
+        sb.append("Based on the following analysis process, I provide the following answer:\n\n");
         
-        // 添加推理过程摘要
+        // Add reasoning process summary
         var observations = state.getObservations();
         if (!observations.isEmpty()) {
-            sb.append("**分析过程：**\n");
+            sb.append("**Analysis Process:**\n");
             for (int i = 0; i < Math.min(observations.size(), 3); i++) {
                 String obs = observations.get(i);
                 sb.append(String.format("- %s\n", 
@@ -308,26 +286,26 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
             sb.append("\n");
         }
         
-        // 添加工具调用结果
+        // Add tool call results
         var toolCalls = state.getToolCalls();
         if (!toolCalls.isEmpty()) {
-            sb.append("**执行结果：**\n");
+            sb.append("**Execution Results:**\n");
             for (Map<String, Object> toolCall : toolCalls) {
-                sb.append(String.format("- 使用 %s: %s\n", 
+                sb.append(String.format("- Using %s: %s\n", 
                     toolCall.get("tool_name"),
                     truncateText((String) toolCall.get("result"), 100)));
             }
             sb.append("\n");
         }
         
-        sb.append("**结论：**\n");
-        sb.append("基于上述分析，已完成了对您问题的处理。如需更详细的信息或有其他问题，请随时告知。");
+        sb.append("**Conclusion:**\n");
+        sb.append("Based on the above analysis, I have completed processing your question. Please let me know if you need more detailed information or have other questions.");
         
         return sb.toString();
     }
     
     /**
-     * 截断文本
+     * Truncate text
      */
     private String truncateText(String text, int maxLength) {
         if (text == null) return "";
@@ -336,7 +314,7 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 观察决策结果类
+     * Observation decision result class
      */
     private static class ObservationDecision {
         String decision = "continue_thinking";

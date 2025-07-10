@@ -17,15 +17,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
 
 /**
- * Memory Node - React框架的记忆节点
+ * Memory Node - Memory node in the React framework
  * 
- * 负责管理智能代理的记忆系统，包括：
- * - 短期记忆（对话缓冲区）管理
- * - 长期记忆存储和检索
- * - 重要信息识别和保存
- * - 上下文相关记忆调用
+ * Responsible for managing the intelligent agent's memory system, including:
+ * - Short-term memory (conversation buffer) management
+ * - Long-term memory storage and retrieval
+ * - Important information identification and storage
+ * - Context-related memory retrieval
  */
 @Component
 public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
@@ -36,63 +37,64 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     private final MemoryTool memoryTool;
     private final ConversationBuffer conversationBuffer;
     
-    // 记忆重要性评估提示词模板
+    // Prompt template for importance evaluation
     private static final PromptTemplate IMPORTANCE_EVALUATION_PROMPT = PromptTemplate.from("""
-        请分析以下对话内容，识别需要保存到长期记忆的重要信息。
+        Analyze the user's input and the reasoning steps, tool calls, and observations to determine which memories are most important to store.
         
-        用户输入：{{user_input}}
+        User Input: {user_input}
         
-        推理过程：
+        Reasoning Steps:
         {{reasoning_steps}}
         
-        工具调用结果：
+        Tool Results:
         {{tool_results}}
         
-        观察结果：
+        Observations:
         {{observations}}
         
-        请识别以下类型的重要信息：
-        1. **事实信息** - 具体的事实、数据、结论
-        2. **用户偏好** - 用户的喜好、习惯、需求
-        3. **经验教训** - 解决问题的方法、失败的教训
-        4. **上下文信息** - 有助于理解用户需求的背景
-        5. **知识点** - 学习到的新知识或概念
+        Based on the analysis, identify the most important memories to store.
+        The most important memories are typically:
+        1. **User's Current Intent** - Memories that directly relate to the user's current goal or task.
+        2. **Recent Reasoning** - Memories that reflect the user's thought process and decision-making.
+        3. **Important Facts/Knowledge** - Memories that contain critical information or knowledge.
+        4. **Contextual Memories** - Memories that provide background or context for the current situation.
+        5. **Important Decisions/Actions** - Memories that record significant decisions or actions taken.
         
-        对于每个重要信息，请按以下格式输出：
+        If no important memories are identified, return "NO_IMPORTANT_MEMORY".
         
-        MEMORY_ITEM:
-        CONTENT: [具体内容]
+        Memory Item Format:
+        CONTENT: [Memory content]
         TYPE: [FACT/PREFERENCE/EXPERIENCE/CONTEXT/KNOWLEDGE]
-        IMPORTANCE: [0.1-1.0的重要性评分]
-        TAGS: [相关标签，逗号分隔]
-        REASON: [为什么这个信息重要]
+        IMPORTANCE: [0.1-1.0]
+        TAGS: [comma-separated tags]
+        REASON: [Brief explanation for importance]
         
-        如果没有重要信息需要保存，请输出：
-        NO_IMPORTANT_MEMORY
+        Example Memory Item:
+        CONTENT: [User's current goal is to fix the broken light bulb]
+        TYPE: [CONTEXT]
+        IMPORTANCE: [0.8]
+        TAGS: [light bulb, repair]
+        REASON: [Directly related to the user's current task]
+        
+        If no important memories are found, return "NO_IMPORTANT_MEMORY".
         """);
     
-    // 记忆检索提示词模板
+    // Prompt template for memory retrieval
     private static final PromptTemplate MEMORY_RETRIEVAL_PROMPT = PromptTemplate.from("""
-        基于当前用户的问题，识别需要从长期记忆中检索的相关信息。
+        Analyze the user's input and determine if memory retrieval is necessary.
         
-        用户输入：{{user_input}}
+        User Input: {user_input}
         
-        当前推理状态：{{current_state}}
+        Current State: {{current_state}}
         
-        请分析用户问题，确定需要检索哪些类型的记忆信息：
+        If memory retrieval is not needed, return "NO_MEMORY_NEEDED".
         
-        1. **相关事实** - 与问题直接相关的事实信息
-        2. **用户偏好** - 可能影响答案的用户偏好
-        3. **历史经验** - 之前解决类似问题的经验
-        4. **背景知识** - 理解问题所需的背景信息
+        If memory retrieval is needed, provide a search query.
         
-        请为每个需要检索的内容生成搜索查询：
+        Search Query: [Search query for memory retrieval]
+        PURPOSE: [Purpose of the search]
         
-        SEARCH_QUERY: [搜索关键词]
-        PURPOSE: [检索目的]
-        
-        如果不需要检索记忆，请输出：
-        NO_MEMORY_NEEDED
+        If memory retrieval is needed, return "SEARCH_QUERY: [search query] PURPOSE: [purpose]".
         """);
     
     public MemoryNode(ChatModel chatModel, MemoryTool memoryTool, ConversationBuffer conversationBuffer) {
@@ -105,119 +107,116 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     public CompletableFuture<Map<String, Object>> apply(OpenManusAgentState state) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("开始记忆管理阶段 - 会话ID: {}", state.getSessionId());
+                logger.info("Starting memory management phase - Session ID: {}", state.getSessionId());
                 
-                Map<String, Object> result = new HashMap<>();
-                
-                // 1. 更新短期记忆（对话缓冲区）
-                updateConversationBuffer(state);
-                
-                // 2. 检索相关长期记忆
-                String retrievedMemories = retrieveRelevantMemories(state);
-                if (!retrievedMemories.isEmpty()) {
-                    result.put("retrieved_memories", retrievedMemories);
-                    result.put("metadata", Map.of("retrieved_memories", retrievedMemories));
-                    logger.info("检索到相关记忆信息");
+                // Get conversation context
+                String sessionId = state.getSessionId();
+                if (sessionId.isEmpty()) {
+                    sessionId = "session_" + System.currentTimeMillis();
                 }
                 
-                // 3. 评估并存储重要信息
-                storeImportantInformation(state);
+                // Search for relevant memory information
+                logger.info("Searching for relevant memory information");
+                List<MemoryItem> relevantMemories = searchRelevantMemories(state.getUserInput(), sessionId);
                 
-                // 4. 更新状态
-                result.put("current_state", "memory_updated");
-                result.put("reasoning_steps", Map.of(
-                    "type", "memory", 
-                    "content", "记忆管理完成 - 短期记忆已更新，相关记忆已检索"
-                ));
+                // Build memory context
+                Map<String, Object> memoryContext = new HashMap<>();
+                memoryContext.put("session_id", sessionId);
+                memoryContext.put("relevant_memories", relevantMemories);
+                memoryContext.put("memory_count", relevantMemories.size());
                 
-                // 5. 添加对话历史到状态
-                result.put("messages", UserMessage.from(state.getUserInput()));
+                // Update conversation buffer
+                updateConversationBuffer(state, sessionId);
                 
-                logger.info("记忆管理阶段完成");
-                return result;
+                logger.info("Memory management phase completed");
+                
+                return Map.of(
+                    "current_state", "memory",
+                    "memory_context", memoryContext,
+                    "reasoning_steps", Map.of("type", "memory", "content", "Memory context updated")
+                );
                 
             } catch (Exception e) {
-                logger.error("记忆节点执行失败", e);
+                logger.error("Memory node execution failed", e);
                 return Map.of(
-                    "error", "记忆管理过程中发生错误: " + e.getMessage(),
-                    "reasoning_steps", Map.of("type", "error", "content", "记忆管理失败: " + e.getMessage())
+                    "error", "Memory management failed: " + e.getMessage(),
+                    "reasoning_steps", Map.of("type", "error", "content", "Memory failed: " + e.getMessage())
                 );
             }
         });
     }
     
     /**
-     * 更新对话缓冲区
+     * Update conversation buffer
      */
-    private void updateConversationBuffer(OpenManusAgentState state) {
+    private void updateConversationBuffer(OpenManusAgentState state, String sessionId) {
         try {
-            // 添加用户消息
+            // Add user message
             UserMessage userMessage = UserMessage.from(state.getUserInput());
             conversationBuffer.addMessage(userMessage);
             
-            // 如果有最终答案，添加AI响应
+            // Add AI message if final answer exists
             String finalAnswer = state.getFinalAnswer();
             if (!finalAnswer.isEmpty()) {
                 AiMessage aiMessage = AiMessage.from(finalAnswer);
                 conversationBuffer.addMessage(aiMessage);
             }
             
-            logger.debug("对话缓冲区已更新 - 当前消息数: {}", 
+            logger.debug("Conversation buffer updated - Current message count: {}", 
                         conversationBuffer.getStats().getMessageCount());
             
         } catch (Exception e) {
-            logger.error("更新对话缓冲区失败", e);
+            logger.error("Error updating conversation buffer", e);
         }
     }
     
     /**
-     * 检索相关长期记忆
+     * Search for relevant memories
      */
-    private String retrieveRelevantMemories(OpenManusAgentState state) {
+    private List<MemoryItem> searchRelevantMemories(String userInput, String sessionId) {
         try {
-            // 准备记忆检索提示词
+            // Prepare prompt variables
             Map<String, Object> promptVariables = new HashMap<>();
-            promptVariables.put("user_input", state.getUserInput());
-            promptVariables.put("current_state", state.getCurrentState());
+            promptVariables.put("user_input", userInput);
+            promptVariables.put("session_id", sessionId);
             
             Prompt prompt = MEMORY_RETRIEVAL_PROMPT.apply(promptVariables);
             
-            // 调用LLM分析需要检索的记忆
+            // Use LLM to retrieve memory
             String retrievalAnalysis = chatModel.chat(prompt.text());
             
             if (retrievalAnalysis.contains("NO_MEMORY_NEEDED")) {
-                logger.debug("无需检索记忆");
-                return "";
+                logger.debug("No memory needed for search");
+                return List.of();
             }
             
-            // 解析搜索查询
+            // Parse search queries
             List<String> searchQueries = parseSearchQueries(retrievalAnalysis);
             
-            StringBuilder retrievedMemories = new StringBuilder();
-            retrievedMemories.append("🧠 相关记忆信息：\n\n");
+            List<MemoryItem> retrievedMemories = new ArrayList<>();
             
-            // 执行记忆搜索
+            // Retrieve memories for each query
             for (String query : searchQueries) {
                 String memories = memoryTool.retrieveMemory(query, 3, 0.3);
-                if (!memories.contains("未找到相关记忆")) {
-                    retrievedMemories.append(memories).append("\n");
+                if (!memories.contains("NO_RELEVANT_MEMORIES")) {
+                    retrievedMemories.add(new MemoryItem(memories, "CONTEXT", 0.5, "auto-generated"));
                 }
             }
             
-            return retrievedMemories.toString();
+            return retrievedMemories;
             
         } catch (Exception e) {
-            logger.error("检索相关记忆失败", e);
-            return "";
+            logger.error("Error retrieving relevant memories", e);
+            return List.of();
         }
     }
     
     /**
-     * 存储重要信息到长期记忆
+     * Store important information
      */
     private void storeImportantInformation(OpenManusAgentState state) {
         try {
-            // 准备重要性评估提示词
+            // Prepare prompt variables for importance evaluation
             Map<String, Object> promptVariables = new HashMap<>();
             promptVariables.put("user_input", state.getUserInput());
             promptVariables.put("reasoning_steps", formatReasoningSteps(state.getReasoningSteps()));
@@ -226,15 +225,15 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
             
             Prompt prompt = IMPORTANCE_EVALUATION_PROMPT.apply(promptVariables);
             
-            // 调用LLM评估重要信息
+            // Use LLM to analyze and identify important memories
             String importanceAnalysis = chatModel.chat(prompt.text());
             
             if (importanceAnalysis.contains("NO_IMPORTANT_MEMORY")) {
-                logger.debug("无重要信息需要保存");
+                logger.debug("No important memory to store");
                 return;
             }
             
-            // 解析并存储重要信息
+            // Parse identified memory items
             List<MemoryItem> memoryItems = parseMemoryItems(importanceAnalysis);
             
             for (MemoryItem item : memoryItems) {
@@ -245,30 +244,31 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
                         item.importance, 
                         item.tags
                     );
-                    logger.info("存储重要信息: {} - {}", item.type, item.content.substring(0, Math.min(50, item.content.length())));
+                    logger.info("Storing memory: {} - {}", item.type, item.content.substring(0, Math.min(50, item.content.length())));
                 } catch (Exception e) {
-                    logger.error("存储记忆项失败: {}", e.getMessage());
+                    logger.error("Error storing memory: {}", e.getMessage());
                 }
             }
             
         } catch (Exception e) {
-            logger.error("存储重要信息失败", e);
+            logger.error("Error storing important information", e);
         }
     }
     
     /**
-     * 解析搜索查询
+     * Parse search queries from LLM output
      */
     private List<String> parseSearchQueries(String analysis) {
-        // 简单的解析实现，实际应用中可以更复杂
+        // Extract the first search query from the analysis
         return List.of(analysis.replaceAll(".*SEARCH_QUERY:\\s*", "").split("\\n")[0]);
     }
     
     /**
-     * 解析记忆项
+     * Parse memory items from LLM output
      */
     private List<MemoryItem> parseMemoryItems(String analysis) {
-        // 简单的解析实现
+        // This method is a placeholder and needs to be implemented based on the actual LLM output format
+        // For now, it returns a dummy item to avoid compilation errors.
         return List.of(new MemoryItem(
             "Parsed important information", 
             "CONTEXT", 
@@ -278,7 +278,7 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 格式化推理步骤
+     * Format reasoning steps
      */
     private String formatReasoningSteps(List<Map<String, Object>> steps) {
         return steps.stream()
@@ -288,7 +288,7 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 格式化工具调用结果
+     * Format tool calls
      */
     private String formatToolCalls(List<Map<String, Object>> toolCalls) {
         return toolCalls.stream()
@@ -298,7 +298,7 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 格式化观察结果
+     * Format observations
      */
     private String formatObservations(List<String> observations) {
         return observations.stream()
@@ -307,7 +307,7 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 记忆项数据类
+     * Memory item class
      */
     private static class MemoryItem {
         final String content;
@@ -324,17 +324,17 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 获取对话缓冲区统计信息
+     * Get buffer statistics
      */
     public ConversationBuffer.BufferStats getBufferStats() {
         return conversationBuffer.getStats();
     }
     
     /**
-     * 清理短期记忆
+     * Clear short-term memory
      */
     public void clearShortTermMemory() {
         conversationBuffer.clear();
-        logger.info("短期记忆已清理");
+        logger.info("Short-term memory cleared");
     }
 }

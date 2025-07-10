@@ -27,8 +27,8 @@ import static org.bsc.langgraph4j.StateGraph.START;
 import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
 
 /**
- * 基于 LangGraph4j StateGraph 架构的智能 Agent 实现
- * 支持完整的 ReAct 推理循环和反思机制
+ * Intelligent Agent implementation based on LangGraph4j StateGraph architecture
+ * Supports complete ReAct reasoning cycle and reflection mechanism
  */
 @Component
 public class ManusAgent {
@@ -63,7 +63,7 @@ public class ManusAgent {
         this.actNode = actNode;
         this.observeNode = observeNode;
         
-        // 构建StateGraph工作流
+        // Build StateGraph workflow
         this.compiledGraph = buildStateGraph();
         
         logger.info("ManusAgent initialized with StateGraph architecture using ChatModel: {}", 
@@ -71,32 +71,44 @@ public class ManusAgent {
     }
     
     /**
-     * 构建基于StateGraph的ReAct工作流
+     * Build ReAct workflow based on StateGraph
      */
     private CompiledGraph<OpenManusAgentState> buildStateGraph() {
         try {
-            // 定义条件边：根据状态决定下一步
+            // Define conditional edges: determine next step based on state
             AsyncEdgeAction<OpenManusAgentState> routeNext = edge_async(state -> {
-                // 检查是否有最终答案
-                String finalAnswer = state.getFinalAnswer();
-                if (!finalAnswer.isEmpty()) {
-                    logger.info("发现最终答案，结束推理循环");
-                    return END;
-                }
-                
-                // 检查是否有错误
-                if (state.hasError()) {
-                    logger.warn("发现错误，结束推理: {}", state.getError());
-                    return END;
-                }
-                
-                // 检查是否达到最大迭代次数
+                // Check if max iterations reached
                 if (state.isMaxIterationsReached()) {
-                    logger.warn("达到最大推理次数: {}", state.getMaxIterations());
+                    logger.warn("Reached maximum reasoning iterations: {}", state.getMaxIterations());
                     return END;
                 }
                 
-                // 根据当前状态决定下一步
+                // Priority routing based on next_action in metadata
+                String nextAction = (String) state.getMetadata().get("next_action");
+                if (nextAction != null && !nextAction.isEmpty()) {
+                    logger.info("Detected next_action: {}", nextAction);
+                    switch (nextAction) {
+                        case "direct_answer":
+                            // Enter act node to handle direct answer
+                            logger.info("Direct answer, entering act node");
+                            return "act";
+                        case "tool_call_python":
+                        case "tool_call_file":
+                        case "tool_call_web":
+                            logger.info("Tool call, entering act node");
+                            return "act";
+                        case "need_info":
+                            logger.info("Need more information, continue thinking");
+                            return "think";
+                        case "continue_thinking":
+                            logger.info("Continue thinking");
+                            return "think";
+                        default:
+                            logger.warn("Unknown next_action: {}, default to continue thinking", nextAction);
+                            return "think";
+                    }
+                }
+                // Fallback based on current state
                 String currentState = state.getCurrentState();
                 switch (currentState) {
                     case "start":
@@ -109,23 +121,23 @@ public class ManusAgent {
                     case "reflecting":
                         return "reflect";
                     default:
-                        return "think"; // 默认进入思考状态
+                        return "think"; // Default to thinking state
                 }
             });
             
-            // 构建StateGraph（这里使用简化的构造方式）
+            // Build StateGraph (using simplified construction method)
             StateGraph<OpenManusAgentState> graph = new StateGraph<OpenManusAgentState>(
                 OpenManusAgentState.SCHEMA, 
                 initData -> new OpenManusAgentState(initData)
             )
-                // 添加节点
+                // Add nodes
                 .addNode("think", thinkNode)
                 .addNode("act", actNode) 
                 .addNode("observe", observeNode)
                 .addNode("reflect", this::reflectNode)
                 
-                // 添加边
-                .addEdge(START, "think")  // 从开始进入思考状态
+                // Add edges
+                .addEdge(START, "think")  // Start with thinking state
                 .addConditionalEdges("think", routeNext, Map.of(
                     "think", "think",
                     "act", "act", 
@@ -158,49 +170,49 @@ public class ManusAgent {
             return graph.compile();
             
         } catch (Exception e) {
-            logger.error("构建StateGraph失败", e);
+            logger.error("Failed to build StateGraph", e);
             throw new RuntimeException("Failed to build StateGraph", e);
         }
     }
     
     /**
-     * 反思节点实现
+     * Reflection node implementation
      */
     private CompletableFuture<Map<String, Object>> reflectNode(OpenManusAgentState state) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("开始反思阶段...");
+                logger.info("Starting reflection phase...");
                 
                 String taskId = state.getTaskId();
                 if (taskId.isEmpty()) {
                     taskId = "task_" + System.currentTimeMillis();
                 }
                 
-                // 记录任务到反思工具
+                // Record task to reflection tool
                 String reasoningSteps = state.getReasoningSteps().toString();
                 String currentAnswer = state.getFinalAnswer();
                 if (currentAnswer.isEmpty()) {
-                    currentAnswer = "推理进行中...";
+                    currentAnswer = "Reasoning in progress...";
                 }
                 
                 reflectionTool.recordTask(taskId, state.getUserInput(), 
-                                        reasoningSteps, "ReAct推理", currentAnswer);
+                                        reasoningSteps, "ReAct reasoning", currentAnswer);
                 
-                // 进行反思
+                // Perform reflection
                 String reflection = reflectionTool.reflectOnTask(taskId);
                 
-                logger.info("反思完成: {}", reflection);
+                logger.info("Reflection completed: {}", reflection);
                 
                 return Map.of(
                     "reflections", reflection,
-                    "current_state", "thinking", // 反思后继续思考
+                    "current_state", "thinking", // Continue thinking after reflection
                     "task_id", taskId
                 );
                 
             } catch (Exception e) {
-                logger.error("反思节点执行失败", e);
+                logger.error("Reflection node execution failed", e);
                 return Map.of(
-                    "error", "反思过程中发生错误: " + e.getMessage(),
+                    "error", "Error occurred during reflection: " + e.getMessage(),
                     "current_state", "error"
                 );
             }
@@ -208,13 +220,13 @@ public class ManusAgent {
     }
     
     /**
-     * 与Agent对话（使用StateGraph架构）
+     * Chat with Agent (using StateGraph architecture)
      */
     public Map<String, Object> chatWithCot(String userMessage) {
-        logger.info("开始处理用户消息: {}", userMessage);
+        logger.info("Starting to process user message: {}", userMessage);
         
         try {
-            // 创建初始状态
+            // Create initial state
             Map<String, Object> initialData = Map.of(
                 "user_input", userMessage,
                 "session_id", "session_" + System.currentTimeMillis(),
@@ -223,29 +235,29 @@ public class ManusAgent {
                 "max_iterations", 10
             );
             
-            // 执行StateGraph工作流
-            logger.info("启动StateGraph推理流程...");
+            // Execute StateGraph workflow
+            logger.info("Starting StateGraph reasoning workflow...");
             OpenManusAgentState finalState = null;
             
-            // 流式执行图并获取最终状态
+            // Stream execution of graph and get final state
             for (var nodeOutput : compiledGraph.stream(initialData)) {
                 finalState = nodeOutput.state();
-                logger.debug("节点执行完成: {}, 当前状态: {}", 
+                logger.debug("Node execution completed: {}, current state: {}", 
                            nodeOutput.node(), finalState.getCurrentState());
             }
             
             if (finalState == null) {
-                throw new RuntimeException("StateGraph执行未产生最终状态");
+                throw new RuntimeException("StateGraph execution did not produce final state");
             }
             
-            // 构建返回结果
+            // Build return result
             Map<String, Object> result = new HashMap<>();
             
             String finalAnswer = finalState.getFinalAnswer();
             if (finalAnswer.isEmpty() && finalState.hasError()) {
-                finalAnswer = "抱歉，处理您的问题时出现了错误：" + finalState.getError();
+                finalAnswer = "Sorry, an error occurred while processing your question: " + finalState.getError();
             } else if (finalAnswer.isEmpty()) {
-                finalAnswer = "推理过程已完成，但未能得出明确答案。";
+                finalAnswer = "Reasoning process completed, but unable to provide a clear answer.";
             }
             
             result.put("answer", finalAnswer);
@@ -257,23 +269,23 @@ public class ManusAgent {
             result.put("reflections", finalState.getReflections());
             result.put("iteration_count", finalState.getIterationCount());
             
-            logger.info("推理完成，迭代次数: {}, 最终答案: {}", 
+            logger.info("Reasoning completed, iteration count: {}, final answer: {}", 
                        finalState.getIterationCount(), finalAnswer);
             
             return result;
             
         } catch (Exception e) {
-            logger.error("处理用户消息时出现错误", e);
+            logger.error("Error occurred while processing user message", e);
             Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("answer", "抱歉，处理您的问题时出现了错误：" + e.getMessage());
+            errorResult.put("answer", "Sorry, an error occurred while processing your question: " + e.getMessage());
             errorResult.put("content", errorResult.get("answer"));
-            errorResult.put("cot", new String[]{"错误: " + e.getMessage()});
+            errorResult.put("cot", new String[]{"Error: " + e.getMessage()});
             return errorResult;
         }
     }
     
     /**
-     * 从最终状态中提取COT步骤
+     * Extract COT steps from final state
      */
     private String[] extractCotSteps(OpenManusAgentState finalState) {
         return finalState.getReasoningSteps().stream()
@@ -282,7 +294,7 @@ public class ManusAgent {
     }
     
     /**
-     * 获取Agent状态信息
+     * Get Agent status information
      */
     public Map<String, Object> getAgentInfo() {
         Map<String, Object> info = new HashMap<>();

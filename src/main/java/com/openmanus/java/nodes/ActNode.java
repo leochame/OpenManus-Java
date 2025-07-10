@@ -20,9 +20,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Act Node - React框架的行动节点
+ * Act Node - React framework action node
  * 
- * 负责执行具体的工具调用，基于思考节点的决策执行相应的行动
+ * Responsible for executing specific tool calls, based on the thinking node's decisions to execute corresponding actions
  */
 @Component
 public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
@@ -34,47 +34,47 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
     private final FileTool fileTool;
     private final BrowserTool browserTool;
     
-    // 行动决策提示词模板
+    // Action decision prompt template
     private static final PromptTemplate ACTION_PROMPT = PromptTemplate.from("""
-        基于之前的思考分析，现在需要执行具体的行动。
+        Based on the previous thinking analysis, now we need to execute specific actions.
         
-        思考结果：
+        Thinking result:
         {{thinking_result}}
         
-        用户问题：
+        User question:
         {{user_input}}
         
-        可用工具和使用方法：
-        1. **executePython(code)** - 执行Python代码
-           使用格式：executePython("print('Hello World')")
+        Available tools and usage methods:
+        1. **executePython(code)** - Execute Python code
+           Usage format: executePython("print('Hello World')")
            
-        2. **readFile(filePath)** - 读取文件内容
-           使用格式：readFile("/path/to/file.txt")
+        2. **readFile(filePath)** - Read file content
+           Usage format: readFile("/path/to/file.txt")
            
-        3. **writeFile(filePath, content)** - 写入文件
-           使用格式：writeFile("/path/to/file.txt", "内容")
+        3. **writeFile(filePath, content)** - Write to file
+           Usage format: writeFile("/path/to/file.txt", "content")
            
-        4. **listDirectory(path)** - 列出目录内容
-           使用格式：listDirectory("/path/to/directory")
+        4. **listDirectory(path)** - List directory contents
+           Usage format: listDirectory("/path/to/directory")
            
-        5. **browseWeb(url)** - 浏览网页
-           使用格式：browseWeb("https://example.com")
+        5. **browseWeb(url)** - Browse web pages
+           Usage format: browseWeb("https://example.com")
         
-        请根据思考结果，决定要执行的具体行动：
+        Please decide the specific action to execute based on the thinking result:
         
-        **如果需要工具调用，请严格按照以下格式输出：**
+        **If tool call is needed, please output in the following format:**
         
-        ACTION: [工具名称]
-        INPUT: [具体参数]
-        REASON: [使用理由]
+        ACTION: [Tool name]
+        INPUT: [Specific parameters]
+        REASON: [Reason for using this tool]
         
-        **如果可以直接回答，请输出：**
+        **If direct answer is possible, please output:**
         
-        DIRECT_ANSWER: [直接答案内容]
+        DIRECT_ANSWER: [Direct answer content]
         
-        **如果需要更多信息，请输出：**
+        **If more information is needed, please output:**
         
-        NEED_INFO: [需要什么信息]
+        NEED_INFO: [What information is needed]
         """);
     
     @Autowired
@@ -90,35 +90,35 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
     public CompletableFuture<Map<String, Object>> apply(OpenManusAgentState state) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("开始行动阶段 - 当前状态: {}", state.getCurrentState());
+                logger.info("Start action phase - Current state: {}", state.getCurrentState());
                 
-                // 获取思考结果
+                // Get thinking result
                 String thinkingResult = (String) state.getMetadata().get("last_think_result");
                 if (thinkingResult == null || thinkingResult.trim().isEmpty()) {
-                    logger.warn("没有找到思考结果，直接进入观察阶段");
+                    logger.warn("No thinking result found, directly enter observation phase");
                     return Map.of(
                         "current_state", "observe",
-                        "reasoning_steps", Map.of("type", "action", "content", "没有具体的行动计划，跳过行动阶段")
+                        "reasoning_steps", Map.of("type", "action", "content", "No specific action plan, skipping action phase")
                     );
                 }
                 
-                // 准备行动决策提示词
+                // Prepare action decision prompt
                 Map<String, Object> promptVariables = new HashMap<>();
                 promptVariables.put("thinking_result", thinkingResult);
                 promptVariables.put("user_input", state.getUserInput());
                 
                 Prompt prompt = ACTION_PROMPT.apply(promptVariables);
                 
-                // 调用LLM确定具体行动
-                logger.debug("调用LLM确定具体行动...");
+                // Call LLM to determine specific action
+                logger.debug("Calling LLM to determine specific action...");
                 String actionDecision = chatModel.chat(prompt.text());
                 
-                logger.info("行动决策完成，开始执行行动");
+                logger.info("Action decision completed, starting action execution");
                 
-                // 解析并执行行动
+                // Parse and execute action
                 Map<String, Object> actionResult = executeAction(state, actionDecision);
                 
-                // 合并结果
+                // Merge results
                 Map<String, Object> result = new HashMap<>(actionResult);
                 result.put("current_state", "acting");
                 result.put("reasoning_steps", Map.of("type", "action", "content", actionDecision));
@@ -126,24 +126,24 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                 return result;
                 
             } catch (Exception e) {
-                logger.error("行动节点执行失败", e);
+                logger.error("Action node execution failed", e);
                 return Map.of(
-                    "error", "行动执行过程中发生错误: " + e.getMessage(),
-                    "reasoning_steps", Map.of("type", "error", "content", "行动失败: " + e.getMessage())
+                    "error", "Error during action execution: " + e.getMessage(),
+                    "reasoning_steps", Map.of("type", "error", "content", "Action failed: " + e.getMessage())
                 );
             }
         });
     }
     
     /**
-     * 解析并执行具体行动
+     * Parse and execute specific action
      */
     private Map<String, Object> executeAction(OpenManusAgentState state, String actionDecision) {
         try {
-            // 解析行动类型和参数
+            // Parse action type and parameters
             ActionInfo actionInfo = parseActionDecision(actionDecision);
             
-            logger.info("执行行动: {} - {}", actionInfo.type, actionInfo.action);
+            logger.info("Executing action: {} - {}", actionInfo.type, actionInfo.action);
             
             String result;
             switch (actionInfo.type.toLowerCase()) {
@@ -151,25 +151,25 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                     result = executeToolCall(actionInfo);
                     break;
                 case "direct_answer":
-                    // 直接返回最终答案
+                    // Directly return final answer
                     return Map.of(
                         "final_answer", actionInfo.content,
                         "reasoning_steps", Map.of(
                             "type", "direct_answer",
-                            "content", "直接回答: " + actionInfo.content
+                            "content", "Direct answer: " + actionInfo.content
                         )
                     );
                 case "need_info":
-                    result = "需要更多信息: " + actionInfo.content;
+                    result = "Need more information: " + actionInfo.content;
                     break;
                 default:
-                    result = "未知行动类型: " + actionInfo.type;
-                    logger.warn("未知行动类型: {}", actionInfo.type);
+                    result = "Unknown action type: " + actionInfo.type;
+                    logger.warn("Unknown action type: {}", actionInfo.type);
             }
             
             Map<String, Object> updates = new HashMap<>();
             
-            // 记录工具调用结果
+            // Record tool call result
             if (!actionInfo.action.isEmpty()) {
                 updates.put("tool_calls", Map.of(
                     "action", actionInfo.action,
@@ -178,20 +178,20 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                 ));
             }
             
-            // 添加观察结果
+            // Add observation result
             updates.put("observations", result);
             updates.put("metadata", Map.of("last_action_result", result));
             
             return updates;
             
         } catch (Exception e) {
-            logger.error("执行行动失败", e);
-            return Map.of("error", "执行行动失败: " + e.getMessage());
+            logger.error("Action execution failed", e);
+            return Map.of("error", "Action execution failed: " + e.getMessage());
         }
     }
     
     /**
-     * 执行具体的工具调用
+     * Execute specific tool calls
      */
     private String executeToolCall(ActionInfo actionInfo) {
         try {
@@ -203,10 +203,10 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                     return fileTool.readFile(actionInfo.input);
                     
                 case "writefile":
-                    // 解析文件路径和内容
+                    // Parse file path and content
                     String[] parts = actionInfo.input.split(",", 2);
                     if (parts.length != 2) {
-                        return "writeFile参数格式错误，需要：路径,内容";
+                        return "writeFile parameter format error, needs: path,content";
                     }
                     return fileTool.writeFile(parts[0].trim(), parts[1].trim());
                     
@@ -217,21 +217,21 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
                     return browserTool.browseWeb(actionInfo.input);
                     
                 default:
-                    return "未知工具: " + actionInfo.action;
+                    return "Unknown tool: " + actionInfo.action;
             }
         } catch (Exception e) {
-            logger.error("工具调用失败: {}", actionInfo.action, e);
-            return "工具调用失败: " + e.getMessage();
+            logger.error("Tool call failed: {}", actionInfo.action, e);
+            return "Tool call failed: " + e.getMessage();
         }
     }
     
     /**
-     * 解析行动决策
+     * Parse action decision
      */
     private ActionInfo parseActionDecision(String decision) {
         ActionInfo info = new ActionInfo();
         
-        // 检查是否是直接回答
+        // Check if it's a direct answer
         if (decision.contains("DIRECT_ANSWER:")) {
             info.type = "direct_answer";
             String[] parts = decision.split("DIRECT_ANSWER:");
@@ -241,7 +241,7 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
             return info;
         }
         
-        // 检查是否需要更多信息
+        // Check if more information is needed
         if (decision.contains("NEED_INFO:")) {
             info.type = "need_info";
             String[] parts = decision.split("NEED_INFO:");
@@ -251,7 +251,7 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
             return info;
         }
         
-        // 解析工具调用
+        // Parse tool call
         if (decision.contains("ACTION:")) {
             info.type = "action";
             String[] lines = decision.split("\n");
@@ -271,7 +271,7 @@ public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 行动信息类
+     * Action information class
      */
     private static class ActionInfo {
         String type = "";

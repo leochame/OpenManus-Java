@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 /**
  * Agent REST API Controller
@@ -27,10 +29,10 @@ public class AgentController {
     private ManusAgent manusAgent;
     
     /**
-     * 健康检查接口
+     * 健康检�?
      */
     @GetMapping("/health")
-    @Operation(summary = "健康检查", description = "检查Agent服务是否正常运行")
+    @Operation(summary = "健康检�?", description = "检查Agent服务是否正常运行")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
@@ -43,18 +45,36 @@ public class AgentController {
      * 与Agent对话（简单版本）
      */
     @PostMapping("/chat")
-    @Operation(summary = "Agent对话", description = "与Agent进行对话，支持工具调用")
-    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, String> payload) {
-        String message = payload.get("message");
-        Map<String, Object> result = manusAgent.chatWithCot(message);
-        return ResponseEntity.ok(result);
+    @Operation(summary = "Agent对话", description = "与Agent进行对话，支持工具调�?")
+    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, String> request) {
+        try {
+            String message = request.get("message");
+            if (message == null || message.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Message cannot be empty"));
+            }
+            
+            logger.info("Received user message (COT): {}", message);
+            
+            // Process with COT reasoning
+            Map<String, Object> result = manusAgent.chatWithCot(message);
+            
+            logger.info("Agent response (COT): {}", result.get("answer"));
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            logger.error("Error occurred while processing user message", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error: " + e.getMessage()));
+        }
     }
     
     /**
-     * 与Agent对话（带COT推理过程）
+     * 与Agent对话（带COT推理过程�?
      */
     @PostMapping("/chat/cot")
-    @Operation(summary = "Agent对话(COT)", description = "与Agent进行对话，返回推理过程和反思")
+    @Operation(summary = "Agent对话(COT)", description = "与Agent进行对话，返回推理过程和反�?")
     public ResponseEntity<Map<String, Object>> chatWithCOT(@RequestBody Map<String, String> request) {
         try {
             String message = request.get("message");
@@ -64,21 +84,21 @@ public class AgentController {
                 return ResponseEntity.badRequest().body(error);
             }
             
-            logger.info("收到用户消息(COT): {}", message);
+            logger.info("Received user message (COT): {}", message);
             
-            // 调用Agent处理消息（带COT）
+            // 调用Agent处理消息（带COT�
             Map<String, Object> result = manusAgent.chatWithCot(message);
             result.put("timestamp", System.currentTimeMillis());
             
-            logger.info("Agent回复(COT): {}", result.get("answer"));
+            logger.info("Agent response (COT): {}", result.get("answer"));
             
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            logger.error("处理用户消息时发生错误", e);
+            logger.error("Error occurred while processing user message", e);
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Internal server error: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
     
@@ -86,7 +106,7 @@ public class AgentController {
      * 获取Agent信息
      */
     @GetMapping("/info")
-    @Operation(summary = "Agent信息", description = "获取Agent的基本信息")
+    @Operation(summary = "Agent信息", description = "获取Agent的基本信�?")
     public ResponseEntity<Map<String, Object>> getAgentInfo() {
         Map<String, Object> info = new HashMap<>();
         info.put("name", "OpenManus Agent");
@@ -96,7 +116,7 @@ public class AgentController {
             "Python代码执行",
             "文件操作",
             "网页访问",
-            "任务反思",
+            "任务反�?",
             "COT推理"
         });
         info.put("timestamp", System.currentTimeMillis());
