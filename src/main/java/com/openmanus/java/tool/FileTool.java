@@ -15,85 +15,85 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 文件操作工具
- * 使用 langchain4j 的 @Tool 注解
+ * File operation tool
+ * Using langchain4j @Tool annotation
  */
 @Component
 public class FileTool {
     
     private static final Logger logger = LoggerFactory.getLogger(FileTool.class);
 
-    @Tool("读取文件内容")
-    public String readFile(@P("文件路径") String filePath) {
+    @Tool("Read file content")
+    public String readFile(@P("File path") String filePath) {
         try {
             Path path = Paths.get(filePath);
             if (!Files.exists(path)) {
-                return "文件不存在: " + filePath;
+                return "File does not exist: " + filePath;
             }
             
             if (!Files.isReadable(path)) {
-                return "文件不可读: " + filePath;
+                return "File is not readable: " + filePath;
         }
             
             String content = Files.readString(path);
-            return "文件内容:\n" + content;
+            return "File content:\n" + content;
             
         } catch (IOException e) {
-            logger.error("读取文件失败: {}", filePath, e);
-            return "读取文件失败: " + e.getMessage();
+            logger.error("Failed to read file: {}", filePath, e);
+            return "Failed to read file: " + e.getMessage();
         }
     }
 
-    @Tool("写入文件内容")
-    public String writeFile(@P("文件路径") String filePath, @P("文件内容") String content) {
+    @Tool("Write file content")
+    public String writeFile(@P("File path") String filePath, @P("File content") String content) {
         try {
             Path path = Paths.get(filePath);
             
-            // 确保父目录存在
+            // Ensure parent directory exists
             Path parent = path.getParent();
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
         }
             
             Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            return "文件写入成功: " + filePath;
+            return "File written successfully: " + filePath;
             
         } catch (IOException e) {
-            logger.error("写入文件失败: {}", filePath, e);
-            return "写入文件失败: " + e.getMessage();
+            logger.error("Failed to write file: {}", filePath, e);
+            return "Failed to write file: " + e.getMessage();
         }
     }
 
-    @Tool("追加文件内容")
-    public String appendFile(@P("文件路径") String filePath, @P("追加内容") String content) {
+    @Tool("Append file content")
+    public String appendFile(@P("File path") String filePath, @P("Content to append") String content) {
         try {
             Path path = Paths.get(filePath);
             
-            // 确保父目录存在
+            // Ensure parent directory exists
             Path parent = path.getParent();
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
         }
             
             Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            return "内容追加成功: " + filePath;
+            return "Content appended successfully: " + filePath;
             
         } catch (IOException e) {
-            logger.error("追加文件失败: {}", filePath, e);
-            return "追加文件失败: " + e.getMessage();
+            logger.error("Failed to append file: {}", filePath, e);
+            return "Failed to append file: " + e.getMessage();
     }
     }
     
-    @Tool("列出目录内容")
-    public String listDirectory(@P("目录路径") String dirPath) {
+    @Tool("List directory contents")
+    public String listDirectory(@P("Directory path") String dirPath) {
         try {
             Path path = Paths.get(dirPath);
             if (!Files.exists(path)) {
-                return "目录不存在: " + dirPath;
+                return "Directory does not exist: " + dirPath;
         }
             
             if (!Files.isDirectory(path)) {
-                return "不是目录: " + dirPath;
+                return "Not a directory: " + dirPath;
             }
             
             List<String> items = Files.list(path)
@@ -107,90 +107,90 @@ public class FileTool {
                 })
                 .collect(Collectors.toList());
             
-            return "目录内容:\n" + String.join("\n", items);
+            return "Directory contents:\n" + String.join("\n", items);
             
         } catch (IOException e) {
-            logger.error("列出目录失败: {}", dirPath, e);
-            return "列出目录失败: " + e.getMessage();
+            logger.error("Failed to list directory: {}", dirPath, e);
+            return "Failed to list directory: " + e.getMessage();
         }
     }
 
-    @Tool("创建目录")
-    public String createDirectory(@P("目录路径") String dirPath) {
+    @Tool("Create directory")
+    public String createDirectory(@P("Directory path") String dirPath) {
         try {
             Path path = Paths.get(dirPath);
             Files.createDirectories(path);
-            return "目录创建成功: " + dirPath;
+            return "Directory created successfully: " + dirPath;
             
         } catch (IOException e) {
-            logger.error("创建目录失败: {}", dirPath, e);
-            return "创建目录失败: " + e.getMessage();
+            logger.error("Failed to create directory: {}", dirPath, e);
+            return "Failed to create directory: " + e.getMessage();
         }
     }
 
-    @Tool("删除文件或目录")
-    public String deleteFile(@P("文件或目录路径") String path) {
+    @Tool("Delete file or directory")
+    public String deleteFile(@P("File or directory path") String path) {
         try {
         Path filePath = Paths.get(path);
         if (!Files.exists(filePath)) {
-                return "文件或目录不存在: " + path;
+                return "File or directory does not exist: " + path;
         }
 
             if (Files.isDirectory(filePath)) {
-                // 递归删除目录
+                // Recursively delete directory
                 deleteDirectoryRecursively(filePath);
-                return "目录删除成功: " + path;
+                return "Directory deleted successfully: " + path;
         } else {
         Files.delete(filePath);
-                return "文件删除成功: " + path;
+                return "File deleted successfully: " + path;
             }
             
         } catch (IOException e) {
-            logger.error("删除失败: {}", path, e);
-            return "删除失败: " + e.getMessage();
+            logger.error("Failed to delete: {}", path, e);
+            return "Failed to delete: " + e.getMessage();
         }
     }
     
     private void deleteDirectoryRecursively(Path dir) throws IOException {
         Files.walk(dir)
-            .sorted((a, b) -> b.compareTo(a)) // 先删除子文件，再删除父目录
+            .sorted((a, b) -> b.compareTo(a)) // Delete child files first, then parent directory
             .forEach(path -> {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    logger.error("删除文件失败: {}", path, e);
+                    logger.error("Failed to delete file: {}", path, e);
                 }
             });
     }
     
-    @Tool("检查文件是否存在")
-    public String fileExists(@P("文件路径") String filePath) {
+    @Tool("Check if file exists")
+    public String fileExists(@P("File path") String filePath) {
         Path path = Paths.get(filePath);
         boolean exists = Files.exists(path);
-        return exists ? "文件存在: " + filePath : "文件不存在: " + filePath;
+        return exists ? "File exists: " + filePath : "File does not exist: " + filePath;
         }
     
-    @Tool("获取文件信息")
-    public String getFileInfo(@P("文件路径") String filePath) {
+    @Tool("Get file information")
+    public String getFileInfo(@P("File path") String filePath) {
         try {
             Path path = Paths.get(filePath);
             if (!Files.exists(path)) {
-                return "文件不存在: " + filePath;
+                return "File does not exist: " + filePath;
         }
 
         StringBuilder info = new StringBuilder();
-            info.append("文件信息:\n");
-            info.append("路径: ").append(path.toAbsolutePath()).append("\n");
-            info.append("大小: ").append(Files.size(path)).append(" 字节\n");
-            info.append("类型: ").append(Files.isDirectory(path) ? "目录" : "文件").append("\n");
-            info.append("可读: ").append(Files.isReadable(path)).append("\n");
-            info.append("可写: ").append(Files.isWritable(path)).append("\n");
+            info.append("File information:\n");
+            info.append("Path: ").append(path.toAbsolutePath()).append("\n");
+            info.append("Size: ").append(Files.size(path)).append(" bytes\n");
+            info.append("Type: ").append(Files.isDirectory(path) ? "Directory" : "File").append("\n");
+            info.append("Readable: ").append(Files.isReadable(path)).append("\n");
+            info.append("Writable: ").append(Files.isWritable(path)).append("\n");
 
         return info.toString();
             
         } catch (IOException e) {
-            logger.error("获取文件信息失败: {}", filePath, e);
-            return "获取文件信息失败: " + e.getMessage();
+            logger.error("Failed to get file information: {}", filePath, e);
+            return "Failed to get file information: " + e.getMessage();
         }
     }
 }

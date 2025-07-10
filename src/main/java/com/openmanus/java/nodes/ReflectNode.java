@@ -15,13 +15,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.HashMap;
 
 /**
- * 反思节�? - 负责分析Agent的推理过程并提供改进建议
+ * Reflection Node - Responsible for analyzing Agent's reasoning process and providing improvement suggestions
  * 
- * 反思机制包括：
- * - 分析推理步骤的有效�?
- * - 识别可能的错误或改进�?
- * - 生成反思和建议
- * - 决定是否需要调整策�?
+ * Reflection mechanism includes:
+ * - Analyzing the effectiveness of reasoning steps
+ * - Identifying potential errors or areas for improvement
+ * - Generating reflections and suggestions
+ * - Deciding if strategy adjustments are needed
  */
 @Component
 public class ReflectNode implements AsyncNodeAction<OpenManusAgentState> {
@@ -68,54 +68,54 @@ public class ReflectNode implements AsyncNodeAction<OpenManusAgentState> {
     }
     
     /**
-     * 构建反思提�?
+     * Build reflection prompt
      */
     private String buildReflectionPrompt(OpenManusAgentState state) {
         StringBuilder prompt = new StringBuilder();
         
-        prompt.append("请对以下AI Agent的推理过程进行反思和分析：\n\n");
+        prompt.append("Please reflect and analyze the following AI Agent's reasoning process:\n\n");
         
-        // 添加用户输入
-        prompt.append("=== 原始任务 ===\n");
+        // Add user input
+        prompt.append("=== Original Task ===\n");
         prompt.append(state.getUserInput()).append("\n\n");
         
-        // 添加当前推理状�?
-        prompt.append("=== 当前推理状�? ===\n");
-        prompt.append("迭代次数: ").append(state.getIterationCount()).append("\n");
-        prompt.append("当前步骤: ").append(state.getCurrentStep()).append("\n");
-        prompt.append("最新思�?: ").append(state.getCurrentThought()).append("\n\n");
+        // Add current reasoning state
+        prompt.append("=== Current Reasoning State ===\n");
+        prompt.append("Iteration count: ").append(state.getIterationCount()).append("\n");
+        prompt.append("Current step: ").append(state.getCurrentStep()).append("\n");
+        prompt.append("Latest thought: ").append(state.getCurrentThought()).append("\n\n");
         
-        // 添加工具调用历史
+        // Add tool call history
         if (!state.getToolCalls().isEmpty()) {
-            prompt.append("=== 工具调用历史 ===\n");
+            prompt.append("=== Tool Call History ===\n");
             state.getToolCalls().forEach(toolCall -> {
                 prompt.append("- ").append(toolCall.toString()).append("\n");
             });
             prompt.append("\n");
         }
         
-        // 添加观察结果
+        // Add observations
         if (!state.getObservations().isEmpty()) {
-            prompt.append("=== 观察结果 ===\n");
+            prompt.append("=== Observations ===\n");
             state.getObservations().forEach(obs -> {
                 prompt.append("- ").append(obs).append("\n");
             });
             prompt.append("\n");
         }
         
-        // 添加反思指�?
-        prompt.append("=== 反思要�? ===\n");
-        prompt.append("请从以下几个方面进行反思：\n");
-        prompt.append("1. 推理路径是否合理和高效？\n");
-        prompt.append("2. 工具使用是否恰当？\n");
-        prompt.append("3. 是否遗漏了重要信息？\n");
-        prompt.append("4. 当前方法是否需要调整？\n");
-        prompt.append("5. 如何提高解决问题的效率？\n\n");
+        // Add reflection requirements
+        prompt.append("=== Reflection Requirements ===\n");
+        prompt.append("Please reflect on the following aspects:\n");
+        prompt.append("1. Is the reasoning path logical and efficient?\n");
+        prompt.append("2. Are the tools being used appropriately?\n");
+        prompt.append("3. Has any important information been missed?\n");
+        prompt.append("4. Does the current approach need adjustment?\n");
+        prompt.append("5. How can we improve problem-solving efficiency?\n\n");
         
-        prompt.append("请提供具体的反思和改进建议，格式如下：\n");
-        prompt.append("反�?: [你的分析]\n");
-        prompt.append("建议: [改进建议]\n");
-        prompt.append("优先�?: [�?/�?/低]\n");
+        prompt.append("Please provide specific reflections and improvement suggestions in the following format:\n");
+        prompt.append("Reflection: [Your analysis]\n");
+        prompt.append("Suggestions: [Improvement suggestions]\n");
+        prompt.append("Priority: [High/Medium/Low]\n");
         
         return prompt.toString();
     }

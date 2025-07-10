@@ -9,13 +9,15 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 import java.util.Scanner;
 import java.util.Map;
 
 /**
- * OpenManus 主应用类
- * 基于 langchain4j 和 langgraph4j 的极简 AI Agent 框架
+ * OpenManus Main Application Class
+ * A minimalist AI Agent framework based on langchain4j and langgraph4j
  */
 @SpringBootApplication(scanBasePackages = "com.openmanus.java")
 public class WebApplication {
@@ -23,13 +25,19 @@ public class WebApplication {
     private static final Logger logger = LoggerFactory.getLogger(WebApplication.class);
 
     public static void main(String[] args) {
-        logger.info("🚀 启动 OpenManus-Java");
+        logger.info("? Starting OpenManus-Java");
         SpringApplication.run(WebApplication.class, args);
-        logger.info("🎉 OpenManus-Java 启动成功！");
+        logger.info("? OpenManus-Java started successfully!");
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        logger.info("? Starting OpenManus-Java");
+        logger.info("? OpenManus-Java started successfully!");
     }
 
     /**
-     * 配置沙箱客户端
+     * Configure sandbox client
      */
     @Bean
     public SandboxClient sandboxClient(OpenManusProperties properties) {
@@ -37,14 +45,14 @@ public class WebApplication {
     }
 
     /**
-     * 命令行运行器 - 提供简单的交互式界面
+     * Command line runner - provides a simple interactive interface
      */
     @Bean
     public CommandLineRunner commandLineRunner(ManusAgent agent) {
         return args -> {
             if (args.length > 0 && args[0].equals("--cli")) {
                 System.out.println("=== OpenManus CLI ===");
-                System.out.println("输入 'quit' 退出");
+                System.out.println("Enter 'quit' to exit");
                 
                 Scanner scanner = new Scanner(System.in);
                 while (true) {
@@ -58,15 +66,15 @@ public class WebApplication {
                     if (!input.isEmpty()) {
                         try {
                             Map<String, Object> result = agent.chatWithCot(input);
-                            System.out.println("回答: " + result.get("answer"));
-                            System.out.println("推理过程: " + result.get("cot"));
+                            System.out.println("Answer: " + result.get("answer"));
+                            System.out.println("Reasoning Process: " + result.get("cot"));
                         } catch (Exception e) {
-                            System.err.println("错误: " + e.getMessage());
+                            System.err.println("Error: " + e.getMessage());
                         }
                     }
                 }
                 
-                System.out.println("再见！");
+                System.out.println("Goodbye!");
                 System.exit(0);
             }
         };

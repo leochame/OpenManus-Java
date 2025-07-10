@@ -15,39 +15,39 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 /**
- * 对话缓冲区
+ * Conversation Buffer
  * 
- * 负责管理短期记忆和上下文窗口，包括：
- * - 消息历史管理
- * - 上下文窗口限制
- * - 消息压缩和摘要
- * - 重要消息保留
+ * Responsible for managing short-term memory and context window, including:
+ * - Message history management
+ * - Context window limits
+ * - Message compression and summarization
+ * - Important message retention
  */
 @Component
 public class ConversationBuffer {
     
     private static final Logger logger = LoggerFactory.getLogger(ConversationBuffer.class);
     
-    // 配置参数
+    // Configuration parameters
     private final int maxMessages;
     private final int maxTokens;
     private final int compressionThreshold;
     
-    // 消息存储
+    // Message storage
     private final Queue<MessageEntry> messages;
     private final List<ChatMessage> systemMessages;
     private final Set<String> pinnedMessageIds;
     
-    // 统计信息
+    // Statistics
     private int totalMessages = 0;
     private int compressedMessages = 0;
     
     /**
-     * 构造函数
+     * Constructor
      * 
-     * @param maxMessages 最大消息数量
-     * @param maxTokens 最大token数量
-     * @param compressionThreshold 压缩阈值
+     * @param maxMessages Maximum number of messages
+     * @param maxTokens Maximum number of tokens
+     * @param compressionThreshold Compression threshold
      */
     public ConversationBuffer(int maxMessages, int maxTokens, int compressionThreshold) {
         this.maxMessages = maxMessages;
@@ -57,77 +57,77 @@ public class ConversationBuffer {
         this.systemMessages = new ArrayList<>();
         this.pinnedMessageIds = new HashSet<>();
         
-        logger.info("ConversationBuffer 初始化: maxMessages={}, maxTokens={}, compressionThreshold={}", 
+        logger.info("ConversationBuffer initialized: maxMessages={}, maxTokens={}, compressionThreshold={}", 
                    maxMessages, maxTokens, compressionThreshold);
     }
     
     /**
-     * 默认构造函数
+     * Default constructor
      */
     public ConversationBuffer() {
         this(100, 8000, 50);
     }
     
     /**
-     * 添加消息到缓冲区
+     * Add message to buffer
      * 
-     * @param message 要添加的消息
+     * @param message Message to add
      */
     public synchronized void addMessage(ChatMessage message) {
         if (message == null) {
-            logger.warn("尝试添加空消息");
+            logger.warn("Attempted to add null message");
             return;
         }
         
         MessageEntry entry = new MessageEntry(message, LocalDateTime.now(), generateMessageId());
         
-        // 系统消息单独处理
+        // Handle system messages separately
         if (message instanceof SystemMessage) {
             systemMessages.add(message);
-            logger.debug("添加系统消息: {}", truncateText(getMessageText(message), 100));
+            logger.debug("Added system message: {}", truncateText(getMessageText(message), 100));
             return;
         }
         
         messages.offer(entry);
         totalMessages++;
         
-        logger.debug("添加消息: 类型={}, 内容={}", 
+        logger.debug("Added message: type={}, content={}", 
                     message.getClass().getSimpleName(), 
                     truncateText(getMessageText(message), 100));
         
-        // 检查是否需要清理
+        // Check if cleanup is needed
         if (shouldCleanup()) {
             cleanup();
         }
     }
     
     /**
-     * 获取所有消息（用于LLM调用）
+     * Get all messages (for LLM calls)
      * 
-     * @return 消息列表
+     * @return List of messages
      */
     public synchronized List<ChatMessage> getMessages() {
         List<ChatMessage> result = new ArrayList<>();
         
-        // 添加系统消息
+        // Add system messages
         result.addAll(systemMessages);
         
-        // 添加对话消息
+        // Add conversation messages
         result.addAll(messages.stream()
                 .map(MessageEntry::getMessage)
                 .collect(Collectors.toList()));
         
-        logger.debug("获取消息列表: 系统消息={}, 对话消息={}, 总计={}", 
+        logger.debug("Retrieved message list: system={}, conversation={}, total={}", 
                     systemMessages.size(), messages.size(), result.size());
         
         return result;
     }
     
     /**
-     * 获取最近的N条消息
+     * Get recent N messages
      * 
-     * @param count 消息数量
-     * @return 消息列表
+     * @param count Number of messages
+     * @return List of messages
      */
     public synchronized List<ChatMessage> getRecentMessages(int count) {
         List<MessageEntry> recentEntries = messages.stream()
@@ -144,27 +144,27 @@ public class ConversationBuffer {
     }
     
     /**
-     * 固定重要消息（不会被清理）
+     * Pin important message (won't be cleaned up)
      * 
-     * @param messageId 消息ID
+     * @param messageId Message ID
      */
     public synchronized void pinMessage(String messageId) {
         pinnedMessageIds.add(messageId);
-        logger.debug("固定消息: {}", messageId);
+        logger.debug("Pinned message: {}", messageId);
     }
     
     /**
-     * 取消固定消息
+     * Unpin message
      * 
-     * @param messageId 消息ID
+     * @param messageId Message ID
      */
     public synchronized void unpinMessage(String messageId) {
         pinnedMessageIds.remove(messageId);
-        logger.debug("取消固定消息: {}", messageId);
+        logger.debug("Unpinned message: {}", messageId);
     }
     
     /**
-     * 清空缓冲区
+     * Clear buffer
      */
     public synchronized void clear() {
         messages.clear();
@@ -172,13 +172,13 @@ public class ConversationBuffer {
         pinnedMessageIds.clear();
         totalMessages = 0;
         compressedMessages = 0;
-        logger.info("缓冲区已清空");
+        logger.info("Buffer cleared");
     }
     
     /**
-     * 获取缓冲区统计信息
+     * Get buffer statistics
      * 
-     * @return 统计信息
+     * @return Statistics
      */
     public synchronized BufferStats getStats() {
         int currentTokens = estimateTokenCount();
@@ -193,27 +193,27 @@ public class ConversationBuffer {
     }
     
     /**
-     * 检查是否需要清理
+     * Check if cleanup is needed
      */
     private boolean shouldCleanup() {
         return messages.size() > maxMessages || estimateTokenCount() > maxTokens;
     }
     
     /**
-     * 清理旧消息
+     * Clean up old messages
      */
     private void cleanup() {
-        logger.debug("开始清理缓冲区: 当前消息数={}, 当前token数={}", 
+        logger.debug("Starting buffer cleanup: current messages={}, current tokens={}", 
                     messages.size(), estimateTokenCount());
         
         int removedCount = 0;
         
-        // 移除最旧的非固定消息
+        // Remove oldest non-pinned messages
         Iterator<MessageEntry> iterator = messages.iterator();
         while (iterator.hasNext() && shouldCleanup()) {
             MessageEntry entry = iterator.next();
             
-            // 跳过固定的消息
+            // Skip pinned messages
             if (pinnedMessageIds.contains(entry.getId())) {
                 continue;
             }
@@ -223,30 +223,30 @@ public class ConversationBuffer {
         }
         
         if (removedCount > 0) {
-            logger.info("清理完成: 移除了{}条消息, 剩余消息数={}", removedCount, messages.size());
+            logger.info("Cleanup completed: removed {} messages, remaining messages={}", removedCount, messages.size());
         }
         
-        // 如果清理后仍然超限，考虑压缩
+        // Consider compression if still over limit
         if (shouldCleanup() && messages.size() > compressionThreshold) {
             compressOldMessages();
         }
     }
     
     /**
-     * 压缩旧消息
+     * Compress old messages
      */
     private void compressOldMessages() {
-        // 这里可以实现消息压缩逻辑
-        // 例如：将多条消息合并为摘要
-        logger.debug("消息压缩功能待实现");
+        // Message compression logic can be implemented here
+        // For example: merge multiple messages into summaries
+        logger.debug("Message compression feature to be implemented");
         compressedMessages++;
     }
     
     /**
-     * 估算token数量
+     * Estimate token count
      */
     private int estimateTokenCount() {
-        // 简单估算：1个token约等于4个字符
+        // Simple estimation: 1 token ≈ 4 characters
         return messages.stream()
                 .mapToInt(entry -> getMessageText(entry.getMessage()).length() / 4)
                 .sum() +
@@ -256,14 +256,14 @@ public class ConversationBuffer {
     }
     
     /**
-     * 生成消息ID
+     * Generate message ID
      */
     private String generateMessageId() {
         return "msg_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
     
     /**
-     * 截断文本用于日志
+     * Truncate text for logging
      */
     private String truncateText(String text, int maxLength) {
         if (text == null) return "null";
@@ -272,7 +272,7 @@ public class ConversationBuffer {
     }
     
     /**
-     * 从ChatMessage中获取文本内容
+     * Get text content from ChatMessage
      */
     private String getMessageText(ChatMessage message) {
         if (message instanceof UserMessage) {
@@ -288,7 +288,7 @@ public class ConversationBuffer {
     }
     
     /**
-     * 消息条目
+     * Message entry
      */
     public static class MessageEntry {
         private final ChatMessage message;
@@ -315,7 +315,7 @@ public class ConversationBuffer {
     }
     
     /**
-     * 缓冲区统计信息
+     * Buffer statistics
      */
     public static class BufferStats {
         private final int messageCount;

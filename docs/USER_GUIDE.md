@@ -1,222 +1,222 @@
-# OpenManus Java 用户指南
+# OpenManus Java User Guide
 
-欢迎使用 OpenManus Java！这是一个基于LangGraph4j StateGraph架构的智能代理系统，支持Web界面和命令行两种交互方式。
+Welcome to OpenManus Java! This is an intelligent agent system based on LangGraph4j StateGraph framework, supporting both Web UI and command-line interaction modes.
 
-## 🚀 快速开始
+## ? Quick Start
 
-### 启动应用
+### Starting the Application
 ```bash
-# Web模式 (推荐)
+# Web mode (recommended)
 mvn spring-boot:run
 
-# 命令行模式
+# Command line mode
 mvn spring-boot:run -Dspring-boot.run.arguments=--cli
 ```
 
-### 配置要求
-- 阿里云百炼API密钥 (必需)
-- Docker环境 (工具执行)
-- 网络连接 (搜索功能)
+### Configuration Requirements
+- DashScope API key (required)
+- Docker environment (for tool execution)
+- Network connection (for search functionality)
 
-## 🌐 Web界面使用
+## ? Web Interface Usage
 
-### 访问方式
-启动后访问: `http://localhost:8080`
+### Access Method
+Access after startup: `http://localhost:8080`
 
-### 界面布局
+### Interface Layout
 ```
-┌─────────────────────────────────────────┐
-│           顶部导航栏                     │
-├─────────────┬───────────────────────────┤
-│  侧边栏     │        主内容区           │
-│            │                           │
-│ - 连接状态  │  📱 聊天 | 📊 可视化 | 📈 监控 │
-│ - 任务信息  │                           │
-│ - 会话历史  │                           │
-└─────────────┴───────────────────────────┘
+����������������������������������������������������������������������������������������������
+��           Top Navigation Bar                ��
+����������������������������������������������������������������������������������������������
+��  Sidebar     ��        Main Content Area     ��
+��              ��                              ��
+�� - Connection ��  ? Chat | ? Viz | ? Monitor��
+�� - Task Info  ��                              ��
+�� - History    ��                              ��
+�������������������������������ة�������������������������������������������������������������
 ```
 
-### 聊天功能
+### Chat Features
 
-#### 基本使用
-1. 在输入框输入问题或任务
-2. 点击"发送消息"按钮 (或 Ctrl+Enter)
-3. 查看AI助手回复和执行过程
+#### Basic Usage
+1. Enter your question or task in the input box
+2. Click "Send Message" button (or Ctrl+Enter)
+3. View AI assistant's response and execution process
 
-#### 支持的任务类型
-- **信息搜索**: "搜索Python最佳实践"
-- **代码编程**: "写一个排序算法"
-- **文件操作**: "创建项目文档"
-- **数据分析**: "分析这个CSV文件"
-- **问答对话**: "解释什么是微服务"
+#### Supported Task Types
+- **Information Search**: "Search Python best practices"
+- **Code Programming**: "Write a sorting algorithm"
+- **File Operations**: "Create project documentation"
+- **Data Analysis**: "Analyze this CSV file"
+- **Q&A Dialogue**: "Explain what microservices are"
 
-### 可视化功能
+### Visualization Features
 
-#### StateGraph状态图
-- **绿色**: 节点执行完成
-- **蓝色**: 当前执行节点
-- **黄色**: 工具调用节点
-- **红色**: 错误状态节点
-- **箭头**: 状态转换路径
+#### StateGraph Status Graph
+- **Green**: Node execution completed
+- **Blue**: Currently executing node
+- **Yellow**: Tool call node
+- **Red**: Error state node
+- **Arrows**: State transition paths
 
-#### 思维链
-- 显示StateGraph节点执行步骤
-- 展示状态转换决策过程
-- 追踪工具调用和状态更新
-- 可视化条件路由选择
+#### Chain of Thought
+- Display StateGraph node execution steps
+- Show state transition decision process
+- Track tool calls and state updates
+- Visualize condition path selection
 
-### 监控功能
-- 实时状态事件
-- 工具执行监控
-- 系统性能指标
-- 错误日志追踪
+### Monitoring Features
+- Real-time state events
+- Tool execution monitoring
+- System performance metrics
+- Error log tracking
 
-## 💻 命令行使用
+## ? Command Line Usage
 
-### 启动和基本操作
+### Starting and Basic Operations
 ```bash
-# 启动命令行模式
+# Start command line mode
 mvn spring-boot:run -Dspring-boot.run.arguments=--cli
 
-# 交互示例
-👤 请输入您的任务: 搜索Java 21新特性
-🤖 正在搜索...
-📋 结果已整理完成
+# Interaction example
+? Enter your task: Search Java 21 new features
+? Searching...
+? Results compiled
 
-# 退出程序
-👤 请输入您的任务: exit
+# Exit program
+? Enter your task: exit
 ```
 
-### 可用命令
-- **help** - 帮助信息
-- **tools** - 查看工具列表
-- **clear** - 清空对话
-- **exit** - 退出程序
+### Available Commands
+- **help** - Help information
+- **tools** - View tool list
+- **clear** - Clear conversation
+- **exit** - Exit program
 
-## 🏗️ StateGraph架构特性
+## ? StateGraph Architecture Features
 
-### 状态管理
-- **AgentState**: 统一管理对话状态、消息历史和工具结果
-- **状态持久化**: 支持长时间对话的状态保持
-- **状态回滚**: 错误时可回滚到之前的稳定状态
+### State Management
+- **AgentState**: Unified management of conversation state, message history, and tool results
+- **State Persistence**: Support for long-term conversation state maintenance
+- **State Rollback**: Can roll back to previous stable state when errors occur
 
-### 工作流编排
-- **节点定义**: 思考、行动、观察等功能节点
-- **条件路由**: 根据执行结果动态选择下一步
-- **并行执行**: 支持多个工具的并行调用
-- **错误恢复**: 内置重试和错误处理机制
+### Workflow Programming
+- **Node Definition**: Thinking, action, observation, and other functional nodes
+- **Conditional Routing**: Dynamically choose next step based on execution results
+- **Parallel Execution**: Support for multiple tool calls in parallel
+- **Error Recovery**: Built-in retry and error handling mechanisms
 
-### 执行流程
+### Execution Flow
 ```
-用户输入 → 思考节点 → 工具调用节点 → 观察节点 → 条件判断 → 响应生成
-     ↑                                                    ↓
-     └─────────────── 循环继续 ←─────────────────────────────┘
-```
-
-## 🛠️ 核心功能
-
-### 智能搜索
-```
-输入: "搜索React Hooks最佳实践"
-输出: 整理后的搜索结果和最佳实践建议
+User Input �� Think Node �� Tool Call Node �� Observe Node �� Condition �� Response
+     ��                                                    ��
+     ������������������������������ Continue Loop ����������������������������������������������
 ```
 
-### 代码编程
-```
-输入: "用Python写一个计算器"
-输出: 完整的计算器代码 + 使用说明
-```
+## ?? Core Features
 
-### 文件操作
+### Intelligent Search
 ```
-输入: "创建一个项目README文件"
-输出: 根据项目内容生成的README.md
+Input: "Search React Hooks best practices"
+Output: Organized search results and best practice recommendations
 ```
 
-### 数据分析
+### Code Programming
 ```
-输入: "分析sales.csv中的销售趋势"
-输出: 数据统计 + 趋势分析 + 图表说明
+Input: "Write a calculator in Python"
+Output: Complete calculator code + usage instructions
 ```
 
-## 💡 使用技巧
+### File Operations
+```
+Input: "Create a project README file"
+Output: Generated README.md based on project content
+```
 
-### 提问技巧
-- **具体明确**: "用Python写一个排序算法" ✅
-- **避免模糊**: "帮我写点代码" ❌
+### Data Analysis
+```
+Input: "Analyze sales trends in sales.csv"
+Output: Data statistics + trend analysis + chart explanation
+```
 
-### 任务分解
-- **复杂任务**: 分解为多个简单步骤
-- **文件操作**: 明确指定文件路径和格式
-- **搜索任务**: 提供关键词和搜索范围
+## ? Usage Tips
 
-### 上下文利用
-- AI会记住对话历史
-- 可以继续之前的任务
-- 支持多轮对话深入
+### Question Techniques
+- **Be Specific**: "Write a sorting algorithm in Python" ?
+- **Avoid Vague**: "Help me write some code" ?
 
-## 🔧 工具说明
+### Task Breakdown
+- **Complex Tasks**: Break down into multiple simple steps
+- **File Operations**: Clearly specify file paths and formats
+- **Search Tasks**: Provide keywords and search scope
 
-### 可用工具
-- **Python执行器**: 运行Python代码
-- **文件工具**: 读写文件操作
-- **搜索工具**: 网络信息搜索
-- **浏览器工具**: 网页内容提取
-- **终止工具**: 结束当前任务
+### Context Utilization
+- AI remembers conversation history
+- Can continue previous tasks
+- Supports multi-round deep dialogue
 
-### 智能工具调度
-StateGraph会根据当前状态和任务需求智能选择工具：
-- **状态分析**: 分析当前AgentState确定所需工具
-- **并行调用**: 支持多个工具同时执行
-- **结果合并**: 将工具执行结果合并到状态中
-- **动态路由**: 根据工具执行结果选择下一个节点
+## ?? Tool Documentation
 
-#### 工具选择策略
-- 编程任务 → Python执行器节点
-- 信息查询 → 搜索工具节点
-- 文件处理 → 文件工具节点
-- 复合任务 → 多工具并行节点
+### Available Tools
+- **Python Executor**: Run Python code
+- **File Tool**: Read/write file operations
+- **Search Tool**: Network information search
+- **Browser Tool**: Web content extraction
+- **Terminal Tool**: End current task
 
-## ⚠️ 注意事项
+### Intelligent Tool Dispatch
+StateGraph intelligently selects tools based on current state and task requirements:
+- **State Analysis**: Analyze current AgentState to determine needed tools
+- **Parallel Calls**: Support multiple tools executing simultaneously
+- **Result Merging**: Merge tool execution results into state
+- **Dynamic Routing**: Choose next node based on tool execution results
 
-### 安全提醒
-- 代码执行在沙箱环境中
-- 敏感操作需要确认
-- 重要文件请提前备份
+#### Tool Selection Strategy
+- Programming Tasks �� Python Executor Node
+- Information Query �� Search Tool Node
+- File Processing �� File Tool Node
+- Complex Tasks �� Multi-tool Parallel Node
 
-### 性能建议
-- 复杂任务可能需要较长时间
-- 网络搜索受网络状况影响
-- 并发任务数量有限制
+## ?? Important Notes
 
-### 错误处理
-- 任务失败会有明确提示
-- 可以重新尝试或调整请求
-- 查看监控面板了解详情
+### Security Reminders
+- Code executes in sandbox environment
+- Sensitive operations need confirmation
+- Back up important files in advance
 
-## ❓ 常见问题
+### Performance Suggestions
+- Complex tasks may take longer
+- Network searches affected by network conditions
+- Limited number of concurrent tasks
 
-**Q: 如何修改API密钥？**
-A: 修改 `application.yml` 中的配置或设置环境变量
+### Error Handling
+- Clear prompts for task failures
+- Can retry or adjust requests
+- Check monitoring panel for details
 
-**Q: 为什么搜索没有结果？**
-A: 检查网络连接和API密钥配置
+## ? FAQ
 
-**Q: 如何清空对话历史？**
-A: Web界面点击"清空聊天"按钮，命令行输入 `clear`
+**Q: How to change API key?**
+A: Modify configuration in `application.yml` or set environment variable
 
-**Q: 任务执行时间过长怎么办？**
-A: 可以等待完成或重新启动应用
+**Q: Why no search results?**
+A: Check network connection and API key configuration
 
-**Q: 如何查看详细错误信息？**
-A: 查看Web界面的监控标签页或应用日志
+**Q: How to clear conversation history?**
+A: Click "Clear Chat" button in Web UI or enter `clear` in command line
 
-## 🔗 更多资源
+**Q: What to do if task execution takes too long?**
+A: Can wait for completion or restart application
 
-- **API文档**: http://localhost:8080/swagger-ui.html
-- **系统监控**: http://localhost:8080/actuator/health
-- **项目主页**: https://github.com/OpenManus/OpenManus-Java
+**Q: How to view detailed error information?**
+A: Check monitoring tab in Web UI or application logs
+
+## ? More Resources
+
+- **API Documentation**: http://localhost:8080/swagger-ui.html
+- **System Monitor**: http://localhost:8080/actuator/health
+- **Project Homepage**: https://github.com/OpenManus/OpenManus-Java
 
 ---
 
-💡 **提示**: 充分利用Web界面的可视化功能可以更好地理解AI的工作过程！
+? **Tip**: Make full use of the Web UI's visualization features to better understand AI's working process!

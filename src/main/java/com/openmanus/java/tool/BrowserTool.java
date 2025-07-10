@@ -17,19 +17,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 浏览器工具
- * 使用 langchain4j 的 @Tool 注解
+ * Browser tool
+ * Using langchain4j @Tool annotation
  */
 @Component
 public class BrowserTool {
 
     private static final Logger logger = LoggerFactory.getLogger(BrowserTool.class);
-    private static final int DEFAULT_TIMEOUT = 30; // 30秒超时
+    private static final int DEFAULT_TIMEOUT = 30; // 30 second timeout
     
-    @Tool("访问网页并获取内容")
-    public String browseWeb(@P("网页URL") String url) {
+    @Tool("Visit web page and get content")
+    public String browseWeb(@P("Web page URL") String url) {
         try {
-            // 验证URL格式
+            // Validate URL format
             if (!url.startsWith("http://") && !url.startsWith("https://")) {
                 url = "https://" + url;
             }
@@ -43,10 +43,10 @@ public class BrowserTool {
             
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
-                return "访问失败，HTTP状态码: " + responseCode;
+                return "Access failed, HTTP status code: " + responseCode;
     }
 
-            // 读取响应内容
+            // Read response content
             StringBuilder content = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
@@ -57,61 +57,61 @@ public class BrowserTool {
             }
             
             String result = content.toString();
-            // 限制返回内容长度，避免过长
+            // Limit return content length to avoid excessive length
             if (result.length() > 10000) {
-                result = result.substring(0, 10000) + "\n... (内容已截断)";
+                result = result.substring(0, 10000) + "\n... (Content truncated)";
             }
             
-            return "网页内容:\n" + result;
+            return "Web page content:\n" + result;
             
         } catch (IOException e) {
-            logger.error("访问网页失败: {}", url, e);
-            return "访问网页失败: " + e.getMessage();
+            logger.error("Failed to access web page: {}", url, e);
+            return "Failed to access web page: " + e.getMessage();
                 }
     }
     
-    @Tool("搜索网络内容")
-    public String searchWeb(@P("搜索关键词") String query) {
+    @Tool("Search web content")
+    public String searchWeb(@P("Search keywords") String query) {
         try {
-            // 使用 DuckDuckGo 搜索（无需API密钥）
+            // Use DuckDuckGo search (no API key required)
             String searchUrl = "https://duckduckgo.com/html/?q=" + 
                 URLEncoder.encode(query, StandardCharsets.UTF_8);
             
             return browseWeb(searchUrl);
             
         } catch (Exception e) {
-            logger.error("搜索失败: {}", query, e);
-            return "搜索失败: " + e.getMessage();
+            logger.error("Search failed: {}", query, e);
+            return "Search failed: " + e.getMessage();
         }
     }
     
-    @Tool("获取网页标题")
-    public String getWebPageTitle(@P("网页URL") String url) {
+    @Tool("Get web page title")
+    public String getWebPageTitle(@P("Web page URL") String url) {
         try {
             String content = browseWeb(url);
-            if (content.startsWith("访问网页失败")) {
+            if (content.startsWith("Failed to access web page")) {
                 return content;
     }
 
-            // 简单提取标题（实际项目中可能需要HTML解析器）
+            // Simple title extraction (actual projects may need HTML parser)
             int titleStart = content.indexOf("<title>");
             int titleEnd = content.indexOf("</title>");
             
             if (titleStart != -1 && titleEnd != -1) {
                 String title = content.substring(titleStart + 7, titleEnd);
-                return "网页标题: " + title;
+                return "Web page title: " + title;
         } else {
-                return "无法提取网页标题";
+                return "Unable to extract web page title";
     }
 
         } catch (Exception e) {
-            logger.error("获取网页标题失败: {}", url, e);
-            return "获取网页标题失败: " + e.getMessage();
+            logger.error("Failed to get web page title: {}", url, e);
+            return "Failed to get web page title: " + e.getMessage();
             }
         }
         
-    @Tool("检查网站是否可访问")
-    public String checkWebsiteAccessibility(@P("网站URL") String url) {
+    @Tool("Check if website is accessible")
+    public String checkWebsiteAccessibility(@P("Website URL") String url) {
         try {
             if (!url.startsWith("http://") && !url.startsWith("https://")) {
                 url = "https://" + url;
@@ -126,26 +126,26 @@ public class BrowserTool {
             int responseCode = connection.getResponseCode();
             String responseMessage = connection.getResponseMessage();
             
-            return String.format("网站状态: %d %s", responseCode, responseMessage);
+            return String.format("Website status: %d %s", responseCode, responseMessage);
             
         } catch (IOException e) {
-            logger.error("检查网站可访问性失败: {}", url, e);
-            return "网站不可访问: " + e.getMessage();
+            logger.error("Failed to check website accessibility: {}", url, e);
+            return "Website not accessible: " + e.getMessage();
         }
     }
     
-    @Tool("异步访问网页")
-    public String browseWebAsync(@P("网页URL") String url) {
+    @Tool("Asynchronously access web page")
+    public String browseWebAsync(@P("Web page URL") String url) {
         try {
             CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> browseWeb(url));
             
-            // 等待结果，设置超时
+            // Wait for result with timeout
             String result = future.get(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
-            return "异步访问结果:\n" + result;
+            return "Asynchronous access result:\n" + result;
             
         } catch (Exception e) {
-            logger.error("异步访问网页失败: {}", url, e);
-            return "异步访问失败: " + e.getMessage();
+            logger.error("Failed to asynchronously access web page: {}", url, e);
+            return "Asynchronous access failed: " + e.getMessage();
         }
     }
 }

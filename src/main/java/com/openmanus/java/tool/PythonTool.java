@@ -15,32 +15,32 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 /**
- * Python 代码执行工具
- * 使用 langchain4j 的 @Tool 注解
+ * Python code execution tool
+ * Using langchain4j @Tool annotation
  */
 @Component
 public class PythonTool {
     
     private static final Logger logger = LoggerFactory.getLogger(PythonTool.class);
 
-    @Tool("执行 Python 代码")
-    public String executePython(@P("Python 代码") String code) {
+    @Tool("Execute Python code")
+    public String executePython(@P("Python code") String code) {
         try {
-            // 创建临时文件
+            // Create temporary file
             String tempDir = System.getProperty("java.io.tmpdir");
             String fileName = "python_" + UUID.randomUUID().toString().substring(0, 8) + ".py";
             Path filePath = Paths.get(tempDir, fileName);
             
-            // 写入代码到文件
+            // Write code to file
             Files.write(filePath, code.getBytes());
             
-            // 执行 Python 代码
+            // Execute Python code
             ProcessBuilder processBuilder = new ProcessBuilder("python3", filePath.toString());
             processBuilder.redirectErrorStream(true);
             
             Process process = processBuilder.start();
             
-            // 读取输出
+            // Read output
             StringBuilder output = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -49,39 +49,39 @@ public class PythonTool {
                 }
             }
             
-            // 等待进程完成
+            // Wait for process to complete
             int exitCode = process.waitFor();
             
-            // 清理临时文件
+            // Clean up temporary file
             Files.deleteIfExists(filePath);
             
             if (exitCode == 0) {
-                return "执行成功:\n" + output.toString();
+                return "Execution successful:\n" + output.toString();
             } else {
-                return "执行失败 (退出码: " + exitCode + "):\n" + output.toString();
+                return "Execution failed (exit code: " + exitCode + "):\n" + output.toString();
             }
             
         } catch (IOException | InterruptedException e) {
-            logger.error("Python 执行失败", e);
-            return "执行失败: " + e.getMessage();
+            logger.error("Python execution failed", e);
+            return "Execution failed: " + e.getMessage();
             }
     }
     
-    @Tool("执行 Python 文件")
-    public String executePythonFile(@P("Python 文件路径") String filePath) {
+    @Tool("Execute Python file")
+    public String executePythonFile(@P("Python file path") String filePath) {
         try {
             Path path = Paths.get(filePath);
             if (!Files.exists(path)) {
-                return "文件不存在: " + filePath;
+                return "File does not exist: " + filePath;
                 }
             
-            // 执行 Python 文件
+            // Execute Python file
             ProcessBuilder processBuilder = new ProcessBuilder("python3", filePath);
             processBuilder.redirectErrorStream(true);
             
             Process process = processBuilder.start();
             
-            // 读取输出
+            // Read output
             StringBuilder output = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -90,18 +90,18 @@ public class PythonTool {
                 }
             }
             
-            // 等待进程完成
+            // Wait for process to complete
             int exitCode = process.waitFor();
         
             if (exitCode == 0) {
-                return "执行成功:\n" + output.toString();
+                return "Execution successful:\n" + output.toString();
         } else {
-                return "执行失败 (退出码: " + exitCode + "):\n" + output.toString();
+                return "Execution failed (exit code: " + exitCode + "):\n" + output.toString();
     }
     
         } catch (IOException | InterruptedException e) {
-            logger.error("Python 文件执行失败", e);
-            return "执行失败: " + e.getMessage();
+            logger.error("Python file execution failed", e);
+            return "Execution failed: " + e.getMessage();
         }
     }
 }

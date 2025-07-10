@@ -1,87 +1,117 @@
 package com.openmanus.java.config;
-
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * LangChain4j 配置类
+ * LangChain4j Configuration
  * 
- * 这个类负责配置和创建 LangChain4j 的各种组件，
- * 特别是 ChatLanguageModel，用于与 LLM 进行交互。
+ * Configures LangChain4j components including ChatModel, EmbeddingModel, etc.
+ * Supports multiple LLM providers and embedding models
  */
 @Configuration
+@EnableConfigurationProperties(OpenManusProperties.class)
 public class LangChain4jConfig {
     
-    @Autowired
-    private OpenManusProperties properties;
+    private static final Logger logger = LoggerFactory.getLogger(LangChain4jConfig.class);
+    
+    private final OpenManusProperties properties;
+    
+    public LangChain4jConfig(OpenManusProperties properties) {
+        this.properties = properties;
+    }
     
     /**
-     * 创建 ChatLanguageModel Bean
-     * 
-     * @return 配置好的 ChatLanguageModel 实例
+     * Configure ChatModel bean
+     * Supports OpenAI, Anthropic, and other LLM providers
      */
-    @Bean
+    @Bean("chatModel")
     public ChatModel chatModel() {
-        OpenManusProperties.LLMSettings.DefaultLLM llmConfig = properties.getLlm().getDefaultLlm();
-        
-        // 根据 API 类型创建不同的模型
-        switch (llmConfig.getApiType().toLowerCase()) {
-            case "openai":
-                return createOpenAiModel(llmConfig);
-            case "azure":
-                return createAzureOpenAiModel(llmConfig);
-            case "dashscope":
-                return createDashScopeModel(llmConfig);
-            default:
-                throw new IllegalArgumentException("不支持的 LLM API 类型: " + llmConfig.getApiType());
+        try {
+            logger.info("Initializing ChatModel with configuration: {}", 
+                       properties.getLlm().getDefaultLlm().getModel());
+            
+            var llmConfig = properties.getLlm().getDefaultLlm();
+            
+            switch (llmConfig.getApiType().toLowerCase()) {
+                case "openai":
+                    return createOpenAIChatModel(llmConfig);
+                case "anthropic":
+                    logger.warn("Anthropic not supported yet, using OpenAI as fallback");
+                    return createOpenAIChatModel(llmConfig);
+                case "qwen":
+                    return createQwenChatModel(llmConfig);
+                default:
+                    logger.warn("Unsupported API type: {}, using OpenAI as default", llmConfig.getApiType());
+                    return createOpenAIChatModel(llmConfig);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Failed to create ChatModel", e);
+            throw new RuntimeException("Failed to initialize ChatModel", e);
         }
     }
     
     /**
-     * 创建 OpenAI 模型
+     * Create OpenAI ChatModel
      */
-    private ChatModel createOpenAiModel(OpenManusProperties.LLMSettings.DefaultLLM config) {
+    private ChatModel createOpenAIChatModel(OpenManusProperties.LlmConfig.DefaultLLM config) {
         return OpenAiChatModel.builder()
-            .apiKey(config.getApiKey())
-            .baseUrl(config.getBaseUrl())
-            .modelName(config.getModel())
-            .temperature(config.getTemperature())
-            .maxTokens(config.getMaxTokens())
-            .timeout(java.time.Duration.ofSeconds(config.getTimeout()))
-            .build();
+                .apiKey(config.getApiKey())
+                .baseUrl(config.getBaseUrl())
+                .modelName(config.getModel())
+                .temperature(config.getTemperature())
+                .maxTokens(config.getMaxTokens())
+                .timeout(Duration.ofSeconds(config.getTimeout()))
+                .build();
+    }
+    
+
+    
+    /**
+     * Create Qwen ChatModel (compatible with OpenAI API)
+     */
+    private ChatModel createQwenChatModel(OpenManusProperties.LlmConfig.DefaultLLM config) {
+        return OpenAiChatModel.builder()
+                .apiKey(config.getApiKey())
+                .baseUrl(config.getBaseUrl())
+                .modelName(config.getModel())
+                .temperature(config.getTemperature())
+                .maxTokens(config.getMaxTokens())
+                .timeout(Duration.ofSeconds(config.getTimeout()))
+                .build();
     }
     
     /**
-     * 创建 Azure OpenAI 模型
+     * Configure EmbeddingModel bean
+     * Currently uses OpenAI embeddings
      */
-    private ChatModel createAzureOpenAiModel(OpenManusProperties.LLMSettings.DefaultLLM config) {
-        // Azure OpenAI 配置
-        return OpenAiChatModel.builder()
-            .apiKey(config.getApiKey())
-            .baseUrl(config.getBaseUrl())
-            .modelName(config.getModel())
-            .temperature(config.getTemperature())
-            .maxTokens(config.getMaxTokens())
-            .timeout(java.time.Duration.ofSeconds(config.getTimeout()))
-            .build();
-    }
-    
-    /**
-     * 创建 DashScope (阿里云) 模型
-     */
-    private ChatModel createDashScopeModel(OpenManusProperties.LLMSettings.DefaultLLM config) {
-        // 注意：这里需要添加 DashScope 的依赖和实现
-        // 目前使用 OpenAI 兼容的接口
-        return OpenAiChatModel.builder()
-            .apiKey(config.getApiKey())
-            .baseUrl(config.getBaseUrl())
-            .modelName(config.getModel())
-            .temperature(config.getTemperature())
-            .maxTokens(config.getMaxTokens())
-            .timeout(java.time.Duration.ofSeconds(config.getTimeout()))
-            .build();
+    @Bean
+    public EmbeddingModel embeddingModel() {
+        try {
+            logger.info("Initializing EmbeddingModel");
+            
+            var llmConfig = properties.getLlm().getDefaultLlm();
+            
+            return OpenAiEmbeddingModel.builder()
+                    .apiKey(llmConfig.getApiKey())
+                    .baseUrl(llmConfig.getBaseUrl())
+                    .modelName("text-embedding-ada-002")
+                    .timeout(Duration.ofSeconds(llmConfig.getTimeout()))
+                    .build();
+                    
+        } catch (Exception e) {
+            logger.error("Failed to create EmbeddingModel", e);
+            throw new RuntimeException("Failed to initialize EmbeddingModel", e);
+        }
     }
 } 

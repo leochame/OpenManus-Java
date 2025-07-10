@@ -12,23 +12,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
- * 反思工具
- * 使用 langchain4j 的 @Tool 注解
+ * Reflection tool
+ * Using langchain4j @Tool annotation
  */
 @Component
 public class ReflectionTool {
     
     private static final Logger logger = LoggerFactory.getLogger(ReflectionTool.class);
     
-    // 存储任务执行历史，用于反思
+    // Store task execution history for reflection
     private final Map<String, TaskRecord> taskHistory = new ConcurrentHashMap<>();
     
-    @Tool("记录任务执行过程，用于后续反思")
-    public String recordTask(@P("任务ID") String taskId, 
-                           @P("任务描述") String taskDescription,
-                           @P("执行步骤") String steps,
-                           @P("使用工具") String toolsUsed,
-                           @P("执行结果") String result) {
+    @Tool("Record task execution process for subsequent reflection")
+    public String recordTask(@P("Task ID") String taskId, 
+                           @P("Task description") String taskDescription,
+                           @P("Execution steps") String steps,
+                           @P("Tools used") String toolsUsed,
+                           @P("Execution result") String result) {
         try {
             TaskRecord record = new TaskRecord(
                 taskId,
@@ -39,43 +39,43 @@ public class ReflectionTool {
                 LocalDateTime.now()
             );
             taskHistory.put(taskId, record);
-            logger.info("记录任务执行: {}", taskId);
-            return "任务执行记录已保存，可用于后续反思分析";
+            logger.info("Record task execution: {}", taskId);
+            return "Task execution record saved, available for subsequent reflection analysis";
         } catch (Exception e) {
-            logger.error("记录任务失败", e);
-            return "记录任务失败: " + e.getMessage();
+            logger.error("Failed to record task", e);
+            return "Failed to record task: " + e.getMessage();
         }
     }
     
-    @Tool("对指定任务进行反思分析")
-    public String reflectOnTask(@P("任务ID") String taskId) {
+    @Tool("Perform reflection analysis on specified task")
+    public String reflectOnTask(@P("Task ID") String taskId) {
         try {
             TaskRecord record = taskHistory.get(taskId);
             if (record == null) {
-                return "未找到任务记录: " + taskId;
+                return "Task record not found: " + taskId;
             }
             
             String reflection = String.format("""
-                任务反思分析：
+                Task Reflection Analysis:
                 
-                任务信息：
+                Task Information:
                 - ID: %s
-                - 描述: %s
-                - 执行时间: %s
+                - Description: %s
+                - Execution time: %s
                 
-                执行过程：
-                - 步骤: %s
-                - 使用工具: %s
-                - 结果: %s
+                Execution Process:
+                - Steps: %s
+                - Tools used: %s
+                - Result: %s
                 
-                反思要点：
-                1. 推理过程是否合理？
-                2. 工具选择是否恰当？
-                3. 执行效率如何？
-                4. 结果质量如何？
-                5. 有哪些改进空间？
+                Reflection Points:
+                1. Is the reasoning process reasonable?
+                2. Are the tool choices appropriate?
+                3. How is the execution efficiency?
+                4. How is the result quality?
+                5. What are the areas for improvement?
                 
-                请基于以上信息进行深度反思。
+                Please conduct deep reflection based on the above information.
                 """,
                 record.taskId,
                 record.taskDescription,
@@ -85,31 +85,31 @@ public class ReflectionTool {
                 record.result
             );
             
-            logger.info("生成任务反思: {}", taskId);
+            logger.info("Generate task reflection: {}", taskId);
             return reflection;
         } catch (Exception e) {
-            logger.error("反思任务失败", e);
-            return "反思任务失败: " + e.getMessage();
+            logger.error("Failed to reflect on task", e);
+            return "Failed to reflect on task: " + e.getMessage();
         }
     }
     
-    @Tool("获取所有任务的历史记录")
+    @Tool("Get all task history records")
     public String getTaskHistory() {
         try {
             if (taskHistory.isEmpty()) {
-                return "暂无任务历史记录";
+                return "No task history records available";
             }
             
-            StringBuilder sb = new StringBuilder("任务历史记录：\n");
+            StringBuilder sb = new StringBuilder("Task History Records:\n");
             taskHistory.values().stream()
                 .sorted((a, b) -> b.executionTime.compareTo(a.executionTime))
                 .forEach(record -> {
                     sb.append(String.format("""
                         
                         ID: %s
-                        描述: %s
-                        时间: %s
-                        结果: %s
+                        Description: %s
+                        Time: %s
+                        Result: %s
                         ---
                         """,
                         record.taskId,
@@ -121,13 +121,13 @@ public class ReflectionTool {
             
             return sb.toString();
         } catch (Exception e) {
-            logger.error("获取任务历史失败", e);
-            return "获取任务历史失败: " + e.getMessage();
+            logger.error("Failed to get task history", e);
+            return "Failed to get task history: " + e.getMessage();
         }
     }
     
     /**
-     * 任务记录内部类
+     * Task record inner class
      */
     private static class TaskRecord {
         final String taskId;
