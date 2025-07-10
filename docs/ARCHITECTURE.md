@@ -1,242 +1,260 @@
-# OpenManus Java æ¶æ„æ–‡æ¡£
+# OpenManus Java Architecture Documentation
 
-## ğŸŒ ç³»ç»Ÿæ¦‚è§ˆ
+## ? System Overview
 
-OpenManus Java æ˜¯ä¸€ä¸ªåŸºäº Spring Boot å’Œ LangChain4j çš„æ™ºèƒ½ä»£ç†ç³»ç»Ÿï¼Œé‡‡ç”¨ ReAct æ¨ç†æ¡†æ¶å’Œ Chain of Thought å±•ç¤ºã€‚
+OpenManus Java is an intelligent agent system based on Spring Boot and LangChain4j, using the ReAct reasoning framework and Chain of Thought demonstration.
 
-### æ ¸å¿ƒç‰¹æ€§
+### Core Features
 
-- **ReAct æ¨ç†**: åŸºäºæ¨ç†å’Œè¡ŒåŠ¨çš„æ™ºèƒ½å¯¹è¯
-- **Chain of Thought**: å®Œæ•´çš„æ¨ç†è¿‡ç¨‹å±•ç¤º
-- **å·¥å…·è°ƒç”¨**: æ”¯æŒ Pythonã€æ–‡ä»¶æ“ä½œã€ç½‘é¡µæµè§ˆç­‰
-- **ä»»åŠ¡åæ€**: è‡ªåŠ¨ä»»åŠ¡åæ€å’Œæ€»ç»“
-- **Web ç•Œé¢**: ç°ä»£åŒ–çš„è‹¹æœé£æ ¼ UI
+- **ReAct Reasoning**: Intelligence dialogue based on reasoning and action
+- **Chain of Thought**: Complete reasoning process demonstration
+- **Tool Calls**: Support for Python, file operations, web browsing, etc.
+- **Task Reflection**: Automatic task reflection and summarization
+- **Web Interface**: Modern Apple-style UI
 
-## ğŸ› ï¸ æŠ€æœ¯æ ˆ
+## ?? Technology Stack
 
-### åç«¯
-- **Java 17+** - è¿è¡Œç¯å¢ƒ
-- **Spring Boot 3.2.0** - åº”ç”¨æ¡†æ¶
-- **LangChain4j** - AI æœåŠ¡å’Œå·¥å…·æ¡†æ¶
-- **LangGraph4j 1.6.0-beta5** - çŠ¶æ€å›¾å·¥ä½œæµå¼•æ“ï¼Œæä¾›å¼ºå¤§çš„AgentçŠ¶æ€ç®¡ç†å’Œå·¥ä½œæµç¼–æ’èƒ½åŠ›
-- **Docker** - æ²™ç®±ç¯å¢ƒ
+### Backend
+- **Java 17+** - Runtime environment
+- **Spring Boot 3.2.0** - Application framework
+- **LangChain4j** - AI services and tool framework
+- **LangGraph4j 1.6.0-beta5** - State graph workflow engine, providing powerful Agent state management and workflow orchestration capabilities
+- **Docker** - Sandbox environment
 
-### å‰ç«¯  
-- **Vue.js 3** - å‰ç«¯æ¡†æ¶
-- **Element Plus** - UIç»„ä»¶åº“
-- **WebSocket** - å®æ—¶é€šä¿¡
+### Frontend  
+- **Vue.js 3** - Frontend framework
+- **Element Plus** - UI component library
+- **WebSocket** - Real-time communication
 
-## ğŸ—ï¸ ç³»ç»Ÿæ¶æ„
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                     å®¢æˆ·ç«¯å±‚                            â”‚
-â”‚  Webç•Œé¢ (Vue.js + Element Plus)  |  å‘½ä»¤è¡Œ (CLI)     â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â†“
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                     WebæœåŠ¡å±‚                          â”‚
-â”‚  REST API  |  WebSocket Handler  |  é™æ€èµ„æºæœåŠ¡      â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â†“
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                    Agentå±‚                            â”‚
-â”‚  ManusAgent (åŸºäº AI Services)                        â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â†“
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                     å·¥å…·å±‚                              â”‚
-â”‚  PythonTool  |  FileTool  |  BrowserTool  |  å…¶ä»–å·¥å…·  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â†“
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                    LLMå±‚                              â”‚
-â”‚  OpenAI  |  Qwen  |  Anthropic  |  å…¶ä»–LLM            â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-## ğŸ¤– Agent å·¥ä½œæµ
-
-### StateGraphæ¶æ„
-
-OpenManus Javaç°åœ¨ä½¿ç”¨LangGraph4jçš„StateGraphæ¶æ„æ¥ç®¡ç†Agentçš„çŠ¶æ€å’Œå·¥ä½œæµï¼š
+## ? System Architecture
 
 ```
-ç”¨æˆ·è¾“å…¥ â†’ StateGraphèŠ‚ç‚¹å¤„ç† â†’ çŠ¶æ€æ›´æ–° â†’ æ¡ä»¶è·¯ç”± â†’ å·¥å…·æ‰§è¡Œ â†’ çŠ¶æ€åˆå¹¶ â†’ æœ€ç»ˆè¾“å‡º
+©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´
+©¦                     Client Layer                            ©¦
+©¦  Web Interface (Vue.js + Element Plus)  |  CLI              ©¦
+©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼
+                          ¡ı
+©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´
+©¦                     Web Service Layer                       ©¦
+©¦  REST API  |  WebSocket Handler  |  Static Resource Service ©¦
+©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼
+                          ¡ı
+©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´
+©¦                     Core Service Layer                      ©¦
+©¦                                                            ©¦
+©¦  ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´    ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´    ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´  ©¦
+©¦  ©¦   Agent     ©¦    ©¦   Memory     ©¦    ©¦    Tool      ©¦  ©¦
+©¦  ©¦  Service    ©¦¡û©¤©¤©¤©¦   Service    ©¦¡û©¤©¤©¤©¦   Service    ©¦  ©¦
+©¦  ©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼    ©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼    ©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼  ©¦
+©¦         ¡ı                   ¡ı                   ¡ı          ©¦
+©¦  ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´    ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´    ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´  ©¦
+©¦  ©¦  StateGraph ©¦    ©¦    Vector    ©¦    ©¦   Sandbox    ©¦  ©¦
+©¦  ©¦   Engine    ©¦    ©¦    Store     ©¦    ©¦  Container   ©¦  ©¦
+©¦  ©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼    ©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼    ©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼  ©¦
+©¦                                                            ©¦
+©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼
+                          ¡ı
+©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´
+©¦                     Infrastructure Layer                     ©¦
+©¦  Docker | Database | Cache | Message Queue | Object Storage  ©¦
+©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼
 ```
 
-#### æ ¸å¿ƒç»„ä»¶
+### Core Components
 
-1. **StateGraph**: å®šä¹‰Agentçš„çŠ¶æ€è½¬æ¢å›¾
-2. **AgentState**: ç®¡ç†å¯¹è¯çŠ¶æ€ã€æ¶ˆæ¯å†å²å’Œå·¥å…·è°ƒç”¨ç»“æœ
-3. **èŠ‚ç‚¹å¤„ç†å™¨**: å¤„ç†ä¸åŒç±»å‹çš„ä»»åŠ¡ï¼ˆæ€è€ƒã€å·¥å…·è°ƒç”¨ã€å“åº”ç”Ÿæˆï¼‰
-4. **æ¡ä»¶è·¯ç”±**: æ ¹æ®çŠ¶æ€åŠ¨æ€å†³å®šä¸‹ä¸€ä¸ªæ‰§è¡ŒèŠ‚ç‚¹
-5. **çŠ¶æ€åˆå¹¶**: å°†å·¥å…·æ‰§è¡Œç»“æœåˆå¹¶åˆ°AgentçŠ¶æ€ä¸­
+#### 1. Agent Service
+- Task parsing and planning
+- State management
+- Tool orchestration
+- Error handling
 
-### ReAct æ¨ç†æµç¨‹
+#### 2. Memory Service
+- Short-term memory (conversation buffer)
+- Long-term memory (vector store)
+- Memory indexing and retrieval
+- Memory cleaning strategy
 
-åŸºäºStateGraphçš„ReActæ¨ç†æµç¨‹ï¼š
+#### 3. Tool Service
+- Tool registration and management
+- Sandbox execution environment
+- Resource limitation
+- Security control
 
-```
-ç”¨æˆ·è¾“å…¥ â†’ æ€è€ƒèŠ‚ç‚¹ â†’ è¡ŒåŠ¨èŠ‚ç‚¹ â†’ è§‚å¯ŸèŠ‚ç‚¹ â†’ æ¡ä»¶åˆ¤æ–­ â†’ å¾ªç¯æˆ–ç»“æŸ
-```
+### Key Processes
 
-1. **æ€è€ƒèŠ‚ç‚¹**: Agentåˆ†æå½“å‰çŠ¶æ€ï¼Œå†³å®šä¸‹ä¸€æ­¥è¡ŒåŠ¨
-2. **è¡ŒåŠ¨èŠ‚ç‚¹**: æ‰§è¡Œå…·ä½“çš„å·¥å…·è°ƒç”¨æˆ–ç”Ÿæˆå›ç­”
-3. **è§‚å¯ŸèŠ‚ç‚¹**: åˆ†æå·¥å…·æ‰§è¡Œç»“æœå¹¶æ›´æ–°çŠ¶æ€
-4. **æ¡ä»¶åˆ¤æ–­**: æ ¹æ®çŠ¶æ€å†³å®šæ˜¯å¦ç»§ç»­å¾ªç¯æˆ–ç»“æŸ
-
-### å·¥å…·è°ƒç”¨æµç¨‹
-1. ç”¨æˆ·è¾“å…¥ â†’ ManusAgent
-2. StateGraph åˆ†æçŠ¶æ€ï¼Œå†³å®šå·¥å…·è°ƒç”¨
-3. æ‰§è¡Œç›¸åº”å·¥å…· (Pythonã€æ–‡ä»¶ã€ç½‘é¡µç­‰)
-4. æ”¶é›†å·¥å…·ç»“æœï¼Œæ›´æ–°çŠ¶æ€ï¼Œç»§ç»­æ¨ç†æˆ–ç»™å‡ºç­”æ¡ˆ
-5. è¿”å›å®Œæ•´çš„æ¨ç†è¿‡ç¨‹
-
-## ğŸŒ Web åŠŸèƒ½
-
-### API ç«¯ç‚¹
-- `GET /api/v1/agent/health` - å¥åº·æ£€æŸ¥
-- `POST /api/v1/agent/chat` - èŠå¤©æ¥å£
-- `WebSocket /ws/agent` - å®æ—¶é€šä¿¡
-
-### å‰ç«¯åŠŸèƒ½
-- **èŠå¤©ç•Œé¢** - å®æ—¶å¯¹è¯äº¤äº’
-- **æ¨ç†è¿‡ç¨‹å±•ç¤º** - å·¦å³åˆ†æ å¸ƒå±€
-- **é•¿å›ç­”æŠ˜å ** - æ™ºèƒ½å¤„ç†é•¿ç¯‡å›ç­”
-- **å“åº”å¼è®¾è®¡** - é€‚é…ä¸åŒå±å¹•å°ºå¯¸
-
-## ğŸ”§ æ ¸å¿ƒç»„ä»¶
-
-### ManusAgent
-åŸºäº LangGraph4j StateGraph çš„æ™ºèƒ½ Agentï¼š
-
-```java
-@Component
-public class ManusAgent {
-    private final StateGraph<AgentState> stateGraph;
+#### 1. Task Processing Flow
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Agent
+    participant M as Memory
+    participant T as Tools
     
-    public ManusAgent(ChatModel chatModel, List<Tool> tools) {
-        this.stateGraph = StateGraph.builder(AgentState.class)
-            .addNode("think", this::thinkNode)
-            .addNode("act", this::actNode)
-            .addNode("observe", this::observeNode)
-            .addConditionalEdges("think", this::shouldContinue)
-            .setEntryPoint("think")
-            .build();
-    }
+    U->>A: Submit Task
+    A->>M: Load Context
+    A->>A: Plan Steps
+    loop Execute Steps
+        A->>T: Call Tool
+        T-->>A: Tool Result
+        A->>M: Update Memory
+        A->>A: Evaluate Progress
+    end
+    A-->>U: Return Result
+```
+
+#### 2. Memory Management
+```mermaid
+flowchart LR
+    I[Input] --> S[Short-term Memory]
+    S --> V[Vector Store]
+    V --> R[Retrieval]
+    R --> C[Context]
+    C --> O[Output]
+```
+
+#### 3. Tool Execution
+```mermaid
+flowchart TD
+    R[Request] --> V[Validation]
+    V --> S[Sandbox]
+    S --> E[Execution]
+    E --> M[Monitor]
+    M --> R2[Result]
+```
+
+### Security Architecture
+
+#### 1. Sandbox Security
+- Docker container isolation
+- Resource limits
+- Network access control
+- File system restrictions
+
+#### 2. API Security
+- Authentication
+- Rate limiting
+- Input validation
+- Error handling
+
+#### 3. Data Security
+- Memory encryption
+- Sensitive data masking
+- Access control
+- Audit logging
+
+## ? State Management
+
+### Agent State
+```java
+public class AgentState {
+    private String taskId;
+    private String sessionId;
+    private Map<String, Object> memory;
+    private List<String> history;
+    private Map<String, Object> toolResults;
 }
 ```
 
-#### StateGraphå·¥ä½œæµ
-
-- **èŠ‚ç‚¹å®šä¹‰**: å®šä¹‰æ€è€ƒã€å·¥å…·è°ƒç”¨ã€å“åº”ç­‰å¤„ç†èŠ‚ç‚¹
-- **çŠ¶æ€è½¬æ¢**: ç®¡ç†Agentåœ¨ä¸åŒçŠ¶æ€é—´çš„è½¬æ¢
-- **æ¡ä»¶è·¯ç”±**: æ ¹æ®æ‰§è¡Œç»“æœåŠ¨æ€é€‰æ‹©ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
-- **å¹¶è¡Œå¤„ç†**: æ”¯æŒå¤šä¸ªå·¥å…·çš„å¹¶è¡Œæ‰§è¡Œ
-- **é”™è¯¯å¤„ç†**: å†…ç½®é”™è¯¯æ¢å¤å’Œé‡è¯•æœºåˆ¶
-
-### å·¥å…·ç³»ç»Ÿ
-æ‰€æœ‰å·¥å…·ä½¿ç”¨æ ‡å‡†çš„ @Tool æ³¨è§£ï¼š
-
+### Memory Structure
 ```java
-public static class ToolProvider {
-    @Tool("Execute Python code for calculations")
-    public String executePython(String code) {
-        return pythonTool.executePython(code);
-    }
-    
-    @Tool("List files and directories")
-    public String listDirectory(String path) {
-        return fileTool.listDirectory(path);
-    }
+public class Memory {
+    private ConversationBuffer shortTerm;
+    private VectorStore longTerm;
+    private Map<String, Object> metadata;
 }
 ```
 
-### æ”¯æŒçš„å·¥å…·
-- **PythonTool**: æ‰§è¡Œ Python ä»£ç 
-- **FileTool**: æ–‡ä»¶æ“ä½œ (è¯»å–ã€å†™å…¥ã€åˆ—è¡¨)
-- **BrowserTool**: ç½‘é¡µæµè§ˆ
-- **WebSearchTool**: ç½‘ç»œæœç´¢
-- **BashTool**: Bash å‘½ä»¤æ‰§è¡Œ
-- **AskHumanTool**: äººæœºäº¤äº’
-- **TerminateTool**: ä»»åŠ¡ç»ˆæ­¢
-- **ReflectionTool**: ä»»åŠ¡åæ€
-
-## ğŸš€ å¯åŠ¨æ¨¡å¼
-
-### Webæ¨¡å¼ (é»˜è®¤)
-```bash
-mvn spring-boot:run
-```
-å¯åŠ¨WebæœåŠ¡å™¨ï¼Œæä¾›Webç•Œé¢å’ŒAPIæœåŠ¡ã€‚
-
-### å‘½ä»¤è¡Œæ¨¡å¼
-```bash
-mvn spring-boot:run -Dspring-boot.run.arguments=--cli
-```
-å¯åŠ¨ä¼ ç»Ÿçš„å‘½ä»¤è¡Œäº¤äº’ç•Œé¢ã€‚
-
-## ğŸ“ é¡¹ç›®ç»“æ„
-
-```
-src/main/java/com/openmanus/java/
-â”œâ”€â”€ agent/
-â”‚   â””â”€â”€ ManusAgent.java          # æ™ºèƒ½ Agent å®ç°
-â”œâ”€â”€ tool/
-â”‚   â”œâ”€â”€ PythonTool.java          # Python æ‰§è¡Œå·¥å…·
-â”‚   â”œâ”€â”€ FileTool.java            # æ–‡ä»¶æ“ä½œå·¥å…·
-â”‚   â”œâ”€â”€ BrowserTool.java         # ç½‘é¡µè®¿é—®å·¥å…·
-â”‚   â”œâ”€â”€ WebSearchTool.java       # ç½‘ç»œæœç´¢å·¥å…·
-â”‚   â”œâ”€â”€ BashTool.java            # Bash å‘½ä»¤å·¥å…·
-â”‚   â”œâ”€â”€ AskHumanTool.java        # äººæœºäº¤äº’å·¥å…·
-â”‚   â”œâ”€â”€ TerminateTool.java       # ä»»åŠ¡ç»ˆæ­¢å·¥å…·
-â”‚   â””â”€â”€ ReflectionTool.java      # ä»»åŠ¡åæ€å·¥å…·
-â”œâ”€â”€ config/
-â”‚   â”œâ”€â”€ LlmConfig.java           # LLM é…ç½®
-â”‚   â””â”€â”€ VectorDatabaseConfig.java # å‘é‡æ•°æ®åº“é…ç½®
-â”œâ”€â”€ controller/
-â”‚   â””â”€â”€ AgentController.java     # REST API æ§åˆ¶å™¨
-â”œâ”€â”€ llm/
-â”‚   â””â”€â”€ LlmClient.java           # LLM å®¢æˆ·ç«¯
-â”œâ”€â”€ memory/
-â”‚   â”œâ”€â”€ ConversationBuffer.java  # å¯¹è¯ç¼“å†²
-â”‚   â””â”€â”€ MemoryTool.java          # å†…å­˜å·¥å…·
-â”œâ”€â”€ model/
-â”‚   â”œâ”€â”€ Memory.java              # å†…å­˜æ¨¡å‹
-â”‚   â”œâ”€â”€ CLIResult.java           # å‘½ä»¤è¡Œç»“æœ
-â”‚   â”œâ”€â”€ Message.java             # æ¶ˆæ¯æ¨¡å‹
-â”‚   â””â”€â”€ Role.java                # è§’è‰²æšä¸¾
-â””â”€â”€ WebApplication.java          # Spring Boot å¯åŠ¨ç±»
+### Tool Registry
+```java
+public class ToolRegistry {
+    private Map<String, Tool> tools;
+    private SecurityManager security;
+    private ResourceManager resources;
+}
 ```
 
-## ğŸ”’ å®‰å…¨è®¾è®¡
+## ? Performance Optimization
 
-- **æ²™ç®±éš”ç¦»**: Dockerå®¹å™¨éš”ç¦»ä»£ç æ‰§è¡Œ
-- **è¾“å…¥éªŒè¯**: ä¸¥æ ¼çš„å‚æ•°æ ¡éªŒ
-- **èµ„æºé™åˆ¶**: é˜²æ­¢èµ„æºæ»¥ç”¨
-- **å·¥å…·æƒé™**: ç»†ç²’åº¦çš„å·¥å…·è®¿é—®æ§åˆ¶
+### Memory Optimization
+- Memory pooling
+- Lazy loading
+- Cache strategy
+- Garbage collection
 
-## ğŸ“Š ç›‘æ§æŒ‡æ ‡
+### Concurrent Processing
+- Thread pool management
+- Task queuing
+- Resource allocation
+- Load balancing
 
-- **AgentçŠ¶æ€**: å®æ—¶æ¨ç†è¿‡ç¨‹å±•ç¤º
-- **å·¥å…·è°ƒç”¨**: å·¥å…·æ‰§è¡ŒçŠ¶æ€å’Œè€—æ—¶
-- **ç³»ç»Ÿå¥åº·**: Spring Boot Actuatorç›‘æ§
-- **WebSocketè¿æ¥**: è¿æ¥çŠ¶æ€å’Œæ¶ˆæ¯ç»Ÿè®¡
+### Response Time
+- Request caching
+- Result buffering
+- Async processing
+- Timeout handling
 
-## ğŸ¯ è®¾è®¡åŸåˆ™
+## ? Monitoring and Logging
 
-### ç®€åŒ–è®¾è®¡
-- **æ— è‡ªå®šä¹‰åŸºç±»**: ç›´æ¥ä½¿ç”¨ LangChain4j çš„å®˜æ–¹å®ç°
-- **AI Services**: ä½¿ç”¨ LangChain4j çš„ AI Services æ¡†æ¶
-- **å·¥å…·ç»Ÿä¸€**: æ‰€æœ‰å·¥å…·ä½¿ç”¨ @Tool æ³¨è§£
+### Metrics Collection
+- System metrics
+- Business metrics
+- Performance metrics
+- Error metrics
 
-### æ˜“æ‰©å±•æ€§
-- **å·¥å…·å³æ’å³ç”¨**: æ–°å¢å·¥å…·åªéœ€å®ç° @Tool æ³¨è§£
-- **LLM æ”¯æŒ**: æ”¯æŒå¤šç§ LLM æä¾›å•†
-- **é…ç½®çµæ´»**: é€šè¿‡é…ç½®æ–‡ä»¶è½»æ¾åˆ‡æ¢ç»„ä»¶
+### Log Management
+- Operation logs
+- Error logs
+- Security logs
+- Audit logs
 
-### æ ‡å‡†åŒ–
-- **å®Œå…¨å¯¹é½å®˜æ–¹ç”Ÿæ€**: ä½¿ç”¨ LangChain4j çš„æ ‡å‡†æ¨¡å¼
-- **æŒç»­äº«å—ç”Ÿæ€å‡çº§**: å®˜æ–¹æ–°åŠŸèƒ½è‡ªåŠ¨å¯ç”¨
-- **ç¤¾åŒºå…¼å®¹æ€§**: ä¸ LangChain4j ç”Ÿæ€å®Œå…¨å…¼å®¹
+### Alerting System
+- Error alerts
+- Performance alerts
+- Security alerts
+- Resource alerts
+
+## ? Deployment Architecture
+
+### Development Environment
+```yaml
+environment:
+  profile: dev
+  debug: true
+  sandbox: local
+  monitoring: basic
+```
+
+### Production Environment
+```yaml
+environment:
+  profile: prod
+  debug: false
+  sandbox: docker
+  monitoring: full
+```
+
+### High Availability
+- Service clustering
+- Load balancing
+- Failover
+- Backup strategy
+
+## ? API Documentation
+
+### REST APIs
+- Task management
+- Memory operations
+- Tool operations
+- System management
+
+### WebSocket APIs
+- Real-time updates
+- State changes
+- Progress tracking
+- Error notifications
+
+### Internal APIs
+- Component communication
+- State synchronization
+- Resource management
+- Security control

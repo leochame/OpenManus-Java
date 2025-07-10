@@ -14,7 +14,7 @@ openmanus:
       temperature: 0.7
       max-tokens: 8192
       timeout: 120
-      # 阿里云百炼 API key
+      # DashScope API key
       api-key: "sk-9ced5f4658584abe9b786a0876e850c4"
 
   sandbox:
@@ -43,23 +43,17 @@ openmanus:
     api-key: ""
     max-results: 10
 
-  # MCP配置已移除，现在直接使用langchain4j-mcp的DefaultMcpClient
-  # 如需使用MCP工具，请在业务代码中直接new DefaultMcpClient
+  # MCP configuration has been removed, now using langchain4j-mcp's DefaultMcpClient directly
+  # If you need to use MCP tools, please create DefaultMcpClient in your business code
 
   runflow:
     enabled: false
     max-steps: 20
     timeout: 300
 
-# Spring Boot配置
+# Spring Boot Configuration
 server:
   port: 8089
-  servlet:
-    context-path: /
-    encoding:
-      charset: UTF-8
-      force: true
-      enabled: true
   error:
     include-message: always
     include-binding-errors: always
@@ -68,14 +62,14 @@ spring:
   application:
     name: openmanus-java-web
   
-  # Web相关配置
+  # Web-related configuration
   web:
     resources:
       static-locations: classpath:/static/
       cache:
-        period: 0 # 开发环境不缓存静态资源
+        period: 0 # Don't cache static resources in development environment
 
-  # JSON配置
+  # JSON configuration
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     time-zone: "Asia/Shanghai"
@@ -88,12 +82,12 @@ spring:
     mapper:
       ACCEPT_CASE_INSENSITIVE_PROPERTIES: true
 
-  # WebSocket配置
+  # WebSocket configuration
   websocket:
     servlet:
       allowed-origins: "*"
 
-# 监控配置
+# Monitoring configuration
 management:
   endpoints:
     web:
@@ -104,7 +98,7 @@ management:
     health:
       show-details: always
 
-# OpenAPI/Swagger配置
+# OpenAPI/Swagger configuration
 springdoc:
   api-docs:
     path: /api-docs

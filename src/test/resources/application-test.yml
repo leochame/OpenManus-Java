@@ -42,38 +42,38 @@ openmanus:
     api-key: ""
     max-results: 10
 
-  # MCP配置已移除，现在直接使用langchain4j-mcp的DefaultMcpClient
-  # 如需使用MCP工具，请在业务代码中直接new DefaultMcpClient
+  # MCP configuration has been removed, now using langchain4j-mcp's DefaultMcpClient directly
+  # If you need to use MCP tools, please create DefaultMcpClient in your business code
 
   runflow:
     enabled: false
     max-steps: 20
     timeout: 300
 
-# Spring Boot测试配置
+# Spring Boot Test Configuration
 server:
-  port: 0  # 使用随机端口
+  port: 0  # Use random port
 
 spring:
   application:
     name: openmanus-java-test
   
-  # JSON配置
+  # JSON Configuration
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     time-zone: "Asia/Shanghai"
     default-property-inclusion: NON_NULL
 
-# 测试日志配置
+# Test Logging Configuration
 logging:
   level:
     com.openmanus.java: DEBUG
-    # com.openmanus.java.mcp: DEBUG  # MCP相关日志已移除
+    # com.openmanus.java.mcp: DEBUG  # MCP related logs removed
     com.openmanus.java.tool: DEBUG
     root: INFO
     org.springframework.web: WARN
 
-# 测试监控配置
+# Test Monitoring Configuration
 management:
   endpoints:
     web:
