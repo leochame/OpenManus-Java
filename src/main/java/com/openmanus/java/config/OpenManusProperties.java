@@ -77,6 +77,7 @@ public class OpenManusProperties {
         @Data
         public static class DefaultLLM {
             private String model = "qwen-max";
+            private String embeddingModel = "text-embedding-ada-002";
             private String baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/";
             private String apiType = "openai";
             private Double temperature = 0.7;

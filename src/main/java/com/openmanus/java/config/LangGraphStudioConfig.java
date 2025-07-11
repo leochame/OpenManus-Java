@@ -10,32 +10,34 @@ import org.bsc.langgraph4j.studio.springboot.AbstractLangGraphStudioConfig;
 import org.bsc.langgraph4j.studio.springboot.LangGraphFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.bsc.langgraph4j.CompiledGraph;
 
 /**
  * LangGraph4j Studio Configuration Class
- * 
+ *
  * Provides a visual debugging interface for the OpenManus project,
  * centered around the pre-compiled AgentExecutor graph.
  */
 @Configuration
 public class LangGraphStudioConfig extends AbstractLangGraphStudioConfig {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(LangGraphStudioConfig.class);
-    
+
     private final LangGraphFlow flow;
-    
+
+
     public LangGraphStudioConfig(CompiledGraph<AgentExecutor.State> compiledGraph) throws GraphStateException {
-        
+
         logger.info("Initializing LangGraph4j Studio configuration with AgentExecutor graph...");
-        
+
         // Create Studio flow configuration from the injected compiled graph
         this.flow = createStudioFlow(compiledGraph.stateGraph);
-        
+
         logger.info("LangGraph4j Studio configuration initialized - Access URL: http://localhost:8089/");
     }
-    
+
     /**
      * Create Studio flow configuration
      */

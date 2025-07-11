@@ -1,85 +1,58 @@
 package com.openmanus.java.agent;
 
-import dev.langchain4j.data.message.UserMessage;
-import org.bsc.langgraph4j.CompiledGraph;
-import org.bsc.langgraph4j.GraphStateException;
-import org.bsc.langgraph4j.StateGraph;
-import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Intelligent Agent implementation based on LangGraph4j's built-in AgentExecutor.
- * This provides a robust implementation of the ReAct reasoning cycle.
+ * A service layer that wraps the {@link ManusAgentService} AiService.
+ * This class simplifies the interaction with the agent for the rest of the application,
+ * providing a clean, asynchronous interface. It delegates all core AI and tool-use
+ * logic to the LangChain4j AiServices framework.
  */
-@Component
+@Service
 public class ManusAgent {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ManusAgent.class);
-    
-    private final CompiledGraph<AgentExecutor.State> compiledGraph;
-    
-    @Autowired
-    public ManusAgent(CompiledGraph<AgentExecutor.State> compiledGraph) {
-        this.compiledGraph = compiledGraph;
-        logger.info("ManusAgent initialized with a pre-compiled AgentExecutor graph.");
+
+    private final ManusAgentService agentService;
+
+    public ManusAgent(ManusAgentService agentService) {
+        this.agentService = agentService;
     }
-    
+
     /**
-     * Chat with Agent (using the compiled AgentExecutor graph)
+     * Asynchronously invokes the agent with a given conversation ID and input message.
+     * This method is the primary entry point for interacting with the agent.
+     *
+     * @param conversationId A unique identifier for the conversation, used for memory.
+     * @param input          The user's message.
+     * @return A {@link CompletableFuture} containing the agent's string response.
      */
-    public Map<String, Object> chatWithCot(String userMessage) {
-        logger.info("Starting agent execution for user message: {}", userMessage);
-        
-        if (userMessage == null || userMessage.isBlank()) {
-            return Collections.singletonMap("answer", "Please provide a valid question.");
+    public CompletableFuture<String> invoke(String conversationId, String input) {
+        logger.info("Invoking ManusAgent for conversationId '{}'", conversationId);
+        if (input == null || input.isBlank()) {
+            logger.warn("Received blank input for conversationId '{}'", conversationId);
+            return CompletableFuture.completedFuture("Please provide a valid message.");
         }
-
-        // The initial state only requires the user's message
-        Map<String, Object> initialData = Map.of("messages", UserMessage.from(userMessage));
-        
-        Optional<AgentExecutor.State> finalStateOpt = Optional.empty();
-        try {
-            // Invoke the graph and get the final state
-            logger.info("Invoking AgentExecutor workflow...");
-            finalStateOpt = compiledGraph.invoke(initialData);
-
-        } catch (Exception e) {
-            logger.error("Agent execution failed", e);
-            Map<String, Object> result = new HashMap<>();
-            result.put("error", "An error occurred during agent execution: " + e.getMessage());
-            result.put("answer", "Sorry, I encountered an error and could not complete your request.");
-            return result;
-        }
-
-        // Build the final result from the agent's state
-        Map<String, Object> result = new HashMap<>();
-        if (finalStateOpt.isPresent()) {
-            AgentExecutor.State finalState = finalStateOpt.get();
-            String finalAnswer = finalState.finalResponse().orElse("Reasoning process completed, but unable to provide a clear answer.");
-            result.put("answer", finalAnswer);
-            // Optionally add other final state details to the result
-            result.put("intermediate_steps", finalState.messages());
-        } else {
-            result.put("answer", "Agent execution did not produce a final state.");
-            result.put("error", "Agent execution resulted in a null final state.");
-        }
-
-        logger.info("Agent execution finished. Final answer: {}", result.get("answer"));
-        return result;
+        return CompletableFuture.supplyAsync(() -> agentService.chat(conversationId, input));
     }
 
+    /**
+     * Provides basic information about the agent's configuration.
+     *
+     * @return A map containing agent information.
+     */
     public Map<String, Object> getAgentInfo() {
         Map<String, Object> info = new HashMap<>();
-        info.put("agent_type", "AgentExecutor");
-        info.put("message", "This agent is using a pre-built graph for ReAct style reasoning with tool calling.");
+        info.put("agent_type", "AiServices");
+        info.put("message", "This agent is using a declarative AiService interface for ReAct style reasoning.");
+        info.put("capabilities", Collections.singletonList("Multi-turn conversation with tools"));
         return info;
     }
 }
