@@ -9,25 +9,22 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.openmanus.java.config.OpenManusProperties;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Docker-based sandbox client for secure code execution.
  * Corresponds to the sandbox client in the Python version.
  */
-@Slf4j
 @Component
 public class SandboxClient implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(SandboxClient.class);
@@ -363,7 +360,7 @@ public class SandboxClient implements Closeable {
     }
     
     // Helper class for Docker image pulling
-    private static class PullImageResultCallback extends com.github.dockerjava.api.async.ResultCallbackTemplate<PullImageResultCallback, PullResponseItem> {
+    private static class PullImageResultCallback extends ResultCallback.Adapter<PullResponseItem> {
         @Override
         public void onNext(PullResponseItem item) {
             // Log progress if needed

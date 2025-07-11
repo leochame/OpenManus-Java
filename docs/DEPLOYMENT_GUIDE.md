@@ -1,197 +1,253 @@
-# OpenManus Java 部署指南
+# OpenManus Java Deployment Guide
 
-## 🔧 系统要求
+## ? Quick Start
 
-### 基本要求
-- **Java**: OpenJDK 21+
-- **Maven**: 3.9+ (构建用)  
-- **Docker**: 20.0+ (沙箱环境)
-- **内存**: 4GB+ (推荐8GB)
-- **存储**: 10GB+
+### Prerequisites
+- Java 17+
+- Maven 3.8+
+- Docker
+- 4GB+ RAM
+- 2+ CPU cores
 
-## 🏠 本地开发部署
-
-### 1. 环境准备
+### Basic Deployment
 ```bash
-# 检查环境
-java --version
-mvn --version
-docker --version
-```
-
-### 2. 获取和配置
-```bash
-# 克隆项目
+# Clone repository
 git clone https://github.com/OpenManus/OpenManus-Java.git
 cd OpenManus-Java
 
-# 配置API密钥
-cp env.example .env
-# 编辑 .env 文件，设置 OPENMANUS_LLM_API_KEY
+# Build project
+mvn clean package
+
+# Start application
+java -jar target/openmanus-java.jar
 ```
 
-### 3. 启动应用
+## ? Configuration
+
+### Environment Variables
 ```bash
-# Web模式 (默认)
-mvn spring-boot:run
+# Required
+export OPENMANUS_LLM_API_KEY=your-api-key
 
-# 命令行模式
-mvn spring-boot:run -Dspring-boot.run.arguments=--cli
-
-# 访问 Web 界面: http://localhost:8080
+# Optional
+export SPRING_PROFILES_ACTIVE=prod
+export SERVER_PORT=8080
+export LOGGING_LEVEL_ROOT=INFO
 ```
 
-## 🚀 生产环境部署
+### Configuration Files
+- `application.yml` - Main configuration
+- `application-dev.yml` - Development profile
+- `application-prod.yml` - Production profile
 
-### 1. 构建应用
-```bash
-# 打包
-mvn clean package -DskipTests
-
-# 生成的文件: target/openmanus-1.0-SNAPSHOT.jar
+### LLM Configuration
+```yaml
+openmanus:
+  llm:
+    default-llm:
+      model: qwen-max
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1/
+      api-type: openai
+      temperature: 0.7
+      max-tokens: 8192
+      timeout: 120
 ```
 
-### 2. 直接运行
-```bash
-# 设置环境变量
-export OPENMANUS_LLM_API_KEY="your-api-key"
+## ? Docker Deployment
 
-# 启动应用
-java -jar target/openmanus-1.0-SNAPSHOT.jar
-```
-
-### 3. 后台运行
-```bash
-# 使用 nohup 后台运行
-nohup java -jar openmanus-1.0-SNAPSHOT.jar > openmanus.log 2>&1 &
-
-# 或使用 systemd 服务 (Linux)
-sudo systemctl enable openmanus
-sudo systemctl start openmanus
-```
-
-## 🐳 Docker 部署
-
-### 1. 使用现有 Dockerfile
-```bash
-# 构建镜像
-docker build -t openmanus-java .
-
-# 运行容器
-docker run -d \
-  --name openmanus \
-  -p 8080:8080 \
-  -e OPENMANUS_LLM_API_KEY="your-api-key" \
-  -v $(pwd)/workspace:/workspace \
-  openmanus-java
-```
-
-### 2. 使用 Docker Compose
+### Using Docker Compose
 ```yaml
 # docker-compose.yml
 version: '3.8'
 services:
   openmanus:
-    build: .
+    image: openmanus/openmanus-java:latest
     ports:
       - "8080:8080"
     environment:
       - OPENMANUS_LLM_API_KEY=${OPENMANUS_LLM_API_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
     volumes:
-      - ./workspace:/workspace
-    restart: unless-stopped
+      - ./workspace:/app/workspace
 ```
 
-启动：
+### Manual Docker Build
 ```bash
-docker-compose up -d
+# Build image
+docker build -t openmanus/openmanus-java .
+
+# Run container
+docker run -p 8080:8080 \
+  -e OPENMANUS_LLM_API_KEY=your-api-key \
+  -v $(pwd)/workspace:/app/workspace \
+  openmanus/openmanus-java
 ```
 
-## ☁️ 云平台部署
+## ? Production Deployment
 
-### 常见平台
-- **阿里云**: ECS + Docker
-- **腾讯云**: CVM + 容器服务  
-- **AWS**: EC2 + ECS
-- **Azure**: VM + Container Instances
+### System Requirements
+- 8GB+ RAM
+- 4+ CPU cores
+- 20GB+ disk space
+- Stable network connection
 
-### 基本步骤
-1. 创建云服务器 (2核4GB+)
-2. 安装 Java 21 和 Docker
-3. 上传应用文件
-4. 配置环境变量
-5. 启动服务
-
-## ⚙️ 配置优化
-
-### JVM 优化
+### Performance Tuning
 ```bash
-# 推荐 JVM 参数
-java -Xmx2g -Xms1g -server \
-  -XX:+UseG1GC \
-  -XX:MaxGCPauseMillis=200 \
-  -jar openmanus.jar
+# JVM options
+JAVA_OPTS="-Xms2g -Xmx4g -XX:+UseG1GC"
+
+# Application properties
+spring.task.execution.pool.core-size=4
+spring.task.execution.pool.max-size=8
+spring.task.execution.pool.queue-capacity=100
 ```
 
-### 应用配置 (application.yml)
+### Security Settings
 ```yaml
+# application-prod.yml
 server:
-  port: 8080
-  
-openmanus:
-  llm:
-    default-llm:
-      api-key: "${OPENMANUS_LLM_API_KEY}"
-      timeout: 60
-      
-  sandbox:
-    memory-limit: "1g"
-    cpu-limit: 2.0
+  ssl:
+    enabled: true
+    key-store: keystore.p12
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-store-type: PKCS12
+    key-alias: openmanus
+
+security:
+  require-ssl: true
+  basic:
+    enabled: true
+  user:
+    name: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
 ```
 
-## 📊 监控和维护
+## ? Monitoring
 
-### 健康检查
-- Web界面: `http://localhost:8080`
-- API健康: `http://localhost:8080/api/v1/agent/health`
-- 系统监控: `http://localhost:8080/actuator/health`
-
-### 日志查看
+### Health Check
 ```bash
-# 查看实时日志
-tail -f openmanus.log
+# Check application status
+curl http://localhost:8080/actuator/health
 
-# 或 Docker 日志
-docker logs -f openmanus
+# View metrics
+curl http://localhost:8080/actuator/metrics
 ```
 
-### 常见维护
-- 定期检查磁盘空间
-- 监控内存使用情况
-- 备份工作空间数据
-- 更新 Docker 镜像
+### Log Configuration
+```yaml
+# logback-spring.xml
+logging:
+  file:
+    name: logs/openmanus.log
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.openmanus: DEBUG
+```
 
-## 🔍 故障排除
+### Metrics Collection
+- JVM metrics
+- System metrics
+- Business metrics
+- API metrics
 
-### 常见问题
+## ?? Security
 
-**启动失败**
-- 检查 Java 版本 (需要21+)
-- 确认端口8080未被占用
-- 验证 API 密钥配置
+### Network Security
+- Enable HTTPS
+- Configure firewall
+- Set up reverse proxy
+- Rate limiting
 
-**Docker 相关错误**  
-- 确保 Docker 服务运行
-- 检查 Docker 权限
-- 验证容器资源限制
+### Access Control
+- API authentication
+- Role-based access
+- IP whitelisting
+- Session management
 
-**API 调用失败**
-- 检查网络连接
-- 验证 API 密钥有效性
-- 确认服务可达性
+### Data Security
+- Encrypt sensitive data
+- Regular backups
+- Audit logging
+- Data retention policy
 
-### 获取帮助
-- 查看日志文件
-- 检查系统资源
-- 参考项目文档
-- 提交 GitHub Issue 
+## ? Maintenance
+
+### Backup Strategy
+```bash
+# Backup workspace
+tar -czf backup.tar.gz workspace/
+
+# Backup configuration
+cp application*.yml backups/
+```
+
+### Update Process
+1. Backup current version
+2. Download new version
+3. Update configuration
+4. Restart service
+
+### Troubleshooting
+- Check logs
+- Monitor resources
+- Review metrics
+- Test endpoints
+
+## ? Checklist
+
+### Pre-deployment
+- [ ] Set environment variables
+- [ ] Configure SSL
+- [ ] Set up monitoring
+- [ ] Test security
+
+### Post-deployment
+- [ ] Verify endpoints
+- [ ] Check logs
+- [ ] Monitor performance
+- [ ] Test features
+
+## ? Support
+
+### Common Issues
+1. Memory issues
+   - Increase JVM heap size
+   - Check memory leaks
+   - Monitor GC
+
+2. Connection issues
+   - Check network
+   - Verify API keys
+   - Test endpoints
+
+3. Performance issues
+   - Monitor resources
+   - Optimize configuration
+   - Scale resources
+
+### Getting Help
+- GitHub Issues
+- Documentation
+- Community forum
+- Support email
+
+## ? References
+
+### Documentation
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [LangChain4j](https://github.com/langchain4j/langchain4j)
+- [Docker](https://docs.docker.com)
+
+### Tools
+- [Spring Boot Admin](https://codecentric.github.io/spring-boot-admin)
+- [Prometheus](https://prometheus.io)
+- [Grafana](https://grafana.com)
+
+### Resources
+- Project Wiki
+- API Documentation
+- Architecture Guide
+- User Guide 

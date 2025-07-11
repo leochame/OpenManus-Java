@@ -197,7 +197,7 @@ public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
             
             // Retrieve memories for each query
             for (String query : searchQueries) {
-                String memories = memoryTool.retrieveMemory(query, 3, 0.3);
+                String memories = memoryTool.searchMemories(query,3,0.3);
                 if (!memories.contains("NO_RELEVANT_MEMORIES")) {
                     retrievedMemories.add(new MemoryItem(memories, "CONTEXT", 0.5, "auto-generated"));
                 }

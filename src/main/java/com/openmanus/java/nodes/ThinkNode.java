@@ -115,6 +115,18 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
                 logger.debug("Calling LLM for thinking analysis...");
                 String thinkingResult = chatModel.chat(prompt.text());
                 
+                // Check if result is null or empty
+                if (thinkingResult == null || thinkingResult.trim().isEmpty()) {
+                    logger.warn("LLM returned null or empty result, using fallback");
+                    thinkingResult = "I need to think more about this problem. Let me analyze it step by step.\n\n" +
+                                   "**Problem Type:** Information query\n\n" +
+                                   "**Solution:**\n" +
+                                   "- Solution type: Direct answer\n" +
+                                   "- Specific plan: Provide a helpful response\n" +
+                                   "- Expected result: Address the user's question\n\n" +
+                                   "DIRECT_ANSWER: I understand your question and I'm here to help you.";
+                }
+                
                 // Log thinking result
                 logger.info("Thinking completed, result length: {} characters", thinkingResult.length());
                 

@@ -109,26 +109,33 @@ public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
                 updates.put("reasoning_steps", Map.of("type", "observation", "content", observationResult));
                 
                 // Handle different decisions
+                Map<String, Object> metadata = new HashMap<>();
                 switch (decision.decision.toLowerCase()) {
                     case "direct_answer":
                         logger.info("Observation node decided to provide final answer");
                         updates.put("final_answer", decision.finalAnswer);
+                        metadata.put("next_action", "direct_answer");
                         break;
                     case "continue_thinking":
                         logger.info("Observation node decided to continue reasoning");
+                        metadata.put("next_action", "continue_thinking");
                         break;
                     case "need_reflection":
                         logger.info("Observation node decided reflection is needed");
+                        metadata.put("next_action", "reflect");
                         break;
                     case "error":
                         logger.warn("Observation node detected error: {}", decision.reason);
                         updates.put("error", decision.reason);
+                        metadata.put("next_action", "error");
                         break;
                     default:
                         logger.warn("Unknown observation decision: {}", decision.decision);
                         updates.put("error", "Unknown observation decision: " + decision.decision);
+                        metadata.put("next_action", "error");
                 }
                 
+                updates.put("metadata", metadata);
                 return updates;
                 
             } catch (Exception e) {

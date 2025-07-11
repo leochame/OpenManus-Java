@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenManus Java - 智能对话</title>
+    <title>OpenManus Java - 智能对话系统</title>
     
     <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -339,6 +339,43 @@
             font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
             font-size: 85%;
         }
+        
+        /* 推理步骤样式 */
+        .reasoning-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #1976d2;
+        }
+        
+        .tool-calls {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #fff3e0;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #f57c00;
+        }
+        
+        .observations {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #e8f5e8;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #388e3c;
+        }
+        
+        .reflections {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #fce4ec;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #c2185b;
+        }
     </style>
 </head>
 <body>
@@ -346,9 +383,9 @@
         <div class="app-container">
             <!-- 头部 -->
             <div class="chat-header">
-                <h1>🤖 OpenManus Java - 智能对话</h1>
+                <h1>🤖 OpenManus Java - 智能对话系统</h1>
                 <p style="text-align: center; margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">
-                    基于 langchain4j 和 langgraph4j 的智能 Agent，支持 ReAct 推理和工具调用
+                    基于 langchain4j 和 langgraph4j，使用 ReAct 模式进行智能对话
                 </p>
             </div>
             
@@ -361,7 +398,7 @@
                             <div class="empty-state-icon">
                                 <el-icon><ChatDotRound /></el-icon>
                             </div>
-                            <span>开始你的对话吧！</span>
+                            <span>开始对话，请输入您的问题！</span>
                         </div>
                         
                         <div v-for="(message, index) in messages" :key="index" 
@@ -374,12 +411,37 @@
                                     <!-- 回答内容 -->
                                     <div :class="['answer-content', { 'collapsed': isLongAnswer(message) && !expandedAnswers[index] }]">
                                         <div v-html="renderMarkdown(message.answer || message.content)"></div>
+                                        
+                                        <!-- 推理信息 -->
+                                        <div v-if="message.reasoning_steps && message.reasoning_steps.length > 0" class="reasoning-info">
+                                            <strong>推理步骤:</strong> {{ message.reasoning_steps.length }} 步
+                                        </div>
+                                        
+                                        <!-- 工具调用 -->
+                                        <div v-if="message.tool_calls && message.tool_calls.length > 0" class="tool-calls">
+                                            <strong>工具调用:</strong> {{ message.tool_calls.length }} 次
+                                        </div>
+                                        
+                                        <!-- 观察结果 -->
+                                        <div v-if="message.observations && message.observations.length > 0" class="observations">
+                                            <strong>观察结果:</strong> {{ message.observations.length }} 项
+                                        </div>
+                                        
+                                        <!-- 反思内容 -->
+                                        <div v-if="message.reflections && message.reflections.length > 0" class="reflections">
+                                            <strong>反思内容:</strong> {{ message.reflections.length }} 项
+                                        </div>
+                                        
+                                        <!-- 迭代次数 -->
+                                        <div v-if="message.iteration_count !== undefined" class="reasoning-info">
+                                            <strong>推理迭代:</strong> {{ message.iteration_count }} 次
+                                        </div>
                                     </div>
                                     
                                     <!-- 展开/收起按钮 -->
                                     <div v-if="isLongAnswer(message)" class="toggle-answer">
                                         <el-button size="small" @click="toggleAnswer(index)" type="info" plain>
-                                            {{ expandedAnswers[index] ? '收起回答' : '展开完整回答' }}
+                                            {{ expandedAnswers[index] ? '收起' : '展开' }}
                                             <el-icon>
                                                 <component :is="expandedAnswers[index] ? 'ArrowUp' : 'ArrowDown'" />
                                             </el-icon>
@@ -388,7 +450,7 @@
                                 </div>
                             </div>
                             
-                            <div v-if="message.role === 'assistant' && message.cot && message.cot.length > 0" 
+                            <div v-if="message.role === 'assistant' && (message.cot && message.cot.length > 0 || message.reasoning_steps && message.reasoning_steps.length > 0)" 
                                  class="message-actions">
                                 <el-button size="small" type="primary" plain @click="showCot(index)">
                                     <el-icon><View /></el-icon> 查看推理过程
@@ -400,7 +462,7 @@
                         <div v-if="loading" class="message assistant">
                             <div class="message-content">
                                 <div class="typing-indicator">
-                                    <span>AI 正在思考中</span>
+                                    <span>AI 正在思考中...</span>
                                     <div class="typing-dots">
                                         <div class="typing-dot"></div>
                                         <div class="typing-dot"></div>
@@ -421,7 +483,7 @@
                         <div class="input-group">
                             <el-input
                                 v-model="inputMessage"
-                                placeholder="输入你的问题..."
+                                placeholder="请输入您的问题..."
                                 @keyup.enter="sendMessage"
                                 :disabled="loading"
                                 clearable>
@@ -438,20 +500,66 @@
                     </div>
                 </div>
                 
-                <!-- 右侧思考链面板 -->
+                <!-- 右侧推理过程面板 -->
                 <div class="cot-panel" :class="{ active: activeCotIndex !== null }">
                     <div v-if="activeCotIndex !== null" style="height: 100%; display: flex; flex-direction: column;">
                         <div class="cot-header">
-                            <h3 style="margin: 0;">推理过程 (Chain of Thought)</h3>
+                            <h3 style="margin: 0;">推理过程详情</h3>
                             <el-button size="small" circle @click="hideCot">
                                 <el-icon><Close /></el-icon>
                             </el-button>
                         </div>
                         
                         <div class="cot-content" ref="cotContentContainer">
-                            <div v-for="(step, stepIndex) in activeCotSteps" :key="stepIndex" class="cot-step">
-                                <div class="cot-step-header">步骤 {{ stepIndex + 1 }}</div>
-                                <div v-html="renderMarkdown(step)"></div>
+                            <!-- 思考链步骤 -->
+                            <div v-if="activeCotSteps && activeCotSteps.length > 0">
+                                <h4 style="color: #28a745; margin-bottom: 10px;">思考链步骤 (COT)</h4>
+                                <div v-for="(step, stepIndex) in activeCotSteps" :key="'cot-' + stepIndex" class="cot-step">
+                                    <div class="cot-step-header">步骤 {{ stepIndex + 1 }}</div>
+                                    <div v-html="renderMarkdown(step)"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 推理步骤 -->
+                            <div v-if="activeReasoningSteps && activeReasoningSteps.length > 0">
+                                <h4 style="color: #1976d2; margin: 20px 0 10px 0;">详细推理步骤</h4>
+                                <div v-for="(step, stepIndex) in activeReasoningSteps" :key="'reasoning-' + stepIndex" class="cot-step">
+                                    <div class="cot-step-header">{{ step.type || '推理步骤' }} {{ stepIndex + 1 }}</div>
+                                    <div v-html="renderMarkdown(step.content || JSON.stringify(step))"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 工具调用 -->
+                            <div v-if="activeToolCalls && activeToolCalls.length > 0">
+                                <h4 style="color: #f57c00; margin: 20px 0 10px 0;">工具调用记录</h4>
+                                <div v-for="(toolCall, toolIndex) in activeToolCalls" :key="'tool-' + toolIndex" class="cot-step">
+                                    <div class="cot-step-header">工具调用 {{ toolIndex + 1 }}</div>
+                                    <div v-html="renderMarkdown(JSON.stringify(toolCall, null, 2))"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 观察结果 -->
+                            <div v-if="activeObservations && activeObservations.length > 0">
+                                <h4 style="color: #388e3c; margin: 20px 0 10px 0;">观察结果</h4>
+                                <div v-for="(observation, obsIndex) in activeObservations" :key="'obs-' + obsIndex" class="cot-step">
+                                    <div class="cot-step-header">观察 {{ obsIndex + 1 }}</div>
+                                    <div v-html="renderMarkdown(observation)"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 反思内容 -->
+                            <div v-if="activeReflections && activeReflections.length > 0">
+                                <h4 style="color: #c2185b; margin: 20px 0 10px 0;">反思内容</h4>
+                                <div v-for="(reflection, refIndex) in activeReflections" :key="'ref-' + refIndex" class="cot-step">
+                                    <div class="cot-step-header">反思 {{ refIndex + 1 }}</div>
+                                    <div v-html="renderMarkdown(reflection)"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 无内容提示 -->
+                            <div v-if="!hasDetailedInfo" style="text-align: center; color: #6c757d; padding: 20px;">
+                                <el-icon style="font-size: 2rem; margin-bottom: 10px;"><InfoFilled /></el-icon>
+                                <p>暂无详细推理信息</p>
                             </div>
                         </div>
                     </div>
@@ -483,7 +591,48 @@
                     return [];
                 });
                 
-                // 监听思考链变化，自动滚动到顶部
+                // 计算当前显示的推理步骤
+                const activeReasoningSteps = computed(() => {
+                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
+                        return messages.value[activeCotIndex.value].reasoning_steps || [];
+                    }
+                    return [];
+                });
+                
+                // 计算当前显示的工具调用
+                const activeToolCalls = computed(() => {
+                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
+                        return messages.value[activeCotIndex.value].tool_calls || [];
+                    }
+                    return [];
+                });
+                
+                // 计算当前显示的观察结果
+                const activeObservations = computed(() => {
+                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
+                        return messages.value[activeCotIndex.value].observations || [];
+                    }
+                    return [];
+                });
+                
+                // 计算当前显示的反思内容
+                const activeReflections = computed(() => {
+                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
+                        return messages.value[activeCotIndex.value].reflections || [];
+                    }
+                    return [];
+                });
+                
+                // 计算是否有详细信息
+                const hasDetailedInfo = computed(() => {
+                    return activeCotSteps.value.length > 0 || 
+                           activeReasoningSteps.value.length > 0 || 
+                           activeToolCalls.value.length > 0 || 
+                           activeObservations.value.length > 0 || 
+                           activeReflections.value.length > 0;
+                });
+                
+                // 监听推理过程变化，自动滚动到顶部
                 watch(activeCotIndex, (newVal) => {
                     if (newVal !== null) {
                         nextTick(() => {
@@ -524,12 +673,12 @@
                     }
                 };
                 
-                // 显示思考链
+                // 显示推理过程
                 const showCot = (messageIndex) => {
                     activeCotIndex.value = messageIndex;
                 };
                 
-                // 隐藏思考链
+                // 隐藏推理过程
                 const hideCot = () => {
                     activeCotIndex.value = null;
                 };
@@ -574,9 +723,9 @@
                         }
                         
                         const data = await response.json();
-                        console.log("API返回数据:", data);
+                        console.log("API 返回数据:", data);
                         
-                        // 添加 AI 回复 - 确保使用完整内容
+                        // 添加 AI 响应 - 确保使用完整内容
                         const messageIndex = messages.value.length;
                         const fullContent = data.content || data.answer || '';
                         
@@ -584,7 +733,13 @@
                             role: 'assistant',
                             content: fullContent,
                             answer: data.answer,
-                            cot: data.cot || []
+                            cot: data.cot || [],
+                            reasoning_steps: data.reasoning_steps || [],
+                            tool_calls: data.tool_calls || [],
+                            observations: data.observations || [],
+                            reflections: data.reflections || [],
+                            iteration_count: data.iteration_count || 0,
+                            timestamp: data.timestamp || Date.now()
                         });
                         
                         // 默认设置长回答为折叠状态
@@ -592,7 +747,7 @@
                             expandedAnswers[messageIndex] = false;
                         }
                         
-                        // 隐藏思考链面板
+                        // 隐藏推理过程面板
                         hideCot();
                         
                         // 滚动到底部
@@ -600,9 +755,9 @@
                         scrollToBottom();
                         
                     } catch (err) {
-                        console.error('发送消息失败:', err);
-                        error.value = `发送消息失败: ${err.message}`;
-                        ElMessage.error('发送消息失败，请重试');
+                        console.error('发送消息时出错:', err);
+                        error.value = `发送消息时出错: ${err.message}`;
+                        ElMessage.error('发送消息失败，请重试。');
                     } finally {
                         loading.value = false;
                     }
@@ -624,6 +779,11 @@
                     cotContentContainer,
                     activeCotIndex,
                     activeCotSteps,
+                    activeReasoningSteps,
+                    activeToolCalls,
+                    activeObservations,
+                    activeReflections,
+                    hasDetailedInfo,
                     expandedAnswers,
                     isLongAnswer,
                     toggleAnswer,

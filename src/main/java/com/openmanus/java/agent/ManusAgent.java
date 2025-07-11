@@ -90,22 +90,22 @@ public class ManusAgent {
                     switch (nextAction) {
                         case "direct_answer":
                             // Enter act node to handle direct answer
-                            logger.info("Direct answer, entering act node");
-                            return "act";
+                            logger.info("Direct answer, ending workflow");
+                            return END;
                         case "tool_call_python":
                         case "tool_call_file":
                         case "tool_call_web":
                             logger.info("Tool call, entering act node");
                             return "act";
                         case "need_info":
-                            logger.info("Need more information, continue thinking");
-                            return "think";
+                            logger.info("Need more information, ending with request");
+                            return END;
                         case "continue_thinking":
                             logger.info("Continue thinking");
                             return "think";
                         default:
-                            logger.warn("Unknown next_action: {}, default to continue thinking", nextAction);
-                            return "think";
+                            logger.warn("Unknown next_action: {}, ending workflow", nextAction);
+                            return END;
                     }
                 }
                 // Fallback based on current state
@@ -203,11 +203,12 @@ public class ManusAgent {
                 
                 logger.info("Reflection completed: {}", reflection);
                 
-                return Map.of(
-                    "reflections", reflection,
-                    "current_state", "thinking", // Continue thinking after reflection
-                    "task_id", taskId
-                );
+                Map<String, Object> result = new HashMap<>();
+                result.put("reflections", reflection);
+                result.put("current_state", "thinking"); // Continue thinking after reflection
+                result.put("task_id", taskId);
+                result.put("metadata", Map.of("next_action", "continue_thinking"));
+                return result;
                 
             } catch (Exception e) {
                 logger.error("Reflection node execution failed", e);
@@ -226,14 +227,18 @@ public class ManusAgent {
         logger.info("Starting to process user message: {}", userMessage);
         
         try {
+            // Check input
+            if (userMessage == null) {
+                userMessage = "";
+            }
+            
             // Create initial state
-            Map<String, Object> initialData = Map.of(
-                "user_input", userMessage,
-                "session_id", "session_" + System.currentTimeMillis(),
-                "task_id", "task_" + System.currentTimeMillis(),
-                "current_state", "start",
-                "max_iterations", 10
-            );
+            Map<String, Object> initialData = new HashMap<>();
+            initialData.put("user_input", userMessage);
+            initialData.put("session_id", "session_" + System.currentTimeMillis());
+            initialData.put("task_id", "task_" + System.currentTimeMillis());
+            initialData.put("current_state", "start");
+            initialData.put("max_iterations", 10);
             
             // Execute StateGraph workflow
             logger.info("Starting StateGraph reasoning workflow...");

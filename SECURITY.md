@@ -1,89 +1,89 @@
-# 安全策略
+# Security Policy
 
-## 支持的版本
+## Supported Versions
 
-我们为以下版本提供安全更新：
+We provide security updates for the following versions:
 
-| 版本 | 支持 |
+| Version | Support |
 | --- | --- |
-| 1.x.x | ✅ |
-| 0.x.x | ❌ |
+| 1.x.x | ? |
+| 0.x.x | ? |
 
-## 报告安全漏洞
+## Reporting a Security Vulnerability
 
-我们非常重视安全问题。如果您发现了安全漏洞，请**不要**在公共的GitHub Issues中报告。
+We take security issues very seriously. If you discover a security vulnerability, please **DO NOT** report it through public GitHub Issues.
 
-### 如何报告
+### How to Report
 
-1. **私密报告**: 请发送邮件到 security@openmanus.io
-2. **包含信息**: 
-   - 详细的漏洞描述
-   - 重现步骤
-   - 受影响的版本
-   - 如果可能，提供修复建议
+1. **Private Report**: Send an email to security@openmanus.io
+2. **Include Information**: 
+   - Detailed vulnerability description
+   - Steps to reproduce
+   - Affected versions
+   - Suggested fix if possible
 
-### 响应时间
+### Response Time
 
-- **确认收到**: 24小时内
-- **初步评估**: 72小时内
-- **详细分析**: 7天内
-- **修复发布**: 根据严重程度，1-30天内
+- **Confirmation**: Within 24 hours
+- **Initial Assessment**: Within 72 hours
+- **Detailed Analysis**: Within 7 days
+- **Fix Release**: 1-30 days depending on severity
 
-## 安全最佳实践
+## Security Best Practices
 
-### 部署建议
+### Deployment Recommendations
 
-1. **环境变量**
-   - 使用环境变量存储敏感信息
-   - 不要在代码中硬编码API密钥
-   - 定期轮换API密钥
+1. **Environment Variables**
+   - Use environment variables for sensitive information
+   - Never hardcode API keys in code
+   - Rotate API keys periodically
 
-2. **网络安全**
-   - 在生产环境中使用HTTPS
-   - 限制网络访问
-   - 使用防火墙保护
+2. **Network Security**
+   - Use HTTPS in production
+   - Limit network access
+   - Use firewall protection
 
-3. **Docker安全**
-   - 使用最新的基础镜像
-   - 不要以root用户运行
-   - 限制容器权限
+3. **Docker Security**
+   - Use latest base images
+   - Don't run as root
+   - Limit container privileges
 
-4. **依赖管理**
-   - 定期更新依赖
-   - 使用OWASP依赖检查
-   - 扫描已知漏洞
+4. **Dependency Management**
+   - Update dependencies regularly
+   - Use OWASP dependency check
+   - Scan for known vulnerabilities
 
-### 配置安全
+### Security Configuration
 
-#### 1. API密钥管理
+#### 1. API Key Management
 ```yaml
 # application.yml
 openmanus:
   llm:
-    api-key: ${OPENMANUS_LLM_API_KEY}  # 从环境变量读取
+    api-key: ${OPENMANUS_LLM_API_KEY}  # Read from environment variable
 ```
 
-#### 2. 沙箱安全
+#### 2. Sandbox Security
 ```yaml
 # application.yml
 openmanus:
   sandbox:
-    use-sandbox: true  # 启用沙箱模式
-    memory-limit: 512m  # 限制内存使用
-    cpu-limit: 1.0     # 限制CPU使用
-    timeout: 120       # 设置超时时间
-    network-enabled: false  # 禁用网络访问（如果不需要）
+    use-sandbox: true  # Enable sandbox mode
+    memory-limit: 512m  # Limit memory usage
+    cpu-limit: 1.0     # Limit CPU usage
+    timeout: 120       # Set timeout
+    network-enabled: false  # Disable network access (if not needed)
 ```
 
-#### 3. 文件系统安全
+#### 3. File System Security
 ```yaml
 # application.yml
 openmanus:
   app:
-    workspace-root: ./workspace  # 限制工作空间
+    workspace-root: ./workspace  # Limit workspace
 ```
 
-#### 4. 启用安全头
+#### 4. Enable Security Headers
 ```yaml
 # application.yml
 server:
