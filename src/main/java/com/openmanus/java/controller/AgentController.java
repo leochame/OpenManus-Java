@@ -3,123 +3,78 @@ package com.openmanus.java.controller;
 import com.openmanus.java.agent.ManusAgent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Agent REST API Controller
- * Provides web interface for Agent, supporting tool calls and interactions
+ * REST controller for interacting with the ManusAgent.
+ * Provides endpoints for both stateful (multi-turn) and stateless (single-turn) conversations.
  */
 @RestController
 @RequestMapping("/api/agent")
-@Tag(name = "Agent API", description = "Web API interface for intelligent Agent")
+@Tag(name = "Agent API", description = "Web API interface for intelligent agent")
 public class AgentController {
-    
-    private static final Logger logger = LoggerFactory.getLogger(AgentController.class);
-    
-    @Autowired
-    private ManusAgent manusAgent;
-    
-    /**
-     * Health check endpoint
-     */
-    @GetMapping("/health")
-    @Operation(summary = "Health Check", description = "Check if Agent service is running normally")
-    public ResponseEntity<Map<String, Object>> health() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("message", "OpenManus Agent is running");
-        response.put("timestamp", System.currentTimeMillis());
-        return ResponseEntity.ok(response);
+
+    private final ManusAgent manusAgent;
+
+    public AgentController(ManusAgent manusAgent) {
+        this.manusAgent = manusAgent;
     }
-    
+
+    @GetMapping("/info")
+    @Operation(summary = "Get Agent Information", description = "Returns information about the current agent implementation.")
+    public ResponseEntity<Map<String, Object>> getAgentInfo() {
+        return ResponseEntity.ok(manusAgent.getAgentInfo());
+    }
+
     /**
-     * Chat with Agent (Simple version)
+     * Handles stateful, multi-turn conversations with the agent.
+     * A `conversationId` is required to maintain context across multiple requests.
+     *
+     * @param payload A map containing "conversationId" and "message".
+     * @return A CompletableFuture wrapping the agent's response.
+     */
+    @PostMapping("/chat/multi_turn")
+    @Operation(summary = "Stateful Chat", description = "Handles multi-turn conversations using a conversation ID.")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> multiTurnChat(@RequestBody Map<String, String> payload) {
+        String conversationId = payload.get("conversationId");
+        String message = payload.get("message");
+
+        return manusAgent.invoke(conversationId, message)
+                .thenApply(response -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("answer", response);
+                    result.put("conversationId", conversationId);
+                    result.put("timestamp", LocalDateTime.now().toString());
+                    return ResponseEntity.ok(result);
+                })
+                .exceptionally(ex -> {
+                    Map<String, Object> errorResult = new HashMap<>();
+                    errorResult.put("error", "Agent execution failed: " + ex.getMessage());
+                    errorResult.put("conversationId", conversationId);
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+                });
+    }
+
+    /**
+     * Handles a stateless, single-turn chat.
+     * A new random conversationId is generated for each call.
+     *
+     * @param payload A map containing "message".
+     * @return A CompletableFuture wrapping the agent's response.
      */
     @PostMapping("/chat")
-    @Operation(summary = "Agent Chat", description = "Chat with Agent, supporting tool calls")
-    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, String> request) {
-        try {
-            String message = request.get("message");
-            if (message == null || message.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Message cannot be empty"));
-            }
-            
-            logger.info("Received user message (COT): {}", message);
-            
-            // Process with COT reasoning
-            Map<String, Object> result = manusAgent.chatWithCot(message);
-            
-            logger.info("Agent response (COT): {}", result.get("answer"));
-            
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            logger.error("Error occurred while processing user message", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error: " + e.getMessage()));
-        }
-    }
-    
-    /**
-     * Chat with Agent (With Chain of Thought reasoning)
-     */
-    @PostMapping("/chat/cot")
-    @Operation(summary = "Agent Chat (COT)", description = "Chat with Agent, returns reasoning process and reflection")
-    public ResponseEntity<Map<String, Object>> chatWithCOT(@RequestBody Map<String, String> request) {
-        try {
-            String message = request.get("message");
-            if (message == null || message.trim().isEmpty()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("error", "Message cannot be empty");
-                return ResponseEntity.badRequest().body(error);
-            }
-            
-            logger.info("Received user message (COT): {}", message);
-            
-            // Call Agent to process message (with COT)
-            Map<String, Object> result = manusAgent.chatWithCot(message);
-            result.put("timestamp", System.currentTimeMillis());
-            
-            logger.info("Agent response (COT): {}", result.get("answer"));
-            
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            logger.error("Error occurred while processing user message", e);
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Internal server error: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
-    }
-    
-    /**
-     * Get Agent information
-     */
-    @GetMapping("/info")
-    @Operation(summary = "Agent Info", description = "Get basic information about the Agent")
-    public ResponseEntity<Map<String, Object>> getAgentInfo() {
-        Map<String, Object> info = new HashMap<>();
-        info.put("name", "OpenManus Agent");
-        info.put("version", "1.0.0");
-        info.put("description", "Intelligent Agent based on langchain4j and langgraph4j");
-        info.put("capabilities", new String[]{
-            "Python code execution",
-            "File operations",
-            "Web access",
-            "Task reflection",
-            "COT reasoning"
-        });
-        info.put("timestamp", System.currentTimeMillis());
-        return ResponseEntity.ok(info);
+    @Operation(summary = "Stateless Chat", description = "Handles a single-turn conversation.")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> statelessChat(@RequestBody Map<String, String> payload) {
+        String message = payload.get("message");
+        String conversationId = UUID.randomUUID().toString(); // Create a new conversation for each call
+        return multiTurnChat(Map.of("conversationId", conversationId, "message", message));
     }
 } 
