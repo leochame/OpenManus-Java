@@ -11,6 +11,7 @@ import org.bsc.langgraph4j.studio.springboot.LangGraphFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
+import org.bsc.langgraph4j.CompiledGraph;
 
 /**
  * LangGraph4j Studio Configuration Class
@@ -25,12 +26,12 @@ public class LangGraphStudioConfig extends AbstractLangGraphStudioConfig {
     
     private final LangGraphFlow flow;
     
-    public LangGraphStudioConfig(StateGraph<AgentExecutor.State> agentStateGraph) throws GraphStateException {
+    public LangGraphStudioConfig(CompiledGraph<AgentExecutor.State> compiledGraph) throws GraphStateException {
         
         logger.info("Initializing LangGraph4j Studio configuration with AgentExecutor graph...");
         
         // Create Studio flow configuration from the injected compiled graph
-        this.flow = createStudioFlow(agentStateGraph);
+        this.flow = createStudioFlow(compiledGraph.stateGraph);
         
         logger.info("LangGraph4j Studio configuration initialized - Access URL: http://localhost:8089/");
     }

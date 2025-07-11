@@ -20,15 +20,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.ArrayList;
 
 /**
- * Memory Node - Memory node in the React framework
- * 
- * Responsible for managing the intelligent agent's memory system, including:
- * - Short-term memory (conversation buffer) management
- * - Long-term memory storage and retrieval
- * - Important information identification and storage
- * - Context-related memory retrieval
+ * The MemoryNode is responsible for managing the agent's memory.
+ * It handles the storage and retrieval of both short-term (conversation) and long-term (knowledge) memory.
+ * This node ensures that the agent can recall past interactions and learned information to inform its current reasoning process.
+ * It may interact with a vector database or other persistent storage solutions.
  */
-@Component
+@Deprecated
+//@Component
 public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(MemoryNode.class);

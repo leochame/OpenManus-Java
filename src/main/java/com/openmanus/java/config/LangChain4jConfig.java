@@ -19,6 +19,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import dev.langchain4j.data.message.SystemMessage;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class LangChain4jConfig {
     @Autowired
     private OpenManusProperties properties;
 
-    /**
+    /*
      * Creates a list of tool specifications from all available tool beans.
      * This list can be injected into any component that needs to know about the available tools.
      *
@@ -46,12 +47,14 @@ public class LangChain4jConfig {
      * @param browserTool The web browsing tool.
      * @return A list of {@link ToolSpecification}s.
      */
+    /*
     @Bean
     public List<ToolSpecification> toolSpecifications(PythonTool pythonTool, FileTool fileTool, BrowserTool browserTool) {
         logger.info("Creating tool specifications from available tools...");
         // Explicitly passing tool instances as an array of objects to avoid ambiguity
         return ToolSpecifications.toolSpecificationsFrom(new Object[]{pythonTool, fileTool, browserTool});
     }
+    */
     
     /**
      * Configures the ChatModel bean.
@@ -108,17 +111,20 @@ public class LangChain4jConfig {
     }
     
     @Bean
-    public StateGraph<AgentExecutor.State> agentExecutorStateGraph(ChatModel chatModel,
+    public CompiledGraph<AgentExecutor.State> agentExecutor(ChatModel chatModel,
                                                                    PythonTool pythonTool,
                                                                    FileTool fileTool,
                                                                    BrowserTool browserTool) throws GraphStateException {
-        logger.info("Building the AgentExecutor graph definition...");
-        return AgentExecutor.builder()
+        logger.info("Building and compiling the AgentExecutor graph with explicit CoT prompt...");
+
+
+        StateGraph<AgentExecutor.State> graphDefinition = AgentExecutor.builder()
                 .chatModel(chatModel)
                 .toolsFromObject(pythonTool)
                 .toolsFromObject(fileTool)
                 .toolsFromObject(browserTool)
                 .build();
+        return graphDefinition.compile();
     }
 
     /**

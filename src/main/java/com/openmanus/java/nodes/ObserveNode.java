@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Observe Node - Observation node in the React framework
- * 
- * Responsible for analyzing action results, evaluating progress, and deciding whether
- * to continue processing or provide a final answer.
+ * The ObserveNode is responsible for processing the output of a tool execution.
+ * It takes the tool output from the agent's state, formats it into a ToolExecutionResultMessage,
+ * and adds this message to the list of messages to be considered in the next thinking step.
  */
-@Component
+@Deprecated
+//@Component
 public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(ObserveNode.class);

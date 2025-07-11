@@ -26,7 +26,8 @@ import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
  * - Memory management integration
  * - Reflection and self-optimization
  */
-@Component
+@Deprecated
+//@Component
 public class ReactAgentWorkflow {
     
     private static final Logger logger = LoggerFactory.getLogger(ReactAgentWorkflow.class);

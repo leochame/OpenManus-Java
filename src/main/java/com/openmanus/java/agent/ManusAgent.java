@@ -27,9 +27,9 @@ public class ManusAgent {
     private final CompiledGraph<AgentExecutor.State> compiledGraph;
     
     @Autowired
-    public ManusAgent(StateGraph<AgentExecutor.State> agentStateGraph) throws GraphStateException {
-        this.compiledGraph = agentStateGraph.compile();
-        logger.info("ManusAgent initialized by compiling a pre-defined AgentExecutor state graph.");
+    public ManusAgent(CompiledGraph<AgentExecutor.State> compiledGraph) {
+        this.compiledGraph = compiledGraph;
+        logger.info("ManusAgent initialized with a pre-compiled AgentExecutor graph.");
     }
     
     /**

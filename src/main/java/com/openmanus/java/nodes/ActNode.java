@@ -19,11 +19,12 @@ import java.util.concurrent.CompletableFuture;
 
 
 /**
- * Act Node - React framework action node
- * 
- * Responsible for executing specific tool calls, based on the thinking node's decisions to execute corresponding actions
+ * The ActNode is responsible for executing a tool call requested by the LLM.
+ * It takes the tool execution requests from the agent's state, executes them using the ToolExecutor,
+ * and returns the results as a map to be merged back into the state.
  */
-@Component
+@Deprecated
+//@Component
 public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(ActNode.class);

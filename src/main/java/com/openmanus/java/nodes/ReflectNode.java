@@ -15,15 +15,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.HashMap;
 
 /**
- * Reflection Node - Responsible for analyzing Agent's reasoning process and providing improvement suggestions
- * 
- * Reflection mechanism includes:
- * - Analyzing the effectiveness of reasoning steps
- * - Identifying potential errors or areas for improvement
- * - Generating reflections and suggestions
- * - Deciding if strategy adjustments are needed
+ * The ReflectNode is responsible for self-reflection and criticism of the agent's plan.
+ * It examines the current plan and history, identifies potential flaws or areas for improvement,
+ * and generates a critique that can be used to revise the plan in the next thinking step.
+ * This node is a key component for enabling the agent's self-correction and learning capabilities.
  */
-@Component
+@Deprecated
+//@Component
 public class ReflectNode implements AsyncNodeAction<OpenManusAgentState> {
     
     private static final Logger logger = LoggerFactory.getLogger(ReflectNode.class);
