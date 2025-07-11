@@ -383,10 +383,21 @@
         <div class="app-container">
             <!-- 头部 -->
             <div class="chat-header">
-                <h1>🤖 OpenManus Java - 智能对话系统</h1>
-                <p style="text-align: center; margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">
-                    基于 langchain4j 和 langgraph4j，使用 ReAct 模式进行智能对话
-                </p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1>🤖 OpenManus Java - 智能对话系统</h1>
+                        <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">
+                            基于 langchain4j 和 langgraph4j，使用 ReAct 模式进行智能对话
+                            <span v-if="agentInfo" style="margin-left: 10px;">| {{ agentInfo.name || 'Agent' }}</span>
+                        </p>
+                    </div>
+                    <div>
+                        <el-button type="primary" @click="startNewConversation" :disabled="loading">
+                            <el-icon><Plus /></el-icon>
+                            新建对话
+                        </el-button>
+                    </div>
+                </div>
             </div>
             
             <div class="main-content">
@@ -480,6 +491,9 @@
                     
                     <!-- 输入区域 -->
                     <div class="chat-input">
+                        <div v-if="conversationId" style="margin-bottom: 8px; font-size: 0.8em; color: #6c757d; text-align: center;">
+                            会话ID: {{ conversationId }}
+                        </div>
                         <div class="input-group">
                             <el-input
                                 v-model="inputMessage"
@@ -569,8 +583,8 @@
     </div>
 
     <script>
-        const { createApp, ref, reactive, computed, nextTick, watch } = Vue;
-        const { ElMessage } = ElementPlus;
+        const { createApp, ref, reactive, computed, nextTick, watch, onMounted } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
         
         createApp({
             setup() {
@@ -582,6 +596,8 @@
                 const cotContentContainer = ref(null);
                 const activeCotIndex = ref(null);
                 const expandedAnswers = reactive({});
+                const conversationId = ref(null);
+                const agentInfo = ref(null);
                 
                 // 计算当前显示的思考链步骤
                 const activeCotSteps = computed(() => {
@@ -632,6 +648,38 @@
                            activeReflections.value.length > 0;
                 });
                 
+                // 获取Agent信息
+                const getAgentInfo = async () => {
+                    try {
+                        const response = await fetch('/api/agent/info');
+                        if (response.ok) {
+                            agentInfo.value = await response.json();
+                        }
+                    } catch (err) {
+                        console.warn('Failed to get agent info:', err);
+                    }
+                };
+                
+                // 生成会话ID
+                const generateConversationId = () => {
+                    return 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                };
+                
+                // 开始新对话
+                const startNewConversation = () => {
+                    if (loading.value) return;
+                    
+                    messages.value = [];
+                    conversationId.value = null;
+                    error.value = '';
+                    activeCotIndex.value = null;
+                    Object.keys(expandedAnswers).forEach(key => {
+                        delete expandedAnswers[key];
+                    });
+                    
+                    ElMessage.success('已开始新对话');
+                };
+                
                 // 监听推理过程变化，自动滚动到顶部
                 watch(activeCotIndex, (newVal) => {
                     if (newVal !== null) {
@@ -641,6 +689,11 @@
                             }
                         });
                     }
+                });
+                
+                // 组件挂载时获取Agent信息
+                onMounted(() => {
+                    getAgentInfo();
                 });
                 
                 // 判断是否为长回答（超过500个字符）
@@ -689,6 +742,11 @@
                     
                     const userMessage = inputMessage.value.trim();
                     
+                    // 如果没有会话ID，生成一个新的
+                    if (!conversationId.value) {
+                        conversationId.value = generateConversationId();
+                    }
+                    
                     // 添加用户消息
                     messages.value.push({
                         role: 'user',
@@ -707,14 +765,15 @@
                         await nextTick();
                         scrollToBottom();
                         
-                        // 发送请求
-                        const response = await fetch('/api/agent/chat/cot', {
+                        // 发送请求到多轮对话接口
+                        const response = await fetch('/api/agent/chat/multi_turn', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                message: userMessage
+                                message: userMessage,
+                                conversationId: conversationId.value
                             })
                         });
                         
@@ -725,21 +784,25 @@
                         const data = await response.json();
                         console.log("API 返回数据:", data);
                         
+                        // 处理后端返回的数据格式
+                        const answer = data.answer || '抱歉，我无法理解您的问题。';
+                        
                         // 添加 AI 响应 - 确保使用完整内容
                         const messageIndex = messages.value.length;
-                        const fullContent = data.content || data.answer || '';
                         
                         messages.value.push({
                             role: 'assistant',
-                            content: fullContent,
-                            answer: data.answer,
+                            content: answer,
+                            answer: answer,
+                            conversationId: data.conversationId,
+                            timestamp: data.timestamp,
+                            // 如果后端返回了推理信息，保留这些字段
                             cot: data.cot || [],
                             reasoning_steps: data.reasoning_steps || [],
                             tool_calls: data.tool_calls || [],
                             observations: data.observations || [],
                             reflections: data.reflections || [],
-                            iteration_count: data.iteration_count || 0,
-                            timestamp: data.timestamp || Date.now()
+                            iteration_count: data.iteration_count || 0
                         });
                         
                         // 默认设置长回答为折叠状态
@@ -756,8 +819,22 @@
                         
                     } catch (err) {
                         console.error('发送消息时出错:', err);
-                        error.value = `发送消息时出错: ${err.message}`;
-                        ElMessage.error('发送消息失败，请重试。');
+                        
+                        // 尝试解析错误响应
+                        let errorMessage = '发送消息失败';
+                        if (err.response) {
+                            try {
+                                const errorData = await err.response.json();
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (parseErr) {
+                                errorMessage = `HTTP ${err.response.status}: ${err.response.statusText}`;
+                            }
+                        } else {
+                            errorMessage = err.message || errorMessage;
+                        }
+                        
+                        error.value = errorMessage;
+                        ElMessage.error(errorMessage);
                     } finally {
                         loading.value = false;
                     }
@@ -785,15 +862,36 @@
                     activeReflections,
                     hasDetailedInfo,
                     expandedAnswers,
+                    conversationId,
+                    agentInfo,
                     isLongAnswer,
                     toggleAnswer,
                     sendMessage,
                     renderMarkdown,
                     showCot,
-                    hideCot
+                    hideCot,
+                    startNewConversation
                 };
             }
         }).use(ElementPlus).mount('#app');
+        
+        // 注册 Element Plus 图标
+        const app = createApp({});
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+        
+        // 确保图标组件可用
+        const { 
+            ChatDotRound, 
+            View, 
+            Close, 
+            Promotion, 
+            ArrowUp, 
+            ArrowDown,
+            Plus,
+            InfoFilled
+        } = ElementPlusIconsVue;
     </script>
 </body>
 </html>
