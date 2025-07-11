@@ -137,6 +137,7 @@ public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
                 
                 // Return state updates
                 Map<String, Object> updates = new HashMap<>();
+                updates.put(OpenManusAgentState.THOUGHTS, thinkingResult);
                 updates.put("current_state", "thinking");
                 Map<String, Object> reasoningStep = new HashMap<>();
                 reasoningStep.put("type", "thinking");

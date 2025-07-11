@@ -43,9 +43,6 @@ openmanus:
     api-key: ""
     max-results: 10
 
-  # MCP configuration has been removed, now using langchain4j-mcp's DefaultMcpClient directly
-  # If you need to use MCP tools, please create DefaultMcpClient in your business code
-
   runflow:
     enabled: false
     max-steps: 20

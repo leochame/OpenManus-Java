@@ -259,10 +259,24 @@ public class ManusAgent {
             Map<String, Object> result = new HashMap<>();
             
             String finalAnswer = finalState.getFinalAnswer();
+            if (finalAnswer.isEmpty()) {
+                String lastThought = finalState.getCurrentThought();
+                logger.info("Last thought from final state: {}", lastThought); // DEBUGGING LINE
+                if (lastThought != null && lastThought.contains("DIRECT_ANSWER:")) {
+                    finalAnswer = lastThought.substring(lastThought.indexOf("DIRECT_ANSWER:") + "DIRECT_ANSWER:".length()).trim();
+                }
+            }
+            
             if (finalAnswer.isEmpty() && finalState.hasError()) {
                 finalAnswer = "Sorry, an error occurred while processing your question: " + finalState.getError();
             } else if (finalAnswer.isEmpty()) {
-                finalAnswer = "Reasoning process completed, but unable to provide a clear answer.";
+                // If finalAnswer is empty, try to extract from think node's direct answer
+                String lastThought = finalState.getCurrentThought();
+                if (lastThought != null && lastThought.contains("DIRECT_ANSWER:")) {
+                    finalAnswer = lastThought.substring(lastThought.indexOf("DIRECT_ANSWER:") + "DIRECT_ANSWER:".length()).trim();
+                } else {
+                    finalAnswer = "Reasoning process completed, but unable to provide a clear answer.";
+                }
             }
             
             result.put("answer", finalAnswer);
