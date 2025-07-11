@@ -43,40 +43,4 @@ public class WebApplication {
     public SandboxClient sandboxClient(OpenManusProperties properties) {
         return new SandboxClient(properties);
     }
-
-    /**
-     * Command line runner - provides a simple interactive interface
-     */
-    @Bean
-    public CommandLineRunner commandLineRunner(ManusAgent agent) {
-        return args -> {
-            if (args.length > 0 && args[0].equals("--cli")) {
-                System.out.println("=== OpenManus CLI ===");
-                System.out.println("Enter 'quit' to exit");
-                
-                Scanner scanner = new Scanner(System.in);
-                while (true) {
-                    System.out.print("> ");
-                    String input = scanner.nextLine().trim();
-                    
-                    if ("quit".equalsIgnoreCase(input)) {
-                        break;
-                    }
-                    
-                    if (!input.isEmpty()) {
-                        try {
-                            Map<String, Object> result = agent.chatWithCot(input);
-                            System.out.println("Answer: " + result.get("answer"));
-                            System.out.println("Reasoning Process: " + result.get("cot"));
-                        } catch (Exception e) {
-                            System.err.println("Error: " + e.getMessage());
-                        }
-                    }
-                }
-                
-                System.out.println("Goodbye!");
-                System.exit(0);
-            }
-        };
-    }
 }
