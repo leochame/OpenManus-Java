@@ -17,6 +17,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <langchain4j.version>1.1.0</langchain4j.version>
@@ -133,7 +134,6 @@
             <artifactId>langchain4j-open-ai</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
-        
         <!-- MCP Support - 使用可用版本 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
