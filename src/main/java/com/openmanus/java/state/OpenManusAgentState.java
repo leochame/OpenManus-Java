@@ -1,5 +1,6 @@
 package com.openmanus.java.state;
 
+import dev.langchain4j.data.message.ChatMessage;
 import org.bsc.langgraph4j.state.AgentState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
@@ -92,8 +93,8 @@ public class OpenManusAgentState extends AgentState {
     }
     
     @SuppressWarnings("unchecked")
-    public List<String> getMessages() {
-        return this.<List<String>>value(MESSAGES).orElse(new ArrayList<>());
+    public List<ChatMessage> getMessages() {
+        return this.<List<ChatMessage>>value(MESSAGES).orElse(new ArrayList<>());
     }
     
     @SuppressWarnings("unchecked")
@@ -226,7 +227,7 @@ public class OpenManusAgentState extends AgentState {
         return Map.of(THOUGHTS, thought);
     }
     
-    public static Map<String, Object> addMessage(String message) {
+    public static Map<String, Object> addMessage(ChatMessage message) {
         return Map.of(MESSAGES, message);
     }
     
