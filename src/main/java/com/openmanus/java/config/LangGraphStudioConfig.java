@@ -1,5 +1,6 @@
 package com.openmanus.java.config;
 
+import com.openmanus.java.omni.tool.OmniToolCatalog;
 import com.openmanus.java.workflow.MultiAgentHandoffWorkflow;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
@@ -12,7 +13,6 @@ import org.bsc.langgraph4j.studio.springboot.AbstractLangGraphStudioConfig;
 import org.bsc.langgraph4j.studio.springboot.LangGraphFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.bsc.langgraph4j.CompiledGraph;
@@ -61,7 +61,7 @@ public class LangGraphStudioConfig extends AbstractLangGraphStudioConfig {
     }
 
     @Bean
-    public MultiAgentHandoffWorkflow multiAgentHandoffWorkflow(ChatModel chatLanguageModel) throws Exception {
-        return new MultiAgentHandoffWorkflow(chatLanguageModel);
+    public MultiAgentHandoffWorkflow multiAgentHandoffWorkflow(ChatModel chatLanguageModel, OmniToolCatalog omniToolCatalog) throws Exception {
+        return new MultiAgentHandoffWorkflow(chatLanguageModel, omniToolCatalog);
     }
 }

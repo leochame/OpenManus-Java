@@ -32,5 +32,4 @@ public interface AgentHandoff {
         return new Builder();
     }
 
-
 }

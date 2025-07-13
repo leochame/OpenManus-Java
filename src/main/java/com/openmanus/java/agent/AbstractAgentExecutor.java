@@ -6,12 +6,13 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.tool.ToolExecutor;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
-
 import java.util.Map;
 
+@Slf4j
 public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Builder<B>> extends AbstractAgent<B> {
 
     public static abstract class Builder<B extends AbstractAgentExecutor.Builder<B>> extends AbstractAgent.Builder<B> {
@@ -49,7 +50,7 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object o) {
-
+        log.info("excute 执行");
         var userMessage = UserMessage.from( toolExecutionRequest.arguments() );
 
         var result = agentExecutor.invoke( Map.of( "messages", userMessage ) );

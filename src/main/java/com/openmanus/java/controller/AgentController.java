@@ -1,12 +1,10 @@
 package com.openmanus.java.controller;
-
-import com.openmanus.java.agent.ManusAgent;
+import com.openmanus.java.omni.tool.OmniToolCatalog;
 import com.openmanus.java.workflow.MultiAgentHandoffWorkflow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.index.qual.SameLen;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * REST controller for interacting with the ManusAgent.
+ * REST controller for interacting with the AgentOmni.
  * Provides endpoints for both stateful (multi-turn) and stateless (single-turn) conversations.
  */
 @RestController
@@ -26,19 +24,14 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class AgentController {
 
-    private final ManusAgent manusAgent;
     private final MultiAgentHandoffWorkflow multiAgentHandoffWorkflow;
-    public AgentController(ManusAgent manusAgent, MultiAgentHandoffWorkflow multiAgentHandoffWorkflow) {
-        this.manusAgent = manusAgent;
+    private final OmniToolCatalog omniToolCatalog;
+    @Autowired
+    public AgentController(MultiAgentHandoffWorkflow multiAgentHandoffWorkflow, OmniToolCatalog omniToolCatalog) {
         this.multiAgentHandoffWorkflow = multiAgentHandoffWorkflow;
+        this.omniToolCatalog = omniToolCatalog;
     }
 
-
-    @GetMapping("/info")
-    @Operation(summary = "Get Agent Information", description = "Returns information about the current agent implementation.")
-    public ResponseEntity<Map<String, Object>> getAgentInfo() {
-        return ResponseEntity.ok(manusAgent.getAgentInfo());
-    }
 
     /**
      * Handles stateful, multi-turn conversations with the agent.
@@ -53,18 +46,16 @@ public class AgentController {
         String conversationId = payload.get("conversationId");
         String message = payload.get("message");
 
-        String ans =  multiAgentHandoffWorkflow.execute(message);
-        log.info(ans);
-        return manusAgent.invoke(conversationId, message)
-                .thenApply(response -> {
+//        String ans =  multiAgentHandoffWorkflow.execute(message);
+//        log.info(ans);
+        return multiAgentHandoffWorkflow.execute(message).thenApply(response -> {
                     Map<String, Object> result = new HashMap<>();
                     result.put("answer", response);
                     result.put("conversationId", conversationId);
                     result.put("timestamp", LocalDateTime.now().toString());
                     return ResponseEntity.ok(result);
                 });
-
-//        return manusAgent.invoke(conversationId, message)
+//        return AgentOmni.invoke(conversationId, message)
 //                .thenApply(response -> {
 //                    Map<String, Object> result = new HashMap<>();
 //                    result.put("answer", response);

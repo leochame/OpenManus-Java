@@ -1,7 +1,7 @@
 package com.openmanus.java.config;
 
-import com.openmanus.java.agent.ManusAgentService;
-import com.openmanus.java.tool.ToolCatalog;
+import com.openmanus.java.omni.AgentOmniService;
+import com.openmanus.java.omni.tool.OmniToolCatalog;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
-import java.util.List;
 
 /**
  * Configuration class for LangChain4j, focusing on creating a modern, stateful,
@@ -74,15 +73,15 @@ public class LangChain4jConfig {
      * injected into other components, such as the LangGraphStudioConfig for visualization.
      *
      * @param chatModel   The ChatModel bean to be used by the agent.
-     * @param toolCatalog The catalog of tools available to the agent.
+     * @param omniToolCatalog The catalog of tools available to the agent.
      * @return A {@link CompiledGraph} instance representing the agent.
      * @throws GraphStateException if there is an error compiling the graph.
      */
     @Bean
-    public CompiledGraph<AgentExecutor.State> compiledGraph(ChatModel chatModel, ToolCatalog toolCatalog) throws GraphStateException {
+    public CompiledGraph<AgentExecutor.State> compiledGraph(ChatModel chatModel, OmniToolCatalog omniToolCatalog) throws GraphStateException {
         AgentExecutor.Builder builder = AgentExecutor.builder()
                 .chatModel(chatModel)
-                .toolsFromObject(toolCatalog.getTools().toArray(new Object[0]));
+                .toolsFromObject(omniToolCatalog.getTools().toArray(new Object[0]));
 
         return builder.build().compile();
     }
@@ -100,23 +99,23 @@ public class LangChain4jConfig {
     }
 
     /**
-     * Creates the ManusAgentService using LangChain4j's AiServices.
+     * Creates the AgentOmniService using LangChain4j's AiServices.
      * This is the core of our agent, where the AI model, tools, and memory
      * are wired together into a declarative, service-oriented interface.
      * The framework handles the underlying ReAct agent loop automatically.
      *
      * @param chatModel          The conversational AI model to use.
-     * @param toolCatalog        The catalog of available tools for the agent.
+     * @param omniToolCatalog        The catalog of available tools for the agent.
      * @param chatMemoryProvider The provider for managing conversation memory.
      * @return A fully configured instance of our agent service.
      */
     @Bean
-    public ManusAgentService manusAgentService(ChatModel chatModel,
-                                             ToolCatalog toolCatalog,
-                                             ChatMemoryProvider chatMemoryProvider) {
-        return AiServices.builder(ManusAgentService.class)
+    public AgentOmniService agentOmniService(ChatModel chatModel,
+                                              OmniToolCatalog omniToolCatalog,
+                                              ChatMemoryProvider chatMemoryProvider) {
+        return AiServices.builder(AgentOmniService.class)
                 .chatModel(chatModel)
-                .tools(toolCatalog.getTools())
+                .tools(omniToolCatalog.getTools())
                 .chatMemoryProvider(chatMemoryProvider)
                 .build();
     }
