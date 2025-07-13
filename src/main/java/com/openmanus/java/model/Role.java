@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * Message role options, corresponding to app/schema.py's Role.
  */
+@Deprecated
 public enum Role {
     SYSTEM("system"),
     USER("user"),

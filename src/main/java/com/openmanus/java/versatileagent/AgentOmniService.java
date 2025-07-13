@@ -1,11 +1,11 @@
-package com.openmanus.java.agent;
+package com.openmanus.java.versatileagent;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
 
-public interface ManusAgentService {
+public interface AgentOmniService {
 
     @SystemMessage({
             "You are OpenManus, a large language model trained by OpenManus."
