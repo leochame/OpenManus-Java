@@ -1,6 +1,8 @@
 package com.openmanus.java.config;
 
+import com.openmanus.java.workflow.MultiAgentHandoffWorkflow;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.CompileConfig;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.StateGraph;
@@ -11,6 +13,7 @@ import org.bsc.langgraph4j.studio.springboot.LangGraphFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.bsc.langgraph4j.CompiledGraph;
 
@@ -55,5 +58,10 @@ public class LangGraphStudioConfig extends AbstractLangGraphStudioConfig {
     @Override
     public LangGraphFlow getFlow() {
         return this.flow;
+    }
+
+    @Bean
+    public MultiAgentHandoffWorkflow multiAgentHandoffWorkflow(ChatModel chatLanguageModel) throws Exception {
+        return new MultiAgentHandoffWorkflow(chatLanguageModel);
     }
 }
