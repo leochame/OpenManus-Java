@@ -1,8 +1,11 @@
 package com.openmanus.java.controller;
 
 import com.openmanus.java.agent.ManusAgent;
+import com.openmanus.java.workflow.MultiAgentHandoffWorkflow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.index.qual.SameLen;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +23,16 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/agent")
 @Tag(name = "Agent API", description = "Web API interface for intelligent agent")
+@Slf4j
 public class AgentController {
 
     private final ManusAgent manusAgent;
-
-    public AgentController(ManusAgent manusAgent) {
+    private final MultiAgentHandoffWorkflow multiAgentHandoffWorkflow;
+    public AgentController(ManusAgent manusAgent, MultiAgentHandoffWorkflow multiAgentHandoffWorkflow) {
         this.manusAgent = manusAgent;
+        this.multiAgentHandoffWorkflow = multiAgentHandoffWorkflow;
     }
+
 
     @GetMapping("/info")
     @Operation(summary = "Get Agent Information", description = "Returns information about the current agent implementation.")
@@ -47,6 +53,8 @@ public class AgentController {
         String conversationId = payload.get("conversationId");
         String message = payload.get("message");
 
+        String ans =  multiAgentHandoffWorkflow.execute(message);
+        log.info(ans);
         return manusAgent.invoke(conversationId, message)
                 .thenApply(response -> {
                     Map<String, Object> result = new HashMap<>();
@@ -54,13 +62,22 @@ public class AgentController {
                     result.put("conversationId", conversationId);
                     result.put("timestamp", LocalDateTime.now().toString());
                     return ResponseEntity.ok(result);
-                })
-                .exceptionally(ex -> {
-                    Map<String, Object> errorResult = new HashMap<>();
-                    errorResult.put("error", "Agent execution failed: " + ex.getMessage());
-                    errorResult.put("conversationId", conversationId);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
                 });
+
+//        return manusAgent.invoke(conversationId, message)
+//                .thenApply(response -> {
+//                    Map<String, Object> result = new HashMap<>();
+//                    result.put("answer", response);
+//                    result.put("conversationId", conversationId);
+//                    result.put("timestamp", LocalDateTime.now().toString());
+//                    return ResponseEntity.ok(result);
+//                })
+//                .exceptionally(ex -> {
+//                    Map<String, Object> errorResult = new HashMap<>();
+//                    errorResult.put("error", "Agent execution failed: " + ex.getMessage());
+//                    errorResult.put("conversationId", conversationId);
+//                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+//                });
     }
 
     /**
