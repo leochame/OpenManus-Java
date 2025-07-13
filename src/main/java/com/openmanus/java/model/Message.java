@@ -8,6 +8,7 @@ import java.util.List;
 /**
  * Represents a chat message, corresponding to app/schema.py's Message.
  */
+@Deprecated
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
 

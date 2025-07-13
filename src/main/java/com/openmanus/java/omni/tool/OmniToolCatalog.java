@@ -1,4 +1,4 @@
-package com.openmanus.java.tool;
+package com.openmanus.java.omni.tool;
 
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
@@ -8,13 +8,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class ToolCatalog {
+public class OmniToolCatalog {
 
     private final PythonTool pythonTool;
     private final FileTool fileTool;
     private final BrowserTool browserTool;
 
-    public ToolCatalog(PythonTool pythonTool, FileTool fileTool, BrowserTool browserTool) {
+    public OmniToolCatalog(PythonTool pythonTool, FileTool fileTool, BrowserTool browserTool) {
         this.pythonTool = pythonTool;
         this.fileTool = fileTool;
         this.browserTool = browserTool;

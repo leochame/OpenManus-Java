@@ -1,8 +1,8 @@
-package com.openmanus.java.versatileagent;
+package com.openmanus.java.omni;
 
 import com.openmanus.java.agent.AbstractAgentExecutor;
 import com.openmanus.java.marketplace.AgentMarketplace;
-import com.openmanus.java.versatileagent.tool.ToolCatalog;
+import com.openmanus.java.omni.tool.OmniToolCatalog;
 import dev.langchain4j.data.message.SystemMessage;
 import org.bsc.langgraph4j.GraphStateException;
 
@@ -32,9 +32,9 @@ public class AgentOmni extends AbstractAgentExecutor<AgentOmni.Builder> {
 
         /**
          * Builder 的构造函数现在接收它完成任务所需的所有依赖。
-         * @param toolCatalog 此 Agent 可用的工具集合。
+         * @param omniToolCatalog 此 Agent 可用的工具集合。
          */
-        public AgentOmni build(ToolCatalog toolCatalog) throws GraphStateException {
+        public AgentOmni build(OmniToolCatalog omniToolCatalog) throws GraphStateException {
             // 1. 为主管 Agent 配置“名片”，告诉它这个工具是干什么的。
             this.name("manus_agent")
                     .description("一个多功能通用代理，擅长处理编程、文件操作、网页浏览和一般性问答。当其他专用代理无法处理时，应调用此代理。")
@@ -46,7 +46,7 @@ public class AgentOmni extends AbstractAgentExecutor<AgentOmni.Builder> {
                     "You are OpenManus, a powerful multi-functional AI assistant. " +
                             "You can browse the web, write and execute code, and interact with the file system. " +
                             "Analyze the user's request and use the available tools to achieve the goal."
-            )).toolFromObject(toolCatalog.getTools().toArray(new Object[0]));
+            )).toolFromObject(omniToolCatalog.getTools().toArray(new Object[0]));
             return new AgentOmni(this);
         }
         public static AgentMarketplace.Builder builder() {

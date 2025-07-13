@@ -1,4 +1,4 @@
-package com.openmanus.java.memory;
+package com.openmanus.java.omni.memory;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;

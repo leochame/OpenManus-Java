@@ -1,9 +1,9 @@
 package com.openmanus.java.nodes;
 
 import com.openmanus.java.state.OpenManusAgentState;
-import com.openmanus.java.tool.PythonTool;
-import com.openmanus.java.tool.FileTool;
-import com.openmanus.java.tool.BrowserTool;
+import com.openmanus.java.omni.tool.PythonTool;
+import com.openmanus.java.omni.tool.FileTool;
+import com.openmanus.java.omni.tool.BrowserTool;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
@@ -11,7 +11,6 @@ import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;

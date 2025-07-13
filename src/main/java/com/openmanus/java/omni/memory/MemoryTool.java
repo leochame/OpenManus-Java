@@ -1,9 +1,7 @@
-package com.openmanus.java.memory;
+package com.openmanus.java.omni.memory;
 
-import com.openmanus.java.config.VectorDatabaseConfig;
 import com.openmanus.java.config.VectorDatabaseConfig.EmbeddingStoreService;
 import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import org.slf4j.Logger;

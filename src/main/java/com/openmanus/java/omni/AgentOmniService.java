@@ -1,4 +1,4 @@
-package com.openmanus.java.versatileagent;
+package com.openmanus.java.omni;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;

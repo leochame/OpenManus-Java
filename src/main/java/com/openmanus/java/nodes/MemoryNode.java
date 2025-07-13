@@ -1,7 +1,7 @@
 package com.openmanus.java.nodes;
 
-import com.openmanus.java.memory.ConversationBuffer;
-import com.openmanus.java.memory.MemoryTool;
+import com.openmanus.java.omni.memory.ConversationBuffer;
+import com.openmanus.java.omni.memory.MemoryTool;
 import com.openmanus.java.state.OpenManusAgentState;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -11,7 +11,6 @@ import dev.langchain4j.model.input.PromptTemplate;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;

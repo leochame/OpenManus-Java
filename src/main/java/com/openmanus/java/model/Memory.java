@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * Manages a sequence of messages, corresponding to app/schema.py's Memory.
  */
+@Deprecated
 public class Memory {
 
     private List<Message> messages = new ArrayList<>();

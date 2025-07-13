@@ -4,6 +4,7 @@ package com.openmanus.java.model;
  * Represents the result of a command line interface (CLI) execution.
  * Corresponds to CLIResult in the Python version.
  */
+@Deprecated
 public class CLIResult {
     /**
      * Standard output from the command
