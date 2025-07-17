@@ -22,6 +22,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <langchain4j.version>1.1.0-beta7</langchain4j.version>
         <langgraph4j.version>1.6.0-beta6</langgraph4j.version>
+        <langchain4j.bom.version>1.1.0</langchain4j.bom.version>
         <jackson.version>2.17.2</jackson.version>
         <lombok.version>1.18.30</lombok.version>
     </properties>
@@ -29,13 +30,14 @@
     <dependencyManagement>
         <dependencies>
             <!-- LangChain4j BOM -->
-<!--            <dependency>-->
-<!--                <groupId>dev.langchain4j</groupId>-->
-<!--                <artifactId>langchain4j-bom</artifactId>-->
-<!--                <version>${langchain4j.version}</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
             <!-- LangGraph4j BOM -->
             <dependency>
                 <groupId>org.bsc.langgraph4j</groupId>
@@ -44,6 +46,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            
             <!-- Jackson BOM for version management -->
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
@@ -148,12 +151,13 @@
             <version>2.3.4</version>
         </dependency>
         
-        <!-- LangChain4j OpenAI Integration (for LLM and embeddings) -->
+        <!-- LangChain4j OpenAI Integration -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
         </dependency>
 
+        <!-- MCP support - temporarily disabled as not available in current version -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
