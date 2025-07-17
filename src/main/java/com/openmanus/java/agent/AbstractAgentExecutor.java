@@ -34,6 +34,13 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
             return result();
         }
 
+        public B toolsFromObjects( Object... objectsWithTools ) {
+            for (Object tool : objectsWithTools) {
+                delegate.toolsFromObject(tool);
+            }
+            return result();
+        }
+
         public B systemMessage(SystemMessage message) {
             delegate.systemMessage(message);
             return result();

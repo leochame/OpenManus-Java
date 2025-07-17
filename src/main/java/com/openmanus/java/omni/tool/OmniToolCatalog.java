@@ -1,7 +1,6 @@
 package com.openmanus.java.omni.tool;
 
-import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.agent.tool.ToolSpecifications;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -19,12 +18,9 @@ public class OmniToolCatalog {
         this.fileTool = fileTool;
         this.browserTool = browserTool;
     }
-
+    
     public List<Object> getTools() {
         return Arrays.asList(pythonTool, fileTool, browserTool);
     }
 
-    public List<ToolSpecification> getToolSpecifications() {
-        return ToolSpecifications.toolSpecificationsFrom(getTools());
-    }
 } 

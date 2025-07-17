@@ -103,7 +103,7 @@ public class FileTool {
                         return "[DIR] " + name;
                     } else {
                         return "[FILE] " + name;
-    }
+                    }
                 })
                 .collect(Collectors.toList());
             

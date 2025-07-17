@@ -29,6 +29,7 @@ public class MultiAgentHandoffWorkflow {
     /**
      * 构造函数，由 Spring 自动注入 ChatLanguageModel。
      * @param chatModel 用于所有 Agent 的语言模型
+     * @param omniToolCatalog 工具catalog，由Spring管理
      * @throws Exception 如果构建失败
      */
     public MultiAgentHandoffWorkflow(ChatModel chatModel, OmniToolCatalog omniToolCatalog) throws Exception {
@@ -43,18 +44,20 @@ public class MultiAgentHandoffWorkflow {
                 .chatModel(chatModel)
                 .build();
 
+        // 3. 创建 AgentOmni 实例，传递工具catalog
         AgentOmni agentOmni = new AgentOmni.Builder()
-                .chatModel(chatModel).
-                build(omniToolCatalog);
+                .chatModel(chatModel)
+                .toolCatalog(omniToolCatalog)  // 传递Spring管理的工具catalog
+                .build();
 
-        // 3. 使用 AgentHandoff.Builder 构建总控工作流
+        // 4. 使用 AgentHandoff.Builder 构建总控工作流
         // AgentHandoff 是一个特殊的 Agent，它的工具就是其他 Agent。
         // 它会根据用户的输入和对话历史，决定调用哪个子 Agent 来完成任务。
         this.handoffExecutor = new AgentHandoff.Builder()
                 .chatModel(chatModel)
                 .agent(agentMarketplace) // 将 marketplaceAgent 作为工具添加
                 .agent(agentPayment)     // 将 paymentAgent 作为工具添加
-                .agent(agentOmni)
+                .agent(agentOmni)        // 将 agentOmni 作为工具添加
                 .build()
                 .compile(); // 编译图，使其可执行
     }

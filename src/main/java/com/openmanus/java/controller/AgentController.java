@@ -26,10 +26,59 @@ public class AgentController {
 
     private final MultiAgentHandoffWorkflow multiAgentHandoffWorkflow;
     private final OmniToolCatalog omniToolCatalog;
+    
     @Autowired
     public AgentController(MultiAgentHandoffWorkflow multiAgentHandoffWorkflow, OmniToolCatalog omniToolCatalog) {
         this.multiAgentHandoffWorkflow = multiAgentHandoffWorkflow;
         this.omniToolCatalog = omniToolCatalog;
+    }
+
+    /**
+     * 测试工具识别的端点
+     */
+    @GetMapping("/test-tools")
+    @Operation(summary = "Test Tools", description = "Test if tools are properly recognized.")
+    public ResponseEntity<Map<String, Object>> testTools() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 获取工具列表
+            var tools = omniToolCatalog.getTools();
+            result.put("toolsCount", tools.size());
+            result.put("toolsInfo", tools.stream().map(tool -> 
+                Map.of(
+                    "className", tool.getClass().getSimpleName(),
+                    "fullClassName", tool.getClass().getName()
+                )
+            ).toList());
+            
+            // 直接测试BrowserTool的searchWeb方法
+            var browserTool = tools.stream()
+                .filter(tool -> tool.getClass().getSimpleName().equals("BrowserTool"))
+                .findFirst();
+                
+            if (browserTool.isPresent()) {
+                result.put("browserToolFound", true);
+                try {
+                    // 直接调用searchWeb方法进行测试
+                    var tool = (com.openmanus.java.omni.tool.BrowserTool) browserTool.get();
+                    String searchResult = tool.searchWeb("test search");
+                    result.put("directSearchTest", "Success: " + searchResult.substring(0, Math.min(200, searchResult.length())));
+                } catch (Exception e) {
+                    result.put("directSearchTest", "Error: " + e.getMessage());
+                }
+            } else {
+                result.put("browserToolFound", false);
+            }
+            
+            result.put("status", "success");
+        } catch (Exception e) {
+            log.error("Tool test failed", e);
+            result.put("status", "error");
+            result.put("error", e.getMessage());
+        }
+        
+        return ResponseEntity.ok(result);
     }
 
 
@@ -46,8 +95,6 @@ public class AgentController {
         String conversationId = payload.get("conversationId");
         String message = payload.get("message");
 
-//        String ans =  multiAgentHandoffWorkflow.execute(message);
-//        log.info(ans);
         return multiAgentHandoffWorkflow.execute(message).thenApply(response -> {
                     Map<String, Object> result = new HashMap<>();
                     result.put("answer", response);
@@ -55,20 +102,6 @@ public class AgentController {
                     result.put("timestamp", LocalDateTime.now().toString());
                     return ResponseEntity.ok(result);
                 });
-//        return AgentOmni.invoke(conversationId, message)
-//                .thenApply(response -> {
-//                    Map<String, Object> result = new HashMap<>();
-//                    result.put("answer", response);
-//                    result.put("conversationId", conversationId);
-//                    result.put("timestamp", LocalDateTime.now().toString());
-//                    return ResponseEntity.ok(result);
-//                })
-//                .exceptionally(ex -> {
-//                    Map<String, Object> errorResult = new HashMap<>();
-//                    errorResult.put("error", "Agent execution failed: " + ex.getMessage());
-//                    errorResult.put("conversationId", conversationId);
-//                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
-//                });
     }
 
     /**

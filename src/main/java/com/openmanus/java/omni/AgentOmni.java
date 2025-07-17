@@ -2,9 +2,16 @@ package com.openmanus.java.omni;
 
 import com.openmanus.java.agent.AbstractAgentExecutor;
 import com.openmanus.java.marketplace.AgentMarketplace;
+import com.openmanus.java.omni.tool.BrowserTool;
+import com.openmanus.java.omni.tool.FileTool;
+import com.openmanus.java.omni.tool.PythonTool;
 import com.openmanus.java.omni.tool.OmniToolCatalog;
 import dev.langchain4j.data.message.SystemMessage;
 import org.bsc.langgraph4j.GraphStateException;
+import org.springframework.context.annotation.Bean;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 一个多功能、自包含的 Agent 执行器。
@@ -17,44 +24,59 @@ import org.bsc.langgraph4j.GraphStateException;
 public class AgentOmni extends AbstractAgentExecutor<AgentOmni.Builder> {
 
     /**
-     * 私有构造函数，确保通过 Builder 创建。
-     * @param builder a {@link Builder} instance.
-     * @throws GraphStateException if graph compilation fails.
-     */
-    private AgentOmni(Builder builder) throws GraphStateException {
-        super(builder);
-    }
-
-    /**
      * 用于配置和构建 AgentOmni 的 Builder。
      */
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
 
+        private OmniToolCatalog omniToolCatalog;
+
+        /**
+         * 设置工具catalog
+         */
+        public Builder toolCatalog(OmniToolCatalog omniToolCatalog) {
+            this.omniToolCatalog = omniToolCatalog;
+            return this;
+        }
+
         /**
          * Builder 的构造函数现在接收它完成任务所需的所有依赖。
-         * @param omniToolCatalog 此 Agent 可用的工具集合。
          */
-        public AgentOmni build(OmniToolCatalog omniToolCatalog) throws GraphStateException {
-            // 1. 为主管 Agent 配置“名片”，告诉它这个工具是干什么的。
-            this.name("manus_agent")
-                    .description("一个多功能通用代理，擅长处理编程、文件操作、网页浏览和一般性问答。当其他专用代理无法处理时，应调用此代理。")
-                    .singleParameter("用户的详细请求，将完整传递给多功能代理进行处理。");
-
-            // 2. 配置其内部工作流的核心组件。
-            //    这些方法都继承自 AbstractAgentExecutor.Builder
-            this.systemMessage(SystemMessage.from(
-                    "You are OpenManus, a powerful multi-functional AI assistant. " +
-                            "You can browse the web, write and execute code, and interact with the file system. " +
-                            "Analyze the user's request and use the available tools to achieve the goal."
-            )).toolFromObject(omniToolCatalog.getTools().toArray(new Object[0]));
-            return new AgentOmni(this);
-        }
-        public static AgentMarketplace.Builder builder() {
-            return new AgentMarketplace.Builder();
-        }
-
         public AgentOmni build() throws GraphStateException {
+            // 1. 为主管 Agent 配置"名片"，告诉它这个工具是干什么的。
+            this.name("manus_agent")
+                    .description("一个多功能通用代理，擅长处理文件操作、网页浏览、Python代码执行和一般性问答。可以搜索网页、获取网页内容、执行Python代码、读写文件等。当需要搜索网页信息、执行代码或文件操作时，应调用此代理。")
+                    .singleParameter("用户的详细请求，将完整传递给多功能代理进行处理。")
+                    .systemMessage(SystemMessage.from("""
+                            You are OpenManus, a powerful multi-functional AI assistant with access to web browsing, Python execution, and file system tools.
+                            
+                            Available tools:
+                            - Web browsing: searchWeb(query) to search the internet, browseWeb(url) to visit specific pages
+                            - Python execution: executePython(code) to run Python code  
+                            - File operations: readFile, writeFile, listDirectory, etc.
+                            
+                            When the user asks for web searches, current information, or wants to search for something online, use the searchWeb tool.
+                            When the user provides URLs to visit, use the browseWeb tool.
+                            When the user needs code execution or calculations, use the executePython tool.
+                            When the user needs file operations, use the appropriate file tools.
+                            
+                            Always analyze the user's request carefully and use the most appropriate tool to achieve the goal.
+                            """));
+            
+            // 只有在提供了工具catalog时才注册工具
+            if (omniToolCatalog != null) {
+                List<Object> tools = omniToolCatalog.getTools();
+                this.toolsFromObjects(tools.toArray(new Object[0]));
+            }
+            
             return new AgentOmni(this);
         }
+    }
+    
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private AgentOmni(Builder builder) throws GraphStateException {
+        super(builder);
     }
 }
