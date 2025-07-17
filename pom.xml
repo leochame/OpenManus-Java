@@ -20,6 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
         <langchain4j.version>1.1.0-beta7</langchain4j.version>
         <langgraph4j.version>1.6.0-beta6</langgraph4j.version>
         <langchain4j.bom.version>1.1.0</langchain4j.bom.version>
