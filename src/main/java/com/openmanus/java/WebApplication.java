@@ -1,7 +1,7 @@
 package com.openmanus.java;
 
-import com.openmanus.java.config.OpenManusProperties;
-import com.openmanus.java.sandbox.SandboxClient;
+import com.openmanus.java.infra.config.OpenManusProperties;
+import com.openmanus.java.infra.sandbox.SandboxClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
