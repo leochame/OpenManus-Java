@@ -33,7 +33,7 @@ public class FileTool {
             
             if (!Files.isReadable(path)) {
                 return "File is not readable: " + filePath;
-        }
+            }
             
             String content = Files.readString(path);
             return "File content:\n" + content;

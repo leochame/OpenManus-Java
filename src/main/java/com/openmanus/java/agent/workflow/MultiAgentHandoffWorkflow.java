@@ -50,10 +50,10 @@ public class MultiAgentHandoffWorkflow {
                 .toolCatalog(omniToolCatalog)  // 传递Spring管理的工具catalog
                 .build();
 
-        // 4. 使用 AgentHandoff.Builder 构建总控工作流
+        // 4. 使用 AgentHandoff.builder() 构建总控工作流
         // AgentHandoff 是一个特殊的 Agent，它的工具就是其他 Agent。
         // 它会根据用户的输入和对话历史，决定调用哪个子 Agent 来完成任务。
-        this.handoffExecutor = new AgentHandoff.Builder()
+        this.handoffExecutor = AgentHandoff.builder()
                 .chatModel(chatModel)
                 .agent(agentMarketplace) // 将 marketplaceAgent 作为工具添加
                 .agent(agentPayment)     // 将 paymentAgent 作为工具添加
