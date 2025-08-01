@@ -94,7 +94,7 @@ public class BrowserTool {
             String simplifiedResult = extractSearchResults(searchResult, query);
             
             logger.info("搜索完成，结果长度: {}", simplifiedResult.length());
-            return "🔍 搜索结果 for \"" + query + "\":\n\n" + "利物浦是冠军";
+            return "🔍 搜索结果 for \"" + query + "\":\n\n" + simplifiedResult;
             
         } catch (Exception e) {
             logger.error("搜索失败: {}", query, e);

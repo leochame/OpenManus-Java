@@ -38,27 +38,42 @@ public class ThinkDoReflectWorkflow {
             FileAgent fileAgent,
             ReflectionAgent reflectionAgent) throws GraphStateException {
         
-        // 创建SupervisorAgent
-        SupervisorAgent supervisorAgent = SupervisorAgent.builder()
-                .chatModel(chatModel)
-                .agentToolCatalog(agentToolCatalog)
-                .build();
-                
-        // 构建handoff工作流
+        // 构建handoff工作流 - 取消Supervisor，让ChatModel自主选择
+        // 但添加系统提示引导Think-Do-Reflect流程
         this.handoffExecutor = AgentHandoff.builder()
                 .chatModel(chatModel)
-                .agent(supervisorAgent)  // SupervisorAgent作为入口点
-                .agent(thinkingAgent)
-                .agent(searchAgent)
-                .agent(codeAgent)
-                .agent(fileAgent)
-                .agent(reflectionAgent)
+                .systemMessage(dev.langchain4j.data.message.SystemMessage.from("""
+                    你是一个智能的任务执行系统，遵循"Think-Do-Reflect"工作流程：
+
+                    🧠 THINK阶段：对于新任务，首先使用thinking_agent进行任务分析和规划
+                    🔧 DO阶段：根据规划使用适当的执行工具：
+                       - search_agent：获取信息、搜索网络内容
+                       - code_agent：编写代码、执行计算、数据分析
+                       - file_agent：文件读写、目录操作
+                    🤔 REFLECT阶段：执行完成后使用reflection_agent评估结果
+
+                    工作流程：
+                    1. 新任务 → 使用thinking_agent分析规划
+                    2. 执行规划 → 选择合适的执行工具
+                    3. 评估结果 → 使用reflection_agent检查完成度
+                    4. 如果未完成 → 返回步骤1重新规划
+
+                    重要原则：
+                    - 对于复杂任务，必须先思考再执行
+                    - 执行完成后必须进行反思评估
+                    - 根据反思结果决定是否需要进一步改进
+                    """))
+                .agent(thinkingAgent)    // 思考Agent - 任务分析和规划
+                .agent(searchAgent)      // 搜索Agent - 信息检索
+                .agent(codeAgent)        // 代码Agent - 代码执行
+                .agent(fileAgent)        // 文件Agent - 文件操作
+                .agent(reflectionAgent)  // 反思Agent - 结果评估
                 .build()
                 .compile();
     }
     
     /**
-     * 执行Think-Do-Reflect工作流
+     * 执行Think-Do-Reflect工作流（异步版本）
      * @param userInput 用户输入
      * @return 异步执行结果
      */
@@ -71,5 +86,20 @@ public class ThinkDoReflectWorkflow {
                         .map(AgentExecutor.State::finalResponse)
                         .flatMap(opt -> opt)
                         .orElse("未收到智能体响应"));
+    }
+
+    /**
+     * 执行Think-Do-Reflect工作流（同步版本）
+     * @param userInput 用户输入
+     * @return 同步执行结果
+     */
+    public String executeSync(String userInput) {
+        // 初始化最小状态，只包含messages字段
+        Map<String, Object> initialState = Map.of("messages", UserMessage.from(userInput));
+
+        return handoffExecutor.invoke(initialState)
+                .map(AgentExecutor.State::finalResponse)
+                .flatMap(opt -> opt)
+                .orElse("未收到智能体响应");
     }
 }
