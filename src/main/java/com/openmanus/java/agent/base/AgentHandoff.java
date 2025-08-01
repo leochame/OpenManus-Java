@@ -22,6 +22,11 @@ public interface AgentHandoff {
             return this;
         }
 
+        public Builder systemMessage(dev.langchain4j.data.message.SystemMessage message) {
+            delegate.systemMessage(message);
+            return this;
+        }
+
         public StateGraph<AgentExecutor.State> build() throws GraphStateException {
             return delegate.build();
         }
