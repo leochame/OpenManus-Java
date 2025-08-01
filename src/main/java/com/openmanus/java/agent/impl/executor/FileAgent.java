@@ -26,8 +26,8 @@ public class FileAgent extends AbstractAgentExecutor<FileAgent.Builder> {
         
         public FileAgent build() throws GraphStateException {
             this.name("file_agent")
-                .description("负责文件操作和管理的智能体")
-                .singleParameter("文件操作需求和任务描述")
+                .description("当需要读取、写入、创建或管理文件时使用。适用于：文件读写、目录操作、文件管理、内容处理")
+                .singleParameter("文件操作需求和文件路径")
                 .systemMessage(SystemMessage.from("""
                     你是文件操作专家，擅长：
                     1. 理解用户的文件操作需求

@@ -26,8 +26,8 @@ public class CodeAgent extends AbstractAgentExecutor<CodeAgent.Builder> {
         
         public CodeAgent build() throws GraphStateException {
             this.name("code_agent")
-                .description("负责代码执行和数据分析的智能体")
-                .singleParameter("代码执行需求和任务描述")
+                .description("当需要编写代码、执行计算、数据分析或处理编程任务时使用。适用于：Python代码执行、数据分析、算法实现、计算任务")
+                .singleParameter("代码需求或计算任务描述")
                 .systemMessage(SystemMessage.from("""
                     你是代码执行专家，擅长：
                     1. 理解用户的编程需求

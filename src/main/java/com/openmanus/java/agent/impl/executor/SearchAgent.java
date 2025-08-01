@@ -26,8 +26,8 @@ public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
         
         public SearchAgent build() throws GraphStateException {
             this.name("search_agent")
-                .description("负责信息检索和网页搜索的智能体")
-                .singleParameter("搜索查询和检索需求")
+                .description("当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取")
+                .singleParameter("搜索查询或网页URL")
                 .systemMessage(SystemMessage.from("""
                     你是信息检索专家，擅长：
                     1. 理解用户的信息需求

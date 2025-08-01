@@ -4,6 +4,7 @@ import com.openmanus.java.agent.base.AbstractAgentExecutor;
 import com.openmanus.java.agent.tool.AgentToolCatalog;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.Map;
  * 3. 控制循环执行和状态管理
  * 4. 防止无限循环
  */
+@Slf4j
 public class SupervisorAgent extends AbstractAgentExecutor<SupervisorAgent.Builder> {
     
     // 防止无限循环的最大循环次数
@@ -82,6 +84,10 @@ public class SupervisorAgent extends AbstractAgentExecutor<SupervisorAgent.Build
     
     @Override
     public String execute(ToolExecutionRequest request, Object context) {
+        log.info("🚀🚀🚀 SupervisorAgent.execute 被调用了！🚀🚀🚀");
+        log.info("Request: {}", request.arguments());
+        log.info("Context: {}", context != null ? context.toString() : "null");
+
         // 初始化并管理状态
         Map<String, Object> state = (Map<String, Object>) context;
         

@@ -3,6 +3,7 @@ package com.openmanus.java.agent.impl.thinker;
 import com.openmanus.java.agent.base.AbstractAgentExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
 
 import java.util.Map;
@@ -16,13 +17,14 @@ import java.util.Map;
  * 3. 制定详细的执行计划
  * 4. 接收反思反馈并调整规划
  */
+@Slf4j
 public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> {
     
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
         public ThinkingAgent build() throws GraphStateException {
             this.name("thinking_agent")
-                .description("负责任务分析和规划的智能体")
-                .singleParameter("用户请求和任务上下文")
+                .description("当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略")
+                .singleParameter("用户请求或需要重新规划的任务描述")
                 .systemMessage(SystemMessage.from("""
                     你是规划专家，负责：
                     1. 分析用户请求，理解真正的需求
@@ -53,8 +55,11 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
     
     @Override
     public String execute(ToolExecutionRequest request, Object context) {
+        log.info("🚀🚀🚀 ThinkingAgent.execute 被调用了！🚀🚀🚀");
+        log.info("Request: {}", request.arguments());
+        log.info("Context: {}", context != null ? context.toString() : "null");
+
         String thinkingResult;
-        
         if (context != null) {
             // 来自AgentHandoff的调用，使用内部AgentExecutor处理
             thinkingResult = super.execute(request, context);

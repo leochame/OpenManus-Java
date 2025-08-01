@@ -28,8 +28,8 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
         public ReflectionAgent build() throws GraphStateException {
             this.name("reflection_agent")
-                .description("负责评估执行结果并决定是否需要继续循环的智能体")
-                .singleParameter("执行结果和任务上下文")
+                .description("当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议")
+                .singleParameter("执行结果和原始任务要求")
                 .systemMessage(SystemMessage.from("""
                     你是一位严格的评估专家，你的核心任务是判断执行结果是否完全满足原始需求。
                     

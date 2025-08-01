@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent执行监控 - OpenManus Java</title>
+    
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Element Plus UI Library -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus"></script>
+    
+    <!-- Element Plus Icons -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    
+    <!-- Markdown renderer -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 2.2em;
+        }
+        
+        .header p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+        
+        .left-panel, .right-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .session-input {
+            margin-bottom: 20px;
+        }
+        
+        .agent-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .agent-step {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .agent-step.active {
+            border-color: #28a745;
+            background: #f8fff9;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+        
+        .agent-step.success {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .agent-step.error {
+            border-color: #dc3545;
+            background: #fff8f8;
+        }
+        
+        .agent-step.pending {
+            border-color: #6c757d;
+            background: #f8f9fa;
+            opacity: 0.6;
+        }
+        
+        .agent-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .agent-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #2c3e50;
+        }
+        
+        .agent-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.running {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-dot.success {
+            background: #28a745;
+        }
+        
+        .status-dot.error {
+            background: #dc3545;
+        }
+        
+        .status-dot.pending {
+            background: #6c757d;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .agent-details {
+            margin-top: 10px;
+        }
+        
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        
+        .detail-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .detail-content {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 0.85em;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        .execution-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px;
+            font-style: italic;
+        }
+        
+        .refresh-button {
+            margin-left: 10px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #28a745;
+        }
+        
+        .timeline-item.active::before {
+            background: #ffc107;
+            box-shadow: 0 0 0 2px #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .timeline-item.error::before {
+            background: #dc3545;
+            box-shadow: 0 0 0 2px #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="app-container">
+            <!-- 页面头部 -->
+            <div class="header">
+                <h1>🤖 Agent执行监控</h1>
+                <p>实时监控Agent执行状态，查看输入输出和执行流程</p>
+            </div>
+            
+            <!-- 主要内容区域 -->
+            <div class="main-content">
+                <!-- 左侧面板：执行流程 -->
+                <div class="left-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">执行流程</h3>
+                        <div>
+                            <el-input 
+                                v-model="sessionId" 
+                                placeholder="输入会话ID" 
+                                style="width: 200px; margin-right: 10px;"
+                                @keyup.enter="loadSessionData"
+                            />
+                            <el-button 
+                                type="primary" 
+                                @click="loadSessionData"
+                                :loading="loading"
+                                size="small"
+                            >
+                                加载
+                            </el-button>
+                            <el-button 
+                                @click="refreshData"
+                                :loading="refreshing"
+                                size="small"
+                                class="refresh-button"
+                            >
+                                刷新
+                            </el-button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <!-- 执行统计 -->
+                        <div v-if="statistics" class="execution-stats">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ statistics.totalEvents || 0 }}</div>
+                                <div class="stat-label">总事件数</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ statistics.agentCount || 0 }}</div>
+                                <div class="stat-label">Agent数量</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ statistics.successCount || 0 }}</div>
+                                <div class="stat-label">成功次数</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ formatDuration(statistics.totalDuration) }}</div>
+                                <div class="stat-label">总耗时</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Agent执行流程 -->
+                        <div v-if="events.length > 0" class="timeline">
+                            <div 
+                                v-for="event in events" 
+                                :key="event.eventId"
+                                class="timeline-item"
+                                :class="getEventClass(event)"
+                                @click="selectEvent(event)"
+                            >
+                                <div class="agent-header">
+                                    <div class="agent-name">{{ getAgentDisplayName(event.agentName) }}</div>
+                                    <div class="agent-status">
+                                        <div class="status-dot" :class="getStatusClass(event.status)"></div>
+                                        <span>{{ getStatusText(event.status) }}</span>
+                                        <span v-if="event.duration" style="margin-left: 10px; color: #6c757d;">
+                                            {{ formatDuration(event.duration) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="detail-content" style="margin-top: 5px; font-size: 0.8em; color: #6c757d;">
+                                    {{ getEventTypeText(event.eventType) }}
+                                    <span v-if="event.startTime"> - {{ formatTime(event.startTime) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 无数据提示 -->
+                        <div v-else-if="!loading" class="no-data">
+                            <p>请输入会话ID并点击加载按钮查看执行流程</p>
+                        </div>
+                        
+                        <!-- 加载中 -->
+                        <div v-if="loading" class="no-data">
+                            <div class="loading-spinner"></div>
+                            <p style="margin-top: 10px;">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧面板：详细信息 -->
+                <div class="right-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">详细信息</h3>
+                        <div v-if="selectedEvent">
+                            <el-tag :type="getEventTagType(selectedEvent.eventType)">
+                                {{ getEventTypeText(selectedEvent.eventType) }}
+                            </el-tag>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <div v-if="selectedEvent">
+                            <!-- Agent基本信息 -->
+                            <div class="detail-section">
+                                <div class="detail-title">Agent信息</div>
+                                <div class="detail-content">
+                                    <strong>名称:</strong> {{ getAgentDisplayName(selectedEvent.agentName) }}<br>
+                                    <strong>类型:</strong> {{ selectedEvent.agentType }}<br>
+                                    <strong>状态:</strong> {{ getStatusText(selectedEvent.status) }}<br>
+                                    <strong>事件类型:</strong> {{ getEventTypeText(selectedEvent.eventType) }}
+                                </div>
+                            </div>
+                            
+                            <!-- 时间信息 -->
+                            <div class="detail-section">
+                                <div class="detail-title">时间信息</div>
+                                <div class="detail-content">
+                                    <div v-if="selectedEvent.startTime">
+                                        <strong>开始时间:</strong> {{ formatTime(selectedEvent.startTime) }}
+                                    </div>
+                                    <div v-if="selectedEvent.endTime">
+                                        <strong>结束时间:</strong> {{ formatTime(selectedEvent.endTime) }}
+                                    </div>
+                                    <div v-if="selectedEvent.duration">
+                                        <strong>执行耗时:</strong> {{ formatDuration(selectedEvent.duration) }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 输入信息 -->
+                            <div v-if="selectedEvent.input" class="detail-section">
+                                <div class="detail-title">输入</div>
+                                <div class="detail-content">{{ formatJson(selectedEvent.input) }}</div>
+                            </div>
+                            
+                            <!-- 输出信息 -->
+                            <div v-if="selectedEvent.output" class="detail-section">
+                                <div class="detail-title">输出</div>
+                                <div class="detail-content">{{ formatJson(selectedEvent.output) }}</div>
+                            </div>
+                            
+                            <!-- 错误信息 -->
+                            <div v-if="selectedEvent.error" class="detail-section">
+                                <div class="detail-title">错误信息</div>
+                                <div class="detail-content" style="color: #dc3545;">{{ selectedEvent.error }}</div>
+                            </div>
+                            
+                            <!-- 元数据 -->
+                            <div v-if="selectedEvent.metadata" class="detail-section">
+                                <div class="detail-title">元数据</div>
+                                <div class="detail-content">{{ formatJson(selectedEvent.metadata) }}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 无选中事件 -->
+                        <div v-else class="no-data">
+                            <p>点击左侧事件查看详细信息</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
