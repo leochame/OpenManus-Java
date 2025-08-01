@@ -1,4 +1,5 @@
-package dev.langchain4j.adaptiverag;
+package com.openmanus.java.adaptiverag;
+
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.structured.StructuredPrompt;
@@ -7,6 +8,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.structured.Description;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
+
 import java.time.Duration;
 import java.util.function.Function;
 

@@ -1,8 +1,7 @@
-package dev.langchain4j.adaptiverag;
+package com.openmanus.java.adaptiverag;
 
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
-
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.state.AgentState;

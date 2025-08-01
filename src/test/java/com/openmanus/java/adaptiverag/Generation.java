@@ -1,9 +1,11 @@
-package dev.langchain4j.adaptiverag;
+package com.openmanus.java.adaptiverag;
+
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.function.BiFunction;

@@ -1,10 +1,12 @@
-package dev.langchain4j.adaptiverag;
+package com.openmanus.java.adaptiverag;
+
+import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.WebSearchContentRetriever;
 import dev.langchain4j.rag.query.Query;
 import dev.langchain4j.web.search.WebSearchEngine;
 import dev.langchain4j.web.search.tavily.TavilyWebSearchEngine;
-import dev.langchain4j.rag.content.Content;
+
 import java.util.List;
 import java.util.function.Function;
 
