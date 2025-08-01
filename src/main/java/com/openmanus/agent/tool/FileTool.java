@@ -1,4 +1,4 @@
-package com.openmanus.java.agent.tool;
+package com.openmanus.agent.tool;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;

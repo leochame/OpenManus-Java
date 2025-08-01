@@ -1,4 +1,4 @@
-package com.openmanus.java.agent.tool;
+package com.openmanus.agent.tool;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -25,6 +25,7 @@ public class PythonTool {
 
     @Tool("Execute Python code")
     public String executePython(@P("Python code") String code) {
+        logger.info("PythonTool.executePython: {}", code);
         try {
             // Create temporary file
             String tempDir = System.getProperty("java.io.tmpdir");
@@ -48,7 +49,7 @@ public class PythonTool {
                     output.append(line).append("\n");
                 }
             }
-            
+            logger.info("python output: {}", output.toString());
             // Wait for process to complete
             int exitCode = process.waitFor();
             
@@ -56,7 +57,12 @@ public class PythonTool {
             Files.deleteIfExists(filePath);
             
             if (exitCode == 0) {
-                return "Execution successful:\n" + output.toString();
+                String outputStr = output.toString();
+                if (outputStr.trim().isEmpty() || outputStr.isEmpty()) {
+                    return "Execution successful: (no output)";
+                } else {
+                    return "Execution successful:\n" + outputStr;
+                }
             } else {
                 return "Execution failed (exit code: " + exitCode + "):\n" + output.toString();
             }
@@ -94,10 +100,15 @@ public class PythonTool {
             int exitCode = process.waitFor();
         
             if (exitCode == 0) {
-                return "Execution successful:\n" + output.toString();
-        } else {
+                String outputStr = output.toString();
+                if (outputStr.trim().isEmpty()) {
+                    return "Execution successful: (no output)";
+                } else {
+                    return "Execution successful:\n" + outputStr;
+                }
+            } else {
                 return "Execution failed (exit code: " + exitCode + "):\n" + output.toString();
-    }
+            }
     
         } catch (IOException | InterruptedException e) {
             logger.error("Python file execution failed", e);

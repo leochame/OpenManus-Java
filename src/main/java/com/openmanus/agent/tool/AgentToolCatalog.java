@@ -1,4 +1,4 @@
-package com.openmanus.java.agent.tool;
+package com.openmanus.agent.tool;
 
 import org.springframework.stereotype.Component;
 

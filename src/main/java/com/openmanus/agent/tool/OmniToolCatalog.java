@@ -1,6 +1,5 @@
-package com.openmanus.java.agent.tool;
+package com.openmanus.agent.tool;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;

@@ -1,10 +1,10 @@
-package com.openmanus.java.agent.tool;
+package com.openmanus.agent.tool;
 
-import com.openmanus.java.agent.impl.thinker.ThinkingAgent;
-import com.openmanus.java.agent.impl.executor.SearchAgent;
-import com.openmanus.java.agent.impl.executor.CodeAgent;
-import com.openmanus.java.agent.impl.executor.FileAgent;
-import com.openmanus.java.agent.impl.reflection.ReflectionAgent;
+import com.openmanus.agent.impl.thinker.ThinkingAgent;
+import com.openmanus.agent.impl.executor.SearchAgent;
+import com.openmanus.agent.impl.executor.CodeAgent;
+import com.openmanus.agent.impl.executor.FileAgent;
+import com.openmanus.agent.impl.reflection.ReflectionAgent;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import org.springframework.stereotype.Component;
