@@ -487,4 +487,248 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const sessionId = ref('');
+                const events = ref([]);
+                const selectedEvent = ref(null);
+                const statistics = ref(null);
+                const loading = ref(false);
+                const refreshing = ref(false);
+                const autoRefresh = ref(false);
+                const refreshInterval = ref(null);
+
+                // Agent类型映射
+                const agentTypeMap = {
+                    'supervisor': '监督者Agent',
+                    'thinking_agent': '思考Agent',
+                    'search_agent': '搜索Agent',
+                    'code_agent': '代码Agent',
+                    'file_agent': '文件Agent',
+                    'reflection_agent': '反思Agent',
+                    'marketplace_agent': '市场Agent',
+                    'payment_agent': '支付Agent',
+                    'omni_agent': '全能Agent'
+                };
+
+                // 状态文本映射
+                const statusTextMap = {
+                    'PENDING': '等待中',
+                    'RUNNING': '执行中',
+                    'SUCCESS': '成功',
+                    'FAILED': '失败',
+                    'CANCELLED': '已取消',
+                    'TIMEOUT': '超时'
+                };
+
+                // 事件类型文本映射
+                const eventTypeTextMap = {
+                    'AGENT_START': 'Agent开始',
+                    'AGENT_END': 'Agent结束',
+                    'TOOL_CALL': '工具调用',
+                    'THINKING': '思考阶段',
+                    'EXECUTION': '执行阶段',
+                    'REFLECTION': '反思阶段',
+                    'ERROR': '错误事件',
+                    'HANDOFF': 'Agent交接'
+                };
+
+                // 获取Agent显示名称
+                const getAgentDisplayName = (agentName) => {
+                    return agentTypeMap[agentName] || agentName;
+                };
+
+                // 获取状态文本
+                const getStatusText = (status) => {
+                    return statusTextMap[status] || status;
+                };
+
+                // 获取事件类型文本
+                const getEventTypeText = (eventType) => {
+                    return eventTypeTextMap[eventType] || eventType;
+                };
+
+                // 获取状态样式类
+                const getStatusClass = (status) => {
+                    switch (status) {
+                        case 'RUNNING': return 'running';
+                        case 'SUCCESS': return 'success';
+                        case 'FAILED': return 'error';
+                        default: return 'pending';
+                    }
+                };
+
+                // 获取事件样式类
+                const getEventClass = (event) => {
+                    if (event.status === 'RUNNING') return 'active';
+                    if (event.status === 'SUCCESS') return 'success';
+                    if (event.status === 'FAILED') return 'error';
+                    return 'pending';
+                };
+
+                // 获取事件标签类型
+                const getEventTagType = (eventType) => {
+                    switch (eventType) {
+                        case 'AGENT_START': return 'primary';
+                        case 'AGENT_END': return 'success';
+                        case 'TOOL_CALL': return 'info';
+                        case 'ERROR': return 'danger';
+                        default: return '';
+                    }
+                };
+
+                // 格式化时间
+                const formatTime = (timeString) => {
+                    if (!timeString) return '';
+                    const date = new Date(timeString);
+                    return date.toLocaleString('zh-CN');
+                };
+
+                // 格式化持续时间
+                const formatDuration = (duration) => {
+                    if (!duration) return '0ms';
+                    if (duration < 1000) return `${duration}ms`;
+                    if (duration < 60000) return `${(duration / 1000).toFixed(1)}s`;
+                    return `${(duration / 60000).toFixed(1)}min`;
+                };
+
+                // 格式化JSON
+                const formatJson = (obj) => {
+                    if (typeof obj === 'string') return obj;
+                    return JSON.stringify(obj, null, 2);
+                };
+
+                // 选择事件
+                const selectEvent = (event) => {
+                    selectedEvent.value = event;
+                };
+
+                // 加载会话数据
+                const loadSessionData = async () => {
+                    if (!sessionId.value.trim()) {
+                        ElMessage.warning('请输入会话ID');
+                        return;
+                    }
+
+                    loading.value = true;
+                    try {
+                        // 并行加载事件和统计信息
+                        const [eventsResponse, statsResponse] = await Promise.all([
+                            fetch(`/api/agent-execution/sessions/${sessionId.value}/events`),
+                            fetch(`/api/agent-execution/sessions/${sessionId.value}/statistics`)
+                        ]);
+
+                        if (eventsResponse.ok) {
+                            events.value = await eventsResponse.json();
+                            // 按时间排序
+                            events.value.sort((a, b) => new Date(a.startTime || a.endTime) - new Date(b.startTime || b.endTime));
+                        } else {
+                            throw new Error('Failed to load events');
+                        }
+
+                        if (statsResponse.ok) {
+                            statistics.value = await statsResponse.json();
+                        }
+
+                        // 如果有事件，默认选择第一个
+                        if (events.value.length > 0) {
+                            selectedEvent.value = events.value[0];
+                        }
+
+                        ElMessage.success('数据加载成功');
+                    } catch (error) {
+                        console.error('Error loading session data:', error);
+                        ElMessage.error('加载数据失败: ' + error.message);
+                        events.value = [];
+                        statistics.value = null;
+                        selectedEvent.value = null;
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // 刷新数据
+                const refreshData = async () => {
+                    if (!sessionId.value.trim()) {
+                        ElMessage.warning('请先输入会话ID');
+                        return;
+                    }
+
+                    refreshing.value = true;
+                    try {
+                        await loadSessionData();
+                    } finally {
+                        refreshing.value = false;
+                    }
+                };
+
+                // 启动自动刷新
+                const startAutoRefresh = () => {
+                    if (refreshInterval.value) {
+                        clearInterval(refreshInterval.value);
+                    }
+                    refreshInterval.value = setInterval(() => {
+                        if (sessionId.value.trim() && !loading.value) {
+                            refreshData();
+                        }
+                    }, 3000); // 每3秒刷新一次
+                };
+
+                // 停止自动刷新
+                const stopAutoRefresh = () => {
+                    if (refreshInterval.value) {
+                        clearInterval(refreshInterval.value);
+                        refreshInterval.value = null;
+                    }
+                };
+
+                // 组件挂载时
+                onMounted(() => {
+                    // 从URL参数获取会话ID
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlSessionId = urlParams.get('sessionId');
+                    if (urlSessionId) {
+                        sessionId.value = urlSessionId;
+                        loadSessionData();
+                    }
+
+                    // 启动自动刷新
+                    startAutoRefresh();
+                });
+
+                // 组件卸载时
+                onUnmounted(() => {
+                    stopAutoRefresh();
+                });
+
+                return {
+                    sessionId,
+                    events,
+                    selectedEvent,
+                    statistics,
+                    loading,
+                    refreshing,
+                    autoRefresh,
+                    getAgentDisplayName,
+                    getStatusText,
+                    getEventTypeText,
+                    getStatusClass,
+                    getEventClass,
+                    getEventTagType,
+                    formatTime,
+                    formatDuration,
+                    formatJson,
+                    selectEvent,
+                    loadSessionData,
+                    refreshData
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
 </body>

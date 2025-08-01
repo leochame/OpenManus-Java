@@ -391,7 +391,34 @@
                             <span v-if="agentInfo" style="margin-left: 10px;">| {{ agentInfo.name || 'Agent' }}</span>
                         </p>
                     </div>
-                    <div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <el-dropdown>
+                            <el-button type="info" plain>
+                                <el-icon><Menu /></el-icon>
+                                更多功能
+                                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                            </el-button>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="openPage('/think-do-reflect.html')">
+                                        <el-icon><BrainFilled /></el-icon>
+                                        Think-Do-Reflect工作流
+                                    </el-dropdown-item>
+                                    <el-dropdown-item @click="openPage('/agent-monitor-demo.html')">
+                                        <el-icon><Monitor /></el-icon>
+                                        Agent执行监控演示
+                                    </el-dropdown-item>
+                                    <el-dropdown-item @click="openPage('/agent-execution-monitor.html')">
+                                        <el-icon><DataAnalysis /></el-icon>
+                                        Agent执行监控界面
+                                    </el-dropdown-item>
+                                    <el-dropdown-item divided @click="openPage('/api/agent-execution/health')">
+                                        <el-icon><CircleCheck /></el-icon>
+                                        监控服务健康检查
+                                    </el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
                         <el-button type="primary" @click="startNewConversation" :disabled="loading">
                             <el-icon><Plus /></el-icon>
                             新建对话
@@ -846,7 +873,12 @@
                         messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
                     }
                 };
-                
+
+                // 打开页面
+                const openPage = (url) => {
+                    window.open(url, '_blank');
+                };
+
                 return {
                     messages,
                     inputMessage,
@@ -870,7 +902,8 @@
                     renderMarkdown,
                     showCot,
                     hideCot,
-                    startNewConversation
+                    startNewConversation,
+                    openPage
                 };
             }
         }).use(ElementPlus).mount('#app');
@@ -882,15 +915,20 @@
         }
         
         // 确保图标组件可用
-        const { 
-            ChatDotRound, 
-            View, 
-            Close, 
-            Promotion, 
-            ArrowUp, 
+        const {
+            ChatDotRound,
+            View,
+            Close,
+            Promotion,
+            ArrowUp,
             ArrowDown,
             Plus,
-            InfoFilled
+            InfoFilled,
+            Menu,
+            BrainFilled,
+            Monitor,
+            DataAnalysis,
+            CircleCheck
         } = ElementPlusIconsVue;
     </script>
 </body>

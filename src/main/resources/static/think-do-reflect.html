@@ -129,6 +129,21 @@
             flex: 1;
         }
         
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .execution-options {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
         .results-section {
             flex: 1;
             padding: 20px;
@@ -357,18 +372,38 @@
                                 :disabled="loading"
                                 @keyup.ctrl.enter="executeWorkflow">
                             </el-input>
-                            <el-button 
-                                type="primary" 
-                                size="large"
-                                @click="executeWorkflow"
-                                :loading="loading"
-                                :disabled="!userInput.trim()">
-                                <el-icon><Play /></el-icon>
-                                执行工作流
-                            </el-button>
+                            <div class="button-group">
+                                <el-button 
+                                    type="primary" 
+                                    size="large"
+                                    @click="executeWorkflow"
+                                    :loading="loading && !syncMode"
+                                    :disabled="!userInput.trim() || loading">
+                                    <el-icon><Play /></el-icon>
+                                    {{ syncMode ? '同步执行' : '异步执行' }}
+                                </el-button>
+                                <el-button 
+                                    type="success" 
+                                    size="large"
+                                    @click="executeWorkflowSync"
+                                    :loading="loading && syncMode"
+                                    :disabled="!userInput.trim() || loading">
+                                    <el-icon><Tools /></el-icon>
+                                    调试模式
+                                </el-button>
+                            </div>
                         </div>
-                        <div style="margin-top: 10px; font-size: 0.9em; color: #6c757d;">
-                            提示：按 Ctrl+Enter 快速执行 | 支持复杂任务的智能分解和循环优化
+                        <div class="execution-options">
+                            <el-switch
+                                v-model="syncMode"
+                                :disabled="loading"
+                                active-text="同步模式"
+                                inactive-text="异步模式"
+                                style="margin-right: 20px;">
+                            </el-switch>
+                            <span style="font-size: 0.9em; color: #6c757d;">
+                                提示：按 Ctrl+Enter 快速执行 | {{ syncMode ? '同步模式便于调试，会阻塞页面' : '异步模式不阻塞页面，适合生产环境' }}
+                            </span>
                         </div>
                     </div>
                     
@@ -415,8 +450,23 @@
                                 <h3 class="result-title">
                                     <el-icon><DocumentCopy /></el-icon>
                                     任务 {{ index + 1 }}：{{ result.input }}
+                                    <el-tag v-if="result.mode" :type="result.mode.includes('同步') ? 'success' : 'primary'" size="small" style="margin-left: 10px;">
+                                        {{ result.mode }}
+                                    </el-tag>
                                 </h3>
-                                <span class="result-time">{{ formatTime(result.timestamp) }}</span>
+                                <div class="result-actions">
+                                    <el-button
+                                        v-if="result.sessionId"
+                                        type="primary"
+                                        size="small"
+                                        @click="openMonitor(result.sessionId)"
+                                        style="margin-right: 10px;"
+                                    >
+                                        <el-icon><Monitor /></el-icon>
+                                        查看执行过程
+                                    </el-button>
+                                    <span class="result-time">{{ formatTime(result.timestamp) }}</span>
+                                </div>
                             </div>
                             <div class="result-content" v-html="renderMarkdown(result.result)"></div>
                         </div>
@@ -446,6 +496,7 @@
                 const results = ref([]);
                 const healthChecking = ref(false);
                 const currentPhase = ref('');
+                const syncMode = ref(false);
                 const phaseCompleted = reactive({
                     thinking: false,
                     doing: false,
@@ -505,7 +556,7 @@
                     }, 6000);
                 };
                 
-                // 执行工作流
+                // 执行工作流（异步）
                 const executeWorkflow = async () => {
                     if (!userInput.value.trim() || loading.value) return;
                     
@@ -513,6 +564,7 @@
                     loading.value = true;
                     error.value = '';
                     currentPhase.value = '';
+                    syncMode.value = false;
                     
                     // 开始阶段进展模拟
                     simulatePhaseProgress();
@@ -539,16 +591,31 @@
                             results.value.unshift({
                                 input: input,
                                 result: data.result,
-                                timestamp: new Date()
+                                timestamp: new Date(),
+                                mode: '异步执行',
+                                sessionId: data.sessionId
                             });
-                            
+
                             // 完成所有阶段
                             phaseCompleted.completed = true;
-                            
+
                             // 清空输入
                             userInput.value = '';
-                            
-                            ElMessage.success('工作流执行成功！');
+
+                            ElMessage.success({
+                                message: '异步工作流执行成功！',
+                                duration: 3000,
+                                showClose: true
+                            });
+
+                            // 显示监控链接
+                            if (data.sessionId) {
+                                ElMessage.info({
+                                    message: `会话ID: ${data.sessionId}`,
+                                    duration: 5000,
+                                    showClose: true
+                                });
+                            }
                         } else {
                             throw new Error(data.error || '执行失败');
                         }
@@ -556,6 +623,72 @@
                     } catch (err) {
                         console.error('执行工作流时出错:', err);
                         error.value = err.message || '执行失败，请稍后重试';
+                        ElMessage.error(error.value);
+                    } finally {
+                        loading.value = false;
+                        currentPhase.value = '';
+                    }
+                };
+                
+                // 执行工作流（同步）
+                const executeWorkflowSync = async () => {
+                    if (!userInput.value.trim() || loading.value) return;
+                    
+                    const input = userInput.value.trim();
+                    loading.value = true;
+                    error.value = '';
+                    currentPhase.value = '';
+                    syncMode.value = true;
+                    
+                    // 同步模式不需要阶段进展模拟，直接显示执行状态
+                    currentPhase.value = 'thinking';
+                    
+                    try {
+                        const startTime = Date.now();
+                        const response = await fetch('/api/think-do-reflect/execute-sync', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                input: input
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || `HTTP ${response.status}`);
+                        }
+                        
+                        if (data.success) {
+                            // 添加成功结果
+                            results.value.unshift({
+                                input: input,
+                                result: data.result,
+                                timestamp: new Date(),
+                                mode: `同步执行 (${executionTime}s)`,
+                                executionTime: executionTime
+                            });
+                            
+                            // 完成所有阶段
+                            Object.keys(phaseCompleted).forEach(key => {
+                                phaseCompleted[key] = true;
+                            });
+                            currentPhase.value = 'completed';
+                            
+                            // 清空输入
+                            userInput.value = '';
+                            
+                            ElMessage.success(`同步工作流执行成功！耗时 ${executionTime} 秒`);
+                        } else {
+                            throw new Error(data.error || '执行失败');
+                        }
+                        
+                    } catch (err) {
+                        console.error('同步执行工作流时出错:', err);
+                        error.value = err.message || '同步执行失败，请稍后重试';
                         ElMessage.error(error.value);
                     } finally {
                         loading.value = false;
@@ -631,11 +764,17 @@
                     }
                 };
                 
+                // 打开监控界面
+                const openMonitor = (sessionId) => {
+                    const monitorUrl = `/agent-execution-monitor.html?sessionId=${sessionId}`;
+                    window.open(monitorUrl, '_blank');
+                };
+
                 // 组件挂载时执行健康检查
                 onMounted(() => {
                     checkHealth();
                 });
-                
+
                 return {
                     userInput,
                     loading,
@@ -644,13 +783,16 @@
                     healthChecking,
                     currentPhase,
                     phaseCompleted,
+                    syncMode,
                     statusText,
                     loadingText,
                     executeWorkflow,
+                    executeWorkflowSync,
                     checkHealth,
                     clearResults,
                     formatTime,
-                    renderMarkdown
+                    renderMarkdown,
+                    openMonitor
                 };
             }
         }).use(ElementPlus).mount('#app');

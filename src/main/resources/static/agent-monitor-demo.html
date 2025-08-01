@@ -337,7 +337,7 @@
                 const simulateThinkDoReflect = async () => {
                     simulating.value = true;
                     try {
-                        const response = await fetch('/api/think-do-reflect/execute', {
+                        const response = await fetch('/api/agent-monitor-test/simulate/think-do-reflect', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -346,13 +346,14 @@
                                 input: '分析当前AI技术发展趋势并生成简要报告'
                             })
                         });
-                        
+
                         const data = await response.json();
-                        
+
                         if (data.success && data.sessionId) {
-                            ElMessage.success('Think-Do-Reflect流程已启动');
+                            ElMessage.success('Think-Do-Reflect流程模拟已启动');
                             setTimeout(() => {
                                 openMonitor(data.sessionId);
+                                refreshActiveSessions();
                             }, 1000);
                         } else {
                             throw new Error(data.error || '启动失败');
@@ -368,23 +369,27 @@
                 const simulateMultiAgent = async () => {
                     simulating.value = true;
                     try {
-                        const response = await fetch('/api/agent/chat', {
+                        const response = await fetch('/api/agent-monitor-test/simulate/multi-agent', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                message: '帮我搜索最新的机器学习论文并总结要点'
+                                input: '搜索最新的机器学习论文并进行主题分析'
                             })
                         });
-                        
+
                         const data = await response.json();
-                        ElMessage.success('多Agent协作流程已启动');
-                        
-                        // 刷新活跃会话
-                        setTimeout(() => {
-                            refreshActiveSessions();
-                        }, 1000);
+
+                        if (data.success && data.sessionId) {
+                            ElMessage.success('多Agent协作流程模拟已启动');
+                            setTimeout(() => {
+                                openMonitor(data.sessionId);
+                                refreshActiveSessions();
+                            }, 1000);
+                        } else {
+                            throw new Error(data.error || '启动失败');
+                        }
                     } catch (error) {
                         ElMessage.error('启动失败: ' + error.message);
                     } finally {
@@ -396,8 +401,7 @@
                 const simulateErrorFlow = async () => {
                     simulating.value = true;
                     try {
-                        // 发送一个会导致错误的请求
-                        const response = await fetch('/api/think-do-reflect/execute', {
+                        const response = await fetch('/api/agent-monitor-test/simulate/error-flow', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -406,14 +410,17 @@
                                 input: '执行一个会失败的任务来测试错误处理机制'
                             })
                         });
-                        
+
                         const data = await response.json();
-                        
-                        if (data.sessionId) {
-                            ElMessage.warning('错误处理流程已启动');
+
+                        if (data.success && data.sessionId) {
+                            ElMessage.warning('错误处理流程模拟已启动');
                             setTimeout(() => {
                                 openMonitor(data.sessionId);
+                                refreshActiveSessions();
                             }, 1000);
+                        } else {
+                            throw new Error(data.error || '启动失败');
                         }
                     } catch (error) {
                         ElMessage.error('启动失败: ' + error.message);
