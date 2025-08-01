@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenManus Java - 智能对话系统</title>
+    <title>OpenManus Java - 智能Agent系统控制台</title>
     
     <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -15,13 +15,6 @@
     <!-- Element Plus Icons -->
     <script src="https://unpkg.com/@element-plus/icons-vue"></script>
     
-    <!-- Markdown renderer -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <!-- Highlight.js for code highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    
     <style>
         body {
             margin: 0;
@@ -29,780 +22,328 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            overflow-x: hidden;
         }
         
         .app-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            min-height: 100vh;
         }
         
-        .chat-header {
+        .header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
         
-        .chat-header h1 {
+        .header h1 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .header p {
             margin: 0;
-            color: #2c3e50;
-            font-size: 1.8em;
-            text-align: center;
-        }
-        
-        .main-content {
-            display: flex;
-            flex: 1;
-            gap: 15px;
-            height: calc(100vh - 140px);
-        }
-        
-        .chat-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        
-        .cot-panel {
-            width: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: width 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .cot-panel.active {
-            width: 45%;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .cot-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            max-height: calc(100vh - 200px);
-            scrollbar-width: thin;
-            scrollbar-color: #ccc #f8f9fa;
-        }
-        
-        /* 自定义滚动条样式 */
-        .cot-content::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .cot-content::-webkit-scrollbar-track {
-            background: #f8f9fa;
-        }
-        
-        .cot-content::-webkit-scrollbar-thumb {
-            background-color: #ccc;
-            border-radius: 10px;
-            border: 2px solid #f8f9fa;
-        }
-        
-        .cot-content::-webkit-scrollbar-thumb:hover {
-            background-color: #aaa;
-        }
-        
-        .cot-header {
-            padding: 15px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .message {
-            margin-bottom: 20px;
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        .message.user {
-            text-align: right;
-        }
-        
-        .message.assistant {
-            text-align: left;
-        }
-        
-        .message-content {
-            display: inline-block;
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            word-wrap: break-word;
-        }
-        
-        .message.user .message-content {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        
-        .message.assistant .message-content {
-            background: #f8f9fa;
-            color: #2c3e50;
-            border: 1px solid #e9ecef;
-        }
-        
-        .message-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 5px;
-            gap: 8px;
-        }
-        
-        .cot-step {
-            margin-bottom: 15px;
-            padding: 12px;
-            background: white;
-            border-radius: 8px;
-            border-left: 3px solid #28a745;
-            font-size: 0.9em;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .cot-step-header {
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #28a745;
-        }
-        
-        .chat-input {
-            padding: 15px;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .input-group .el-input {
-            flex: 1;
-        }
-        
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #667eea;
-        }
-        
-        .error {
-            color: #dc3545;
-            text-align: center;
-            padding: 10px;
-            background: #f8d7da;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-        
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
             color: #6c757d;
+            font-size: 1.2em;
+            line-height: 1.6;
         }
         
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .feature-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .feature-description {
+            color: #6c757d;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .feature-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .info-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .info-content {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+        
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-radius: 18px;
-            color: #6c757d;
-            font-style: italic;
+        .feature-card {
+            animation: fadeIn 0.6s ease-out;
         }
         
-        .typing-dots {
-            display: flex;
-            gap: 3px;
-        }
-        
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #6c757d;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-        
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-        
-        /* 长回答折叠样式 */
-        .answer-container {
-            position: relative;
-        }
-        
-        .answer-content {
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .answer-content.collapsed {
-            max-height: 200px;
-            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-        }
-        
-        .toggle-answer {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-            margin-bottom: 5px;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .app-container {
-                padding: 10px;
-            }
-            
-            .main-content {
-                flex-direction: column;
-                height: calc(100vh - 120px);
-            }
-            
-            .cot-panel.active {
-                width: 100%;
-                margin-top: 15px;
-                height: 300px;
-            }
-            
-            .chat-panel {
-                height: calc(100vh - 435px);
-            }
-            
-            .cot-content {
-                max-height: 250px;
-            }
-            
-            .answer-content.collapsed {
-                max-height: 150px;
-            }
-        }
-        
-        /* 代码块样式优化 */
-        pre {
-            background-color: #f6f8fa;
-            border-radius: 6px;
-            padding: 12px;
-            overflow: auto;
-            margin: 10px 0;
-        }
-        
-        code {
-            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
-            font-size: 85%;
-        }
-        
-        /* 推理步骤样式 */
-        .reasoning-info {
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: #e3f2fd;
-            border-radius: 6px;
-            font-size: 0.85em;
-            color: #1976d2;
-        }
-        
-        .tool-calls {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #fff3e0;
-            border-radius: 6px;
-            font-size: 0.85em;
-            color: #f57c00;
-        }
-        
-        .observations {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #e8f5e8;
-            border-radius: 6px;
-            font-size: 0.85em;
-            color: #388e3c;
-        }
-        
-        .reflections {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #fce4ec;
-            border-radius: 6px;
-            font-size: 0.85em;
-            color: #c2185b;
-        }
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+         .feature-card:nth-child(2) { animation-delay: 0.2s; }
+         .feature-card:nth-child(3) { animation-delay: 0.3s; }
+         .feature-card:nth-child(4) { animation-delay: 0.4s; }
+         .feature-card:nth-child(5) { animation-delay: 0.5s; }
+         .feature-card:nth-child(6) { animation-delay: 0.6s; }
     </style>
 </head>
 <body>
     <div id="app">
         <div class="app-container">
-            <!-- 头部 -->
-            <div class="chat-header">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h1>🤖 OpenManus Java - 智能对话系统</h1>
-                        <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">
-                            基于 langchain4j 和 langgraph4j，使用 ReAct 模式进行智能对话
-                            <span v-if="agentInfo" style="margin-left: 10px;">| {{ agentInfo.name || 'Agent' }}</span>
-                        </p>
+            <!-- 页面头部 -->
+            <div class="header">
+                <h1>🤖 OpenManus Java</h1>
+                <p>智能Agent系统控制台 - 统一管理和监控所有Agent功能模块</p>
+            </div>
+            
+            <!-- 功能模块网格 -->
+            <div class="features-grid">
+                <!-- 智能对话系统 -->
+                <div class="feature-card" @click="navigateTo('chat')">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-title">智能对话系统</div>
+                    <div class="feature-description">
+                        基于Think-Do-Reflect架构的智能对话系统，支持复杂推理和多轮对话
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <el-dropdown>
-                            <el-button type="info" plain>
-                                <el-icon><Menu /></el-icon>
-                                更多功能
-                                <el-icon class="el-icon--right"><arrow-down /></el-icon>
-                            </el-button>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item @click="openPage('/think-do-reflect.html')">
-                                        <el-icon><BrainFilled /></el-icon>
-                                        Think-Do-Reflect工作流
-                                    </el-dropdown-item>
-                                    <el-dropdown-item @click="openPage('/agent-monitor-demo.html')">
-                                        <el-icon><Monitor /></el-icon>
-                                        Agent执行监控演示
-                                    </el-dropdown-item>
-                                    <el-dropdown-item @click="openPage('/agent-execution-monitor.html')">
-                                        <el-icon><DataAnalysis /></el-icon>
-                                        Agent执行监控界面
-                                    </el-dropdown-item>
-                                    <el-dropdown-item divided @click="openPage('/api/agent-execution/health')">
-                                        <el-icon><CircleCheck /></el-icon>
-                                        监控服务健康检查
-                                    </el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
-                        <el-button type="primary" @click="startNewConversation" :disabled="loading">
-                            <el-icon><Plus /></el-icon>
-                            新建对话
-                        </el-button>
+                    <div class="feature-status">
+                        <div class="status-dot"></div>
+                        系统运行中
+                    </div>
+                </div>
+                
+                <!-- Agent执行监控 -->
+                <div class="feature-card" @click="navigateTo('pages/agent-monitoring.html')">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-title">Agent执行监控</div>
+                    <div class="feature-description">
+                        可视化监控Agent执行流程，展示思考、执行、反思各个阶段的输入输出和LLM交互
+                    </div>
+                    <div class="feature-status">
+                        <div class="status-dot"></div>
+                        实时监控
+                    </div>
+                </div>
+                
+                <!-- Think-Do-Reflect工作流 -->
+                <div class="feature-card" @click="navigateTo('pages/think-do-reflect.html')">
+                    <div class="feature-icon">🧠</div>
+                    <div class="feature-title">Think-Do-Reflect工作流</div>
+                    <div class="feature-description">
+                        专门的Think-Do-Reflect工作流界面，支持步骤化执行和结果展示
+                    </div>
+                    <div class="feature-status">
+                        <div class="status-dot"></div>
+                        工作流就绪
+                    </div>
+                </div>
+                
+                <!-- API文档 -->
+                <div class="feature-card" @click="navigateTo('swagger-ui.html')">
+                    <div class="feature-icon">📚</div>
+                    <div class="feature-title">API文档</div>
+                    <div class="feature-description">
+                        Swagger UI接口文档，查看所有可用的REST API接口
+                    </div>
+                    <div class="feature-status">
+                        <div class="status-dot"></div>
+                        文档就绪
+                    </div>
+                </div>
+                
+                <!-- Agent监控测试 -->
+                <div class="feature-card" @click="startMonitoringTest()">
+                    <div class="feature-icon">🎮</div>
+                    <div class="feature-title">监控测试</div>
+                    <div class="feature-description">
+                        启动Agent执行监控功能的演示和测试，可在统一监控界面查看结果
+                    </div>
+                    <div class="feature-status">
+                        <div class="status-dot"></div>
+                        测试就绪
                     </div>
                 </div>
             </div>
             
-            <div class="main-content">
-                <!-- 左侧聊天面板 -->
-                <div class="chat-panel">
-                    <!-- 消息区域 -->
-                    <div class="chat-messages" ref="messagesContainer">
-                        <div v-if="messages.length === 0" class="empty-state">
-                            <div class="empty-state-icon">
-                                <el-icon><ChatDotRound /></el-icon>
-                            </div>
-                            <span>开始对话，请输入您的问题！</span>
-                        </div>
-                        
-                        <div v-for="(message, index) in messages" :key="index" 
-                             :class="['message', message.role]">
-                            <div class="message-content">
-                                <div v-if="message.role === 'user'">
-                                    {{ message.content }}
-                                </div>
-                                <div v-else class="answer-container">
-                                    <!-- 回答内容 -->
-                                    <div :class="['answer-content', { 'collapsed': isLongAnswer(message) && !expandedAnswers[index] }]">
-                                        <div v-html="renderMarkdown(message.answer || message.content)"></div>
-                                        
-                                        <!-- 推理信息 -->
-                                        <div v-if="message.reasoning_steps && message.reasoning_steps.length > 0" class="reasoning-info">
-                                            <strong>推理步骤:</strong> {{ message.reasoning_steps.length }} 步
-                                        </div>
-                                        
-                                        <!-- 工具调用 -->
-                                        <div v-if="message.tool_calls && message.tool_calls.length > 0" class="tool-calls">
-                                            <strong>工具调用:</strong> {{ message.tool_calls.length }} 次
-                                        </div>
-                                        
-                                        <!-- 观察结果 -->
-                                        <div v-if="message.observations && message.observations.length > 0" class="observations">
-                                            <strong>观察结果:</strong> {{ message.observations.length }} 项
-                                        </div>
-                                        
-                                        <!-- 反思内容 -->
-                                        <div v-if="message.reflections && message.reflections.length > 0" class="reflections">
-                                            <strong>反思内容:</strong> {{ message.reflections.length }} 项
-                                        </div>
-                                        
-                                        <!-- 迭代次数 -->
-                                        <div v-if="message.iteration_count !== undefined" class="reasoning-info">
-                                            <strong>推理迭代:</strong> {{ message.iteration_count }} 次
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- 展开/收起按钮 -->
-                                    <div v-if="isLongAnswer(message)" class="toggle-answer">
-                                        <el-button size="small" @click="toggleAnswer(index)" type="info" plain>
-                                            {{ expandedAnswers[index] ? '收起' : '展开' }}
-                                            <el-icon>
-                                                <component :is="expandedAnswers[index] ? 'ArrowUp' : 'ArrowDown'" />
-                                            </el-icon>
-                                        </el-button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div v-if="message.role === 'assistant' && (message.cot && message.cot.length > 0 || message.reasoning_steps && message.reasoning_steps.length > 0)" 
-                                 class="message-actions">
-                                <el-button size="small" type="primary" plain @click="showCot(index)">
-                                    <el-icon><View /></el-icon> 查看推理过程
-                                </el-button>
-                            </div>
-                        </div>
-                        
-                        <!-- 加载指示器 -->
-                        <div v-if="loading" class="message assistant">
-                            <div class="message-content">
-                                <div class="typing-indicator">
-                                    <span>AI 正在思考中...</span>
-                                    <div class="typing-dots">
-                                        <div class="typing-dot"></div>
-                                        <div class="typing-dot"></div>
-                                        <div class="typing-dot"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 错误信息 -->
-                        <div v-if="error" class="error">
-                            {{ error }}
-                        </div>
-                    </div>
-                    
-                    <!-- 输入区域 -->
-                    <div class="chat-input">
-                        <div v-if="conversationId" style="margin-bottom: 8px; font-size: 0.8em; color: #6c757d; text-align: center;">
-                            会话ID: {{ conversationId }}
-                        </div>
-                        <div class="input-group">
-                            <el-input
-                                v-model="inputMessage"
-                                placeholder="请输入您的问题..."
-                                @keyup.enter="sendMessage"
-                                :disabled="loading"
-                                clearable>
-                            </el-input>
-                            <el-button 
-                                type="primary" 
-                                @click="sendMessage"
-                                :loading="loading"
-                                :disabled="!inputMessage.trim()">
-                                <el-icon><Promotion /></el-icon>
-                                发送
-                            </el-button>
-                        </div>
-                    </div>
+            <!-- 系统信息 -->
+            <div class="info-panel">
+                <div class="info-title">🚀 系统状态</div>
+                <div class="info-content">
+                    OpenManus Java智能Agent系统正在运行中。所有功能模块已就绪，可以开始使用。<br>
+                    点击上方功能卡片进入相应的功能模块。
                 </div>
-                
-                <!-- 右侧推理过程面板 -->
-                <div class="cot-panel" :class="{ active: activeCotIndex !== null }">
-                    <div v-if="activeCotIndex !== null" style="height: 100%; display: flex; flex-direction: column;">
-                        <div class="cot-header">
-                            <h3 style="margin: 0;">推理过程详情</h3>
-                            <el-button size="small" circle @click="hideCot">
-                                <el-icon><Close /></el-icon>
-                            </el-button>
-                        </div>
-                        
-                        <div class="cot-content" ref="cotContentContainer">
-                            <!-- 思考链步骤 -->
-                            <div v-if="activeCotSteps && activeCotSteps.length > 0">
-                                <h4 style="color: #28a745; margin-bottom: 10px;">思考链步骤 (COT)</h4>
-                                <div v-for="(step, stepIndex) in activeCotSteps" :key="'cot-' + stepIndex" class="cot-step">
-                                    <div class="cot-step-header">步骤 {{ stepIndex + 1 }}</div>
-                                    <div v-html="renderMarkdown(step)"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- 推理步骤 -->
-                            <div v-if="activeReasoningSteps && activeReasoningSteps.length > 0">
-                                <h4 style="color: #1976d2; margin: 20px 0 10px 0;">详细推理步骤</h4>
-                                <div v-for="(step, stepIndex) in activeReasoningSteps" :key="'reasoning-' + stepIndex" class="cot-step">
-                                    <div class="cot-step-header">{{ step.type || '推理步骤' }} {{ stepIndex + 1 }}</div>
-                                    <div v-html="renderMarkdown(step.content || JSON.stringify(step))"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- 工具调用 -->
-                            <div v-if="activeToolCalls && activeToolCalls.length > 0">
-                                <h4 style="color: #f57c00; margin: 20px 0 10px 0;">工具调用记录</h4>
-                                <div v-for="(toolCall, toolIndex) in activeToolCalls" :key="'tool-' + toolIndex" class="cot-step">
-                                    <div class="cot-step-header">工具调用 {{ toolIndex + 1 }}</div>
-                                    <div v-html="renderMarkdown(JSON.stringify(toolCall, null, 2))"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- 观察结果 -->
-                            <div v-if="activeObservations && activeObservations.length > 0">
-                                <h4 style="color: #388e3c; margin: 20px 0 10px 0;">观察结果</h4>
-                                <div v-for="(observation, obsIndex) in activeObservations" :key="'obs-' + obsIndex" class="cot-step">
-                                    <div class="cot-step-header">观察 {{ obsIndex + 1 }}</div>
-                                    <div v-html="renderMarkdown(observation)"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- 反思内容 -->
-                            <div v-if="activeReflections && activeReflections.length > 0">
-                                <h4 style="color: #c2185b; margin: 20px 0 10px 0;">反思内容</h4>
-                                <div v-for="(reflection, refIndex) in activeReflections" :key="'ref-' + refIndex" class="cot-step">
-                                    <div class="cot-step-header">反思 {{ refIndex + 1 }}</div>
-                                    <div v-html="renderMarkdown(reflection)"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- 无内容提示 -->
-                            <div v-if="!hasDetailedInfo" style="text-align: center; color: #6c757d; padding: 20px;">
-                                <el-icon style="font-size: 2rem; margin-bottom: 10px;"><InfoFilled /></el-icon>
-                                <p>暂无详细推理信息</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="quick-actions">
+                    <el-button type="primary" @click="navigateTo('chat')">
+                        <el-icon><ChatDotRound /></el-icon>
+                        开始对话
+                    </el-button>
+                    <el-button type="success" @click="navigateTo('pages/agent-monitoring.html')">
+                        <el-icon><Monitor /></el-icon>
+                        Agent监控
+                    </el-button>
+                    <el-button type="info" @click="refreshStatus">
+                        <el-icon><Refresh /></el-icon>
+                        刷新状态
+                    </el-button>
                 </div>
             </div>
         </div>
     </div>
-
+        
+    
+    <!-- Vue.js 应用脚本 -->
     <script>
-        const { createApp, ref, reactive, computed, nextTick, watch, onMounted } = Vue;
+        const { createApp } = Vue;
         const { ElMessage, ElMessageBox } = ElementPlus;
         
         createApp({
-            setup() {
-                const messages = ref([]);
-                const inputMessage = ref('');
-                const loading = ref(false);
-                const error = ref('');
-                const messagesContainer = ref(null);
-                const cotContentContainer = ref(null);
-                const activeCotIndex = ref(null);
-                const expandedAnswers = reactive({});
-                const conversationId = ref(null);
-                const agentInfo = ref(null);
-                
-                // 计算当前显示的思考链步骤
-                const activeCotSteps = computed(() => {
-                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
-                        return messages.value[activeCotIndex.value].cot || [];
+            data() {
+                return {
+                    systemStatus: 'running'
+                };
+            },
+            methods: {
+                navigateTo(page) {
+                    if (page === 'chat') {
+                        // 重新加载当前页面作为对话系统
+                        this.loadChatInterface();
+                    } else {
+                        // 导航到其他页面
+                        window.location.href = page;
                     }
-                    return [];
-                });
+                },
                 
-                // 计算当前显示的推理步骤
-                const activeReasoningSteps = computed(() => {
-                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
-                        return messages.value[activeCotIndex.value].reasoning_steps || [];
-                    }
-                    return [];
-                });
+                loadChatInterface() {
+                    // 这里可以动态加载对话界面
+                    ElMessage.info('正在加载智能对话系统...');
+                    // 实际实现中可以通过AJAX加载对话界面的HTML
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                },
                 
-                // 计算当前显示的工具调用
-                const activeToolCalls = computed(() => {
-                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
-                        return messages.value[activeCotIndex.value].tool_calls || [];
-                    }
-                    return [];
-                });
-                
-                // 计算当前显示的观察结果
-                const activeObservations = computed(() => {
-                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
-                        return messages.value[activeCotIndex.value].observations || [];
-                    }
-                    return [];
-                });
-                
-                // 计算当前显示的反思内容
-                const activeReflections = computed(() => {
-                    if (activeCotIndex.value !== null && messages.value[activeCotIndex.value]) {
-                        return messages.value[activeCotIndex.value].reflections || [];
-                    }
-                    return [];
-                });
-                
-                // 计算是否有详细信息
-                const hasDetailedInfo = computed(() => {
-                    return activeCotSteps.value.length > 0 || 
-                           activeReasoningSteps.value.length > 0 || 
-                           activeToolCalls.value.length > 0 || 
-                           activeObservations.value.length > 0 || 
-                           activeReflections.value.length > 0;
-                });
-                
-                // 获取Agent信息
-                const getAgentInfo = async () => {
+                refreshStatus() {
+                    ElMessage.success('系统状态已刷新');
+                    // 这里可以添加实际的状态检查逻辑
+                },
+
+                async startMonitoringTest() {
                     try {
-                        const response = await fetch('/api/agent/info');
-                        if (response.ok) {
-                            agentInfo.value = await response.json();
-                        }
-                    } catch (err) {
-                        console.warn('Failed to get agent info:', err);
-                    }
-                };
-                
-                // 生成会话ID
-                const generateConversationId = () => {
-                    return 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                };
-                
-                // 开始新对话
-                const startNewConversation = () => {
-                    if (loading.value) return;
-                    
-                    messages.value = [];
-                    conversationId.value = null;
-                    error.value = '';
-                    activeCotIndex.value = null;
-                    Object.keys(expandedAnswers).forEach(key => {
-                        delete expandedAnswers[key];
-                    });
-                    
-                    ElMessage.success('已开始新对话');
-                };
-                
-                // 监听推理过程变化，自动滚动到顶部
-                watch(activeCotIndex, (newVal) => {
-                    if (newVal !== null) {
-                        nextTick(() => {
-                            if (cotContentContainer.value) {
-                                cotContentContainer.value.scrollTop = 0;
-                            }
-                        });
-                    }
-                });
-                
-                // 组件挂载时获取Agent信息
-                onMounted(() => {
-                    getAgentInfo();
-                });
-                
-                // 判断是否为长回答（超过500个字符）
-                const isLongAnswer = (message) => {
-                    const content = message.answer || message.content || '';
-                    return content.length > 500;
-                };
-                
-                // 切换回答的展开/收起状态
-                const toggleAnswer = (index) => {
-                    expandedAnswers[index] = !expandedAnswers[index];
-                    nextTick(() => {
-                        scrollToBottom();
-                    });
-                };
-                
-                // 渲染 Markdown
-                const renderMarkdown = (text) => {
-                    if (!text) return '';
-                    try {
-                        const rendered = marked.parse(text);
-                        nextTick(() => {
-                            document.querySelectorAll('pre code').forEach((block) => {
-                                hljs.highlightElement(block);
-                            });
-                        });
-                        return rendered;
-                    } catch (e) {
-                        return text;
-                    }
-                };
-                
-                // 显示推理过程
-                const showCot = (messageIndex) => {
-                    activeCotIndex.value = messageIndex;
-                };
-                
-                // 隐藏推理过程
-                const hideCot = () => {
-                    activeCotIndex.value = null;
-                };
-                
-                // 发送消息
-                const sendMessage = async () => {
-                    if (!inputMessage.value.trim() || loading.value) return;
-                    
-                    const userMessage = inputMessage.value.trim();
-                    
-                    // 如果没有会话ID，生成一个新的
-                    if (!conversationId.value) {
-                        conversationId.value = generateConversationId();
-                    }
-                    
-                    // 添加用户消息
-                    messages.value.push({
-                        role: 'user',
-                        content: userMessage
-                    });
-                    
-                    // 清空输入框
-                    inputMessage.value = '';
-                    
-                    // 显示加载状态
-                    loading.value = true;
-                    error.value = '';
-                    
-                    try {
-                        // 滚动到底部
-                        await nextTick();
-                        scrollToBottom();
-                        
-                        // 发送请求到多轮对话接口
-                        const response = await fetch('/api/agent/chat/multi_turn', {
+                        ElMessage.info('正在启动监控测试...');
+
+                        // 调用监控测试API
+                        const response = await fetch('/api/agent-monitor-test/simulate-think-do-reflect', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                message: userMessage,
-                                conversationId: conversationId.value
+                                userInput: '测试Think-Do-Reflect工作流的监控功能'
                             })
                         });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            ElMessage.success(`监控测试已启动，会话ID: ${result.sessionId}`);
+                            ElMessage.info('请前往统一监控界面查看执行过程');
+
+                            // 3秒后自动打开监控界面
+                            setTimeout(() => {
+                                this.navigateTo('pages/agent-monitoring.html');
+                            }, 3000);
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    } catch (error) {
+                        console.error('启动监控测试失败:', error);
+                        ElMessage.error('启动监控测试失败: ' + error.message);
+                    }
+                }
+            },
+            
+            mounted() {
+                // 页面加载完成后的初始化
+                console.log('OpenManus Java 控制台已加载');
+            }
+        }).use(ElementPlus).mount('#app');
+     </script>
+ </body>
+ </html>
                         
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+z<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -483,6 +483,336 @@
             if (total === 0) return 0;
             return Math.round((data.completedFlows || 0) / total * 100);
         }
+
+        // 加载最近的执行流程
+        async function loadRecentFlows() {
+            try {
+                const response = await fetch('/api/agent-monitoring/flows/recent?limit=10');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const flows = await response.json();
+                renderFlows(flows);
+            } catch (error) {
+                console.error('Error loading recent flows:', error);
+                document.getElementById('flows').innerHTML =
+                    `<div class="error">❌ 加载执行流程失败: ${error.message}</div>`;
+            }
+        }
+
+        // 渲染执行流程列表
+        function renderFlows(flows) {
+            const flowsContainer = document.getElementById('flows');
+
+            if (!flows || flows.length === 0) {
+                flowsContainer.innerHTML = '<div class="loading">暂无执行流程</div>';
+                return;
+            }
+
+            flowsContainer.innerHTML = flows.map(flow => `
+                <div class="flow-item ${flow.status.toLowerCase()}" onclick="showDetailedFlow('${flow.sessionId}')">
+                    <div class="flow-header">
+                        <span class="flow-id">会话: ${flow.sessionId.substring(0, 8)}...</span>
+                        <span class="flow-status status-${flow.status.toLowerCase()}">
+                            ${getStatusText(flow.status)}
+                        </span>
+                    </div>
+                    <div class="flow-details">
+                        <div class="detail-item">
+                            <span class="detail-label">用户输入</span>
+                            <span class="detail-value">${truncateText(flow.userInput, 50)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">开始时间</span>
+                            <span class="detail-value">${formatTime(flow.startTime)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">阶段数</span>
+                            <span class="detail-value">${flow.phases ? flow.phases.length : 0}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">持续时间</span>
+                            <span class="detail-value">${formatDuration(flow.totalDuration)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 显示详细执行流程
+        async function showDetailedFlow(sessionId) {
+            try {
+                const response = await fetch(`/api/agent-monitoring/sessions/${sessionId}/detailed-flow`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const flow = await response.json();
+                renderDetailedFlow(flow);
+
+                document.getElementById('detailed-flow-container').style.display = 'block';
+                document.getElementById('detailed-flow-container').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Error loading detailed flow:', error);
+                alert(`❌ 加载详细流程失败: ${error.message}`);
+            }
+        }
+
+        // 渲染详细执行流程
+        function renderDetailedFlow(flow) {
+            const titleElement = document.getElementById('detailed-flow-title');
+            const contentElement = document.getElementById('detailed-flow-content');
+
+            titleElement.textContent = `📋 详细执行流程 - ${flow.sessionId.substring(0, 8)}...`;
+
+            if (!flow.phases || flow.phases.length === 0) {
+                contentElement.innerHTML = '<div class="loading">该流程暂无阶段数据</div>';
+                return;
+            }
+
+            const phasesHtml = flow.phases.map((phase, index) => `
+                <div class="phase-item ${phase.phaseType.toLowerCase()}">
+                    <div class="phase-header">
+                        <span class="phase-name">
+                            ${getPhaseIcon(phase.phaseType)} ${phase.phaseName} (${phase.agentName})
+                        </span>
+                        <span class="phase-duration">${formatDuration(phase.duration)}</span>
+                    </div>
+
+                    ${phase.input ? `
+                        <div class="io-section">
+                            <div class="io-title">📥 输入:</div>
+                            <div class="io-content">${formatIOContent(phase.input)}</div>
+                        </div>
+                    ` : ''}
+
+                    ${phase.output ? `
+                        <div class="io-section">
+                            <div class="io-title">📤 输出:</div>
+                            <div class="io-content">${formatIOContent(phase.output)}</div>
+                        </div>
+                    ` : ''}
+
+                    ${phase.llmInteractions && phase.llmInteractions.length > 0 ? `
+                        <div class="io-section">
+                            <div class="io-title">🤖 LLM交互 (${phase.llmInteractions.length}次):</div>
+                            ${phase.llmInteractions.map(interaction => `
+                                <div style="margin: 5px 0; padding: 5px; background: rgba(0,0,0,0.05); border-radius: 3px;">
+                                    <strong>模型:</strong> ${interaction.model} |
+                                    <strong>耗时:</strong> ${interaction.responseTime_ms}ms |
+                                    <strong>Token:</strong> ${interaction.tokenUsage ? interaction.tokenUsage.totalTokens : 'N/A'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${phase.toolCalls && phase.toolCalls.length > 0 ? `
+                        <div class="io-section">
+                            <div class="io-title">🔧 工具调用 (${phase.toolCalls.length}次):</div>
+                            ${phase.toolCalls.map(toolCall => `
+                                <div style="margin: 5px 0; padding: 5px; background: rgba(0,0,0,0.05); border-radius: 3px;">
+                                    <strong>工具:</strong> ${toolCall.toolName} |
+                                    <strong>状态:</strong> ${toolCall.status} |
+                                    <strong>耗时:</strong> ${toolCall.duration}ms
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            contentElement.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px;">
+                    <h4>🎯 用户输入:</h4>
+                    <p style="margin-top: 10px;">${flow.userInput}</p>
+                </div>
+
+                <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                    <h4>✅ 最终结果:</h4>
+                    <p style="margin-top: 10px;">${flow.finalResult || '执行中...'}</p>
+                </div>
+
+                <h4 style="margin-bottom: 15px;">🔄 执行阶段:</h4>
+                ${phasesHtml}
+            `;
+        }
+
+        // 工具函数
+        function getStatusText(status) {
+            switch(status) {
+                case 'RUNNING': return '运行中';
+                case 'COMPLETED': return '已完成';
+                case 'FAILED': return '失败';
+                case 'CANCELLED': return '已取消';
+                default: return '未知';
+            }
+        }
+
+        function getPhaseIcon(phaseType) {
+            switch(phaseType) {
+                case 'THINKING': return '🧠';
+                case 'EXECUTION': return '⚡';
+                case 'REFLECTION': return '🤔';
+                case 'TOOL_USAGE': return '🔧';
+                case 'DECISION': return '🎯';
+                default: return '📋';
+            }
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '未知';
+            return new Date(timestamp).toLocaleString('zh-CN');
+        }
+
+        function formatDuration(duration) {
+            if (!duration) return '0ms';
+            if (duration < 1000) return `${duration}ms`;
+            if (duration < 60000) return `${(duration / 1000).toFixed(1)}s`;
+            return `${(duration / 60000).toFixed(1)}min`;
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '无';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        function formatIOContent(content) {
+            if (typeof content === 'string') {
+                return content.length > 500 ? content.substring(0, 500) + '...' : content;
+            }
+            return JSON.stringify(content, null, 2).substring(0, 500);
+        }
+
+        // 控制函数
+        function refreshDashboard() {
+            loadDashboard();
+            loadRecentFlows();
+        }
+
+        function refreshFlows() {
+            loadRecentFlows();
+        }
+
+        function hideDetailedFlow() {
+            document.getElementById('detailed-flow-container').style.display = 'none';
+        }
+
+        function startThinkDoReflect() {
+            document.getElementById('think-do-reflect-container').style.display = 'block';
+            document.getElementById('userInput').focus();
+        }
+
+        function hideThinkDoReflect() {
+            document.getElementById('think-do-reflect-container').style.display = 'none';
+            document.getElementById('execution-result').innerHTML = '';
+        }
+
+        function clearInput() {
+            document.getElementById('userInput').value = '';
+        }
+
+        async function executeThinkDoReflect() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) {
+                alert('⚠️ 请输入任务内容');
+                return;
+            }
+
+            const executeBtn = document.getElementById('executeBtn');
+            const resultDiv = document.getElementById('execution-result');
+
+            executeBtn.disabled = true;
+            executeBtn.textContent = '🔄 执行中...';
+
+            resultDiv.innerHTML = '<div class="loading">正在执行Think-Do-Reflect工作流...</div>';
+
+            try {
+                const response = await fetch('/api/think-do-reflect/execute-sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ input: userInput })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div class="card">
+                        <h3>✅ 执行结果</h3>
+                        <div class="stat-item">
+                            <span class="stat-label">会话ID</span>
+                            <span class="stat-value">${result.sessionId}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">执行状态</span>
+                            <span class="stat-value">${result.success ? '成功' : '失败'}</span>
+                        </div>
+                        <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <strong>执行结果：</strong><br>
+                            <pre style="white-space: pre-wrap; margin-top: 10px;">${result.result}</pre>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button class="control-btn" onclick="showDetailedFlow('${result.sessionId}')">📊 查看执行详情</button>
+                        </div>
+                    </div>
+                `;
+
+                // 自动刷新流程列表
+                refreshFlows();
+
+            } catch (error) {
+                console.error('Error executing Think-Do-Reflect:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 执行失败: ${error.message}
+                    </div>
+                `;
+            } finally {
+                executeBtn.disabled = false;
+                executeBtn.textContent = '🚀 执行工作流';
+            }
+        }
+
+        async function cleanupFlows() {
+            if (!confirm('确定要清理24小时前的已完成流程吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/agent-monitoring/flows/cleanup?maxAgeHours=24', {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`✅ ${result.message}`);
+                    refreshFlows();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                alert(`❌ 清理失败: ${error.message}`);
+            }
+        }
+
+        function showAllFlows() {
+            // 这里可以扩展显示所有流程的功能
+            alert('📊 显示所有流程功能开发中...');
+        }
+
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
     </script>
 </body>
 </html>

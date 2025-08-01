@@ -1,6 +1,5 @@
-package com.openmanus.java.agent;
+package com.openmanus.agent;
 
-import com.openmanus.java.agent.workflow.ThinkDoReflectWorkflow;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;

@@ -1,7 +1,7 @@
-package com.openmanus.java.agent.controller;
+package com.openmanus.agent.controller;
 
-import com.openmanus.java.agent.workflow.ThinkDoReflectWorkflow;
-import com.openmanus.java.domain.controller.ThinkDoReflectController;
+import com.openmanus.agent.workflow.ThinkDoReflectWorkflow;
+import com.openmanus.domain.controller.ThinkDoReflectController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
