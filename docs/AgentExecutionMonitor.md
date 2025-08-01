@@ -2,7 +2,7 @@
 
 ## 概述
 
-Agent执行监控系统是一个人类友好的界面，用于实时监控和展示Agent的执行状态。它提供了详细的执行流程可视化，包括每个Agent的输入、输出、执行时间和状态信息。
+Agent执行监控系统是OpenManus Java项目中的核心监控组件，提供人类友好的界面用于实时监控和展示Think-Do-Reflect工作流中各个Agent的执行状态。它提供了详细的执行流程可视化，包括每个Agent的输入、输出、执行时间和状态信息。
 
 ## 核心功能
 
@@ -27,16 +27,16 @@ Agent执行监控系统是一个人类友好的界面，用于实时监控和展
 ### 1. 启动监控
 
 #### 方式一：通过Think-Do-Reflect界面
-1. 访问 `http://localhost:8080/think-do-reflect.html`
+1. 访问 `http://localhost:8089/think-do-reflect.html`
 2. 输入任务并执行
 3. 执行完成后，点击"查看执行过程"按钮
 
 #### 方式二：直接访问监控界面
-1. 访问 `http://localhost:8080/agent-execution-monitor.html`
+1. 访问 `http://localhost:8089/agent-execution-monitor.html`
 2. 输入会话ID并点击"加载"按钮
 
 #### 方式三：通过演示界面
-1. 访问 `http://localhost:8080/agent-monitor-demo.html`
+1. 访问 `http://localhost:8089/agent-monitor-demo.html`
 2. 点击"模拟Agent执行"按钮
 3. 自动跳转到监控界面
 
@@ -66,25 +66,31 @@ Agent执行监控系统是一个人类友好的界面，用于实时监控和展
 
 ### 3. API接口
 
+监控系统提供RESTful API接口，支持程序化访问和集成：
+
 #### 获取会话事件
 ```bash
 GET /api/agent-execution/sessions/{sessionId}/events
 ```
+获取指定会话的所有执行事件
 
 #### 获取活跃会话
 ```bash
 GET /api/agent-execution/sessions/active
 ```
+获取当前活跃的会话列表
 
 #### 获取会话统计
 ```bash
 GET /api/agent-execution/sessions/{sessionId}/statistics
 ```
+获取会话的统计信息（事件数、成功率、耗时等）
 
 #### 清理会话数据
 ```bash
 DELETE /api/agent-execution/sessions/{sessionId}
 ```
+清理指定会话的历史数据
 
 ## 系统架构
 
@@ -104,33 +110,46 @@ DELETE /api/agent-execution/sessions/{sessionId}
 
 ### 为现有Agent添加监控
 
+在OpenManus Java中，Agent监控是通过AgentExecutionTracker自动集成的：
+
 ```java
 @Autowired
-private TrackedAgentExecutor.TrackedAgentFactory trackedAgentFactory;
+private AgentExecutionTracker tracker;
 
-// 包装Agent添加监控功能
-Map.Entry<ToolSpecification, ToolExecutor> trackedAgent = 
-    trackedAgentFactory.createTrackedAgent(originalAgent);
+// 在Agent执行前开始追踪
+tracker.startAgentExecution(sessionId, agentId, agentName, context);
+
+// 记录工具调用
+tracker.recordToolCall(sessionId, agentId, toolName, input, output);
+
+// 在Agent执行完成后结束追踪
+tracker.endAgentExecution(sessionId, agentId, agentName, result, status);
 ```
 
 ### 自定义事件监听器
 
+可以通过实现事件监听器来扩展监控功能：
+
 ```java
 @Component
-public class CustomEventListener implements AgentExecutionTracker.AgentExecutionEventListener {
-    @Override
-    public void onEvent(AgentExecutionEvent event) {
+public class CustomEventListener {
+    
+    @EventListener
+    public void handleAgentExecutionEvent(AgentExecutionEvent event) {
         // 处理Agent执行事件
+        log.info("Agent {} executed with status: {}", 
+                event.getAgentName(), event.getStatus());
     }
 }
 ```
 
 ## 特性优势
 
-1. **人类友好**: 直观的界面设计，易于理解和使用
-2. **实时监控**: 实时显示执行状态和进度
+1. **人类友好**: 直观的界面设计，易于理解Think-Do-Reflect工作流
+2. **实时监控**: 实时显示Agent执行状态和进度
 3. **详细信息**: 提供完整的执行上下文和调试信息
-4. **易于集成**: 最小化侵入性，易于集成到现有系统
+4. **易于集成**: 与ThinkDoReflectWorkflow无缝集成
 5. **可扩展性**: 支持自定义扩展和功能增强
+6. **多Agent支持**: 完整支持多Agent协作场景的监控
 
 通过这个监控系统，开发者可以更好地理解Agent的执行过程，快速定位问题，优化系统性能。
