@@ -1,4 +1,4 @@
-package com.openmanus.java.domain.model;
+package com.openmanus.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -89,12 +89,25 @@ public class AgentExecutionEvent {
     public enum EventType {
         AGENT_START,        // Agent开始执行
         AGENT_END,          // Agent执行结束
-        TOOL_CALL,          // 工具调用
-        THINKING,           // 思考阶段
-        EXECUTION,          // 执行阶段
-        REFLECTION,         // 反思阶段
+        TOOL_CALL_START,    // 工具调用开始
+        TOOL_CALL_END,      // 工具调用结束
+        TOOL_CALL,          // 工具调用（通用）
+        THINKING_START,     // 思考开始
+        THINKING_END,       // 思考结束
+        REFLECTION_START,   // 反思开始
+        REFLECTION_END,     // 反思结束
+        EXECUTION_START,    // 执行开始
+        EXECUTION_END,      // 执行结束
+        LLM_REQUEST,        // LLM请求
+        LLM_RESPONSE,       // LLM响应
         ERROR,              // 错误事件
-        HANDOFF             // Agent交接
+        HANDOFF,            // Agent交接
+        STEP_START,         // 执行步骤开始
+        STEP_END,           // 执行步骤结束
+        DECISION_POINT,     // 决策点
+        WORKFLOW_START,     // 工作流开始
+        WORKFLOW_END,       // 工作流结束
+        INTERMEDIATE_RESULT // 中间结果
     }
     
     /**
@@ -106,7 +119,8 @@ public class AgentExecutionEvent {
         SUCCESS,            // 执行成功
         FAILED,             // 执行失败
         CANCELLED,          // 执行取消
-        ERROR, TIMEOUT             // 执行超时
+        ERROR,              // 执行错误
+        TIMEOUT             // 执行超时
     }
     
     /**

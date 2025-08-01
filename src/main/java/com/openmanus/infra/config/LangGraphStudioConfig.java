@@ -1,7 +1,7 @@
-package com.openmanus.java.infra.config;
+package com.openmanus.infra.config;
 
-import com.openmanus.java.agent.tool.OmniToolCatalog;
-import com.openmanus.java.agent.workflow.MultiAgentHandoffWorkflow;
+import com.openmanus.agent.tool.OmniToolCatalog;
+import com.openmanus.agent.workflow.MultiAgentHandoffWorkflow;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.CompileConfig;

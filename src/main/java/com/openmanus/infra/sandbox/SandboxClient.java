@@ -1,4 +1,4 @@
-package com.openmanus.java.infra.sandbox;
+package com.openmanus.infra.sandbox;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -10,7 +10,7 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.openmanus.java.infra.config.OpenManusProperties;
+import com.openmanus.infra.config.OpenManusProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

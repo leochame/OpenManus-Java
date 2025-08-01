@@ -1,7 +1,7 @@
-package com.openmanus.java.infra.config;
+package com.openmanus.infra.config;
 
-import com.openmanus.java.agent.impl.omni.AgentOmniService;
-import com.openmanus.java.agent.tool.OmniToolCatalog;
+import com.openmanus.agent.impl.omni.AgentOmniService;
+import com.openmanus.agent.tool.OmniToolCatalog;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
@@ -62,8 +62,6 @@ public class LangChain4jConfig {
                 .temperature(llmConfig.getTemperature())
                 .maxTokens(llmConfig.getMaxTokens())
                 .timeout(Duration.ofSeconds(llmConfig.getTimeout()))
-                .logRequests(true)
-                .logResponses(true)
                 .build();
     }
 

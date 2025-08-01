@@ -1,4 +1,4 @@
-package com.openmanus.java.infra.exception;
+package com.openmanus.infra.exception;
 
 public class ToolErrorException extends Exception {
     public ToolErrorException(String message) {

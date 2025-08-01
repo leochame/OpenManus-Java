@@ -1,4 +1,4 @@
-package com.openmanus.java.infra.exception;
+package com.openmanus.infra.exception;
 
 /**
  * Exception raised when the token limit is exceeded.

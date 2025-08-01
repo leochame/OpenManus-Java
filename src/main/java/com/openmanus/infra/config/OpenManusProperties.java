@@ -1,11 +1,11 @@
-package com.openmanus.java.infra.config;
+package com.openmanus.infra.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import lombok.Data;
 
 /**
  * OpenManus Configuration Properties
- * 
+ *
  * Centralized configuration management for OpenManus project
  * Supports configuration from application.yml and environment variables
  */

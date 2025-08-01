@@ -1,13 +1,13 @@
-package com.openmanus.java.infra.config;
+package com.openmanus.infra.config;
 
-import com.openmanus.java.agent.impl.thinker.ThinkingAgent;
-import com.openmanus.java.agent.impl.executor.SearchAgent;
-import com.openmanus.java.agent.impl.executor.CodeAgent;
-import com.openmanus.java.agent.impl.executor.FileAgent;
-import com.openmanus.java.agent.impl.reflection.ReflectionAgent;
-import com.openmanus.java.agent.tool.BrowserTool;
-import com.openmanus.java.agent.tool.PythonTool;
-import com.openmanus.java.agent.tool.FileTool;
+import com.openmanus.agent.impl.thinker.ThinkingAgent;
+import com.openmanus.agent.impl.executor.SearchAgent;
+import com.openmanus.agent.impl.executor.CodeAgent;
+import com.openmanus.agent.impl.executor.FileAgent;
+import com.openmanus.agent.impl.reflection.ReflectionAgent;
+import com.openmanus.agent.tool.BrowserTool;
+import com.openmanus.agent.tool.PythonTool;
+import com.openmanus.agent.tool.FileTool;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.GraphStateException;
 import org.springframework.context.annotation.Bean;

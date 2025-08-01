@@ -1,4 +1,4 @@
-package com.openmanus.java.infra.exception;
+package com.openmanus.infra.exception;
 
 /**
  * Base exception for all OpenManus errors.

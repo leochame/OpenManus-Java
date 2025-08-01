@@ -1,11 +1,12 @@
-package com.openmanus.java;
+package com.openmanus;
 
-import com.openmanus.java.infra.config.OpenManusProperties;
-import com.openmanus.java.infra.sandbox.SandboxClient;
+import com.openmanus.infra.config.OpenManusProperties;
+import com.openmanus.infra.sandbox.SandboxClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -14,7 +15,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
  * OpenManus Main Application Class
  * A minimalist AI Agent framework based on langchain4j and langgraph4j
  */
-@SpringBootApplication(scanBasePackages = "com.openmanus.java")
+@SpringBootApplication(scanBasePackages = "com.openmanus")
+@EnableConfigurationProperties(OpenManusProperties.class)
 public class WebApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(WebApplication.class);
