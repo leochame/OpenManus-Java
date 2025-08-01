@@ -1,11 +1,11 @@
-package com.openmanus.java.agent.workflow;
+package com.openmanus.agent.workflow;
 
-import com.openmanus.java.agent.base.AgentHandoff;
+import com.openmanus.agent.base.AgentHandoff;
 
-import com.openmanus.java.agent.impl.marketplace.AgentMarketplace;
-import com.openmanus.java.agent.impl.marketplace.AgentPayment;
-import com.openmanus.java.agent.impl.omni.AgentOmni;
-import com.openmanus.java.agent.tool.OmniToolCatalog;
+import com.openmanus.agent.impl.marketplace.AgentMarketplace;
+import com.openmanus.agent.impl.marketplace.AgentPayment;
+import com.openmanus.agent.impl.omni.AgentOmni;
+import com.openmanus.agent.tool.OmniToolCatalog;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.CompiledGraph;

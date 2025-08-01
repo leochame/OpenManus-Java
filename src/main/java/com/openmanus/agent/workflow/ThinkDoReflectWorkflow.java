@@ -1,13 +1,12 @@
-package com.openmanus.java.agent.workflow;
+package com.openmanus.agent.workflow;
 
-import com.openmanus.java.agent.base.AgentHandoff;
-import com.openmanus.java.agent.impl.supervisor.SupervisorAgent;
-import com.openmanus.java.agent.impl.thinker.ThinkingAgent;
-import com.openmanus.java.agent.impl.executor.SearchAgent;
-import com.openmanus.java.agent.impl.executor.CodeAgent;
-import com.openmanus.java.agent.impl.executor.FileAgent;
-import com.openmanus.java.agent.impl.reflection.ReflectionAgent;
-import com.openmanus.java.agent.tool.AgentToolCatalog;
+import com.openmanus.agent.base.AgentHandoff;
+import com.openmanus.agent.impl.thinker.ThinkingAgent;
+import com.openmanus.agent.impl.executor.SearchAgent;
+import com.openmanus.agent.impl.executor.CodeAgent;
+import com.openmanus.agent.impl.executor.FileAgent;
+import com.openmanus.agent.impl.reflection.ReflectionAgent;
+import com.openmanus.agent.tool.AgentToolCatalog;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.CompiledGraph;

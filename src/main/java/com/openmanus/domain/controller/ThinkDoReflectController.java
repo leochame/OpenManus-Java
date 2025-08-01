@@ -1,8 +1,8 @@
-package com.openmanus.java.domain.controller;
+package com.openmanus.domain.controller;
 
-import com.openmanus.java.agent.workflow.ThinkDoReflectWorkflow;
-import com.openmanus.java.domain.service.AgentExecutionTracker;
-import com.openmanus.java.domain.model.AgentExecutionEvent;
+import com.openmanus.agent.workflow.ThinkDoReflectWorkflow;
+import com.openmanus.infra.monitoring.AgentExecutionTracker;
+import com.openmanus.domain.model.AgentExecutionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

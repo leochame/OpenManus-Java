@@ -1,7 +1,7 @@
-package com.openmanus.java.domain.controller;
-import com.openmanus.java.agent.tool.BrowserTool;
-import com.openmanus.java.agent.tool.OmniToolCatalog;
-import com.openmanus.java.agent.workflow.MultiAgentHandoffWorkflow;
+package com.openmanus.domain.controller;
+import com.openmanus.agent.tool.BrowserTool;
+import com.openmanus.agent.tool.OmniToolCatalog;
+import com.openmanus.agent.workflow.MultiAgentHandoffWorkflow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
