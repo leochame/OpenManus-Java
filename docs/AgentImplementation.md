@@ -32,11 +32,7 @@ stateDiagram-v2
 
 ```java
 // 基于现有的OpenManus框架
-import com.openmanus.java.agent.base.AbstractAgent;
-import com.openmanus.java.agent.base.AbstractAgentExecutor;
-import com.openmanus.java.agent.base.AgentHandoff;
-import org.bsc.langgraph4j.StateGraph;
-import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
+
 ```
 
 ### 状态管理设计

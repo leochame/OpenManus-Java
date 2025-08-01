@@ -130,8 +130,8 @@ mvn spring-boot:run
 
 4. **访问服务**
 - **主界面**: http://localhost:8089
-- **Think-Do-Reflect**: http://localhost:8089/think-do-reflect.html
-- **Agent监控**: http://localhost:8089/agent-execution-monitor.html
+- **统一监控系统**: http://localhost:8089/pages/unified-monitoring.html
+- **Think-Do-Reflect**: http://localhost:8089/pages/think-do-reflect.html
 - **API 文档**: http://localhost:8089/swagger-ui.html
 
 ### 快速体验
@@ -217,14 +217,18 @@ public class AgentExecutionTracker {
 
 ## 🎨 监控和调试
 
-### Agent执行监控
+### 统一监控系统
 
-启动应用后访问相关界面进行监控和调试：
+启动应用后访问统一监控界面进行全面的系统监控和调试：
 
-- **执行监控**: http://localhost:8089/agent-execution-monitor.html - 实时查看Agent执行状态
-- **Think-Do-Reflect**: http://localhost:8089/think-do-reflect.html - 体验循环反思工作流
-- **多Agent演示**: http://localhost:8089/agent-monitor-demo.html - 模拟多Agent协作
-- **主界面**: http://localhost:8089 - 智能对话系统
+- **统一监控**: http://localhost:8089/pages/unified-monitoring.html - 集成所有监控功能的统一界面
+  - 实时Agent执行监控
+  - Think-Do-Reflect工作流执行
+  - 系统性能指标
+  - 实时控制台输出
+  - 执行流程可视化
+- **Think-Do-Reflect**: http://localhost:8089/pages/think-do-reflect.html - 专门的工作流界面
+- **主界面**: http://localhost:8089 - 智能对话系统和功能导航
 
 ### 监控功能
 
