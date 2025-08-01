@@ -4,7 +4,9 @@ import com.openmanus.java.agent.workflow.ThinkDoReflectWorkflow;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -24,7 +26,7 @@ public class ThinkDoReflectController {
     }
 
     /**
-     * 执行Think-Do-Reflect工作流
+     * 执行Think-Do-Reflect工作流（异步版本）
      *
      * @param request 包含用户输入的请求
      * @return 异步执行结果
@@ -32,7 +34,7 @@ public class ThinkDoReflectController {
     @PostMapping("/execute")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> execute(
             @RequestBody Map<String, String> request) {
-        
+
         String userInput = request.get("input");
         if (userInput == null || userInput.trim().isEmpty()) {
             Map<String, Object> errorBody = Map.of("error", "输入不能为空");
@@ -41,23 +43,63 @@ public class ThinkDoReflectController {
             );
         }
 
+        // 生成会话ID用于跟踪
+        String sessionId = UUID.randomUUID().toString();
+
         return workflow.execute(userInput)
                 .thenApply(result -> {
-                    Map<String, Object> responseBody = Map.of(
-                        "success", true,
-                        "result", result,
-                        "input", userInput
-                    );
+                    Map<String, Object> responseBody = new HashMap<>();
+                    responseBody.put("success", true);
+                    responseBody.put("result", result);
+                    responseBody.put("input", userInput);
+                    responseBody.put("sessionId", sessionId);
                     return ResponseEntity.ok(responseBody);
                 })
                 .exceptionally(throwable -> {
-                    Map<String, Object> errorBody = Map.of(
-                        "success", false,
-                        "error", throwable.getMessage(),
-                        "input", userInput
-                    );
+                    Map<String, Object> errorBody = new HashMap<>();
+                    errorBody.put("success", false);
+                    errorBody.put("error", throwable.getMessage());
+                    errorBody.put("input", userInput);
+                    errorBody.put("sessionId", sessionId);
                     return ResponseEntity.internalServerError().body(errorBody);
                 });
+    }
+    
+    /**
+     * 执行Think-Do-Reflect工作流（同步版本，方便调试）
+     *
+     * @param request 包含用户输入的请求
+     * @return 同步执行结果
+     */
+    @PostMapping("/execute-sync")
+    public ResponseEntity<Map<String, Object>> executeSync(
+            @RequestBody Map<String, String> request) {
+
+        String userInput = request.get("input");
+        if (userInput == null || userInput.trim().isEmpty()) {
+            Map<String, Object> errorBody = Map.of("error", "输入不能为空");
+            return ResponseEntity.badRequest().body(errorBody);
+        }
+
+        // 生成会话ID用于跟踪
+        String sessionId = UUID.randomUUID().toString();
+
+        try {
+            String result = workflow.executeSync(userInput);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("success", true);
+            responseBody.put("result", result);
+            responseBody.put("input", userInput);
+            responseBody.put("sessionId", sessionId);
+            return ResponseEntity.ok(responseBody);
+        } catch (Exception e) {
+            Map<String, Object> errorBody = new HashMap<>();
+            errorBody.put("success", false);
+            errorBody.put("error", e.getMessage());
+            errorBody.put("input", userInput);
+            errorBody.put("sessionId", sessionId);
+            return ResponseEntity.internalServerError().body(errorBody);
+        }
     }
 
     /**

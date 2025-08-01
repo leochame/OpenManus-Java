@@ -115,15 +115,13 @@ public class AgentMonitorTestController {
     }
     
     /**
-     * 模拟Think-Do-Reflect执行流程
+     * 模拟Think-Do-Reflect执行流程（新架构：无Supervisor）
      */
     private void simulateThinkDoReflectFlow(String sessionId, String userInput) throws InterruptedException {
-        // 1. Supervisor Agent 开始
-        executionTracker.startAgentExecution(sessionId, "supervisor", "SupervisorAgent", 
-            Map.of("input", userInput, "phase", "starting"));
-        Thread.sleep(500);
-        
-        // 2. Thinking Agent 执行
+        // 1. 直接从Thinking Agent 开始（新架构）
+        executionTracker.startAgentExecution(sessionId, "thinking_agent", "ThinkingAgent",
+            Map.of("task", "分析任务", "input", userInput, "phase", "thinking"));
+        Thread.sleep(2000);
         executionTracker.startAgentExecution(sessionId, "thinking_agent", "ThinkingAgent", 
             Map.of("task", "分析任务", "input", userInput));
         Thread.sleep(2000);
@@ -159,10 +157,8 @@ public class AgentMonitorTestController {
             "STATUS: COMPLETE - 任务已完成，生成了完整的AI技术发展趋势分析报告", 
             AgentExecutionEvent.ExecutionStatus.SUCCESS);
         
-        // 6. Supervisor Agent 结束
-        executionTracker.endAgentExecution(sessionId, "supervisor", "SupervisorAgent", 
-            "Think-Do-Reflect工作流执行完成，生成了AI技术发展趋势分析报告", 
-            AgentExecutionEvent.ExecutionStatus.SUCCESS);
+        // 6. 工作流完成（新架构：无需Supervisor结束）
+        log.info("Think-Do-Reflect工作流执行完成（新架构）");
     }
     
     /**
