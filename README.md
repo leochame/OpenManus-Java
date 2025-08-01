@@ -4,12 +4,12 @@
 
 ![OpenManus Logo](https://raw.githubusercontent.com/OpenManus/OpenManus/main/assets/logo.png)
 
-**基于 LangGraph4j StateGraph 架构的智能 AI Agent 系统**
+**基于 LangChain4j AgentExecutor 和 AgentHandoff 机制的智能 AI Agent 系统**
 
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)](https://spring.io/projects/spring-boot)
-[![LangGraph4j](https://img.shields.io/badge/LangGraph4j-1.6.0--beta5-blue)](https://github.com/bsorrentino/langgraph4j)
-[![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-yellow)](https://github.com/langchain4j/langchain4j)
+[![LangGraph4j](https://img.shields.io/badge/LangGraph4j-1.6.0--beta6-blue)](https://github.com/bsorrentino/langgraph4j)
+[![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0--beta7-yellow)](https://github.com/langchain4j/langchain4j)
 
 [🚀 快速开始](#-快速开始) •
 [📚 文档](#-文档) •
@@ -21,21 +21,22 @@
 
 ## 📋 项目概述
 
-OpenManus Java 是一个基于 **LangGraph4j StateGraph 架构** 的先进智能代理系统，专为构建复杂的AI工作流而设计。通过结合 ReAct 推理框架、智能记忆系统和可视化调试工具，为开发者提供强大而灵活的AI应用开发平台。
+OpenManus Java 是一个基于 **LangChain4j AgentExecutor 和 AgentHandoff 机制** 的智能代理系统，专为构建复杂的AI工作流而设计。通过 Think-Do-Reflect 循环反思模式、多Agent协作和智能监控系统，为开发者提供强大而灵活的AI应用开发平台。
 
 ### 🎯 功能特性
 
-#### 🧠 StateGraph 核心架构
-- **状态图工作流**: 基于 LangGraph4j 的可视化状态管理
-- **ReAct 推理循环**: Think → Act → Observe → Reflect 完整流程
-- **条件路由**: 智能的状态转换和流程控制
-- **检查点机制**: 支持工作流暂停、恢复和回放
+#### 🧠 Think-Do-Reflect 核心架构
+- **循环反思工作流**: 基于 AgentHandoff 的智能Agent协作
+- **Think-Do-Reflect 模式**: Think → Do → Reflect 完整循环
+- **智能Agent调度**: 根据任务需求动态选择合适的Agent
+- **执行监控机制**: 实时追踪Agent执行状态和工具调用
 
-#### 💭 智能推理系统
-- **ThinkNode**: 深度问题分析和行动规划
-- **ActNode**: 多工具并发执行和智能调度
-- **ObserveNode**: 结果分析和进展评估
-- **MemoryNode**: 短期和长期记忆管理
+#### 💭 智能Agent系统
+- **ThinkingAgent**: 深度问题分析和执行规划
+- **SearchAgent**: 网络搜索和信息检索
+- **CodeAgent**: Python代码执行和数据分析
+- **FileAgent**: 文件操作和内容处理
+- **ReflectionAgent**: 结果评估和循环决策
 
 #### 🔧 强大的工具生态
 - **代码执行**: Python 代码安全执行环境
@@ -43,11 +44,11 @@ OpenManus Java 是一个基于 **LangGraph4j StateGraph 架构** 的先进智能
 - **网络访问**: 智能网页浏览和信息提取
 - **记忆管理**: 向量数据库支持的长期记忆
 
-#### 🎨 可视化调试
-- **LangGraph4j Studio**: 实时工作流可视化
-- **状态监控**: 节点执行状态实时追踪
-- **图表生成**: Mermaid/PlantUML 流程图导出
-- **断点调试**: 支持工作流断点和单步执行
+#### 🎨 监控和调试
+- **Agent执行监控**: 实时追踪Agent状态和工具调用
+- **Think-Do-Reflect界面**: 可视化循环反思工作流
+- **执行历史记录**: 完整的Agent执行轨迹
+- **多Agent协作演示**: 模拟复杂的多Agent协作场景
 
 ## 🏗️ 架构设计
 
@@ -55,45 +56,49 @@ OpenManus Java 是一个基于 **LangGraph4j StateGraph 架构** 的先进智能
 
 ```mermaid
 graph TD
-    A[用户输入] --> B[MemoryNode<br/>记忆管理]
-    B --> C[ThinkNode<br/>思考分析]
-    C --> D[ActNode<br/>执行行动]
-    D --> E[ObserveNode<br/>观察结果]
-    E --> F{是否完成?}
-    F -->|否| G[ReflectNode<br/>反思优化]
-    G --> C
-    F -->|是| H[最终输出]
+    A[用户输入] --> B[ThinkDoReflectWorkflow]
+    B --> C[ThinkingAgent<br/>任务分析规划]
+    C --> D{选择执行Agent}
+    D -->|搜索任务| E[SearchAgent<br/>信息检索]
+    D -->|代码任务| F[CodeAgent<br/>代码执行]
+    D -->|文件任务| G[FileAgent<br/>文件操作]
+    E --> H[ReflectionAgent<br/>结果评估]
+    F --> H
+    G --> H
+    H --> I{任务完成?}
+    I -->|否| C
+    I -->|是| J[返回结果]
     
     subgraph "工具层"
-        I[PythonTool]
-        J[FileTool]
-        K[BrowserTool]
-        L[ReflectionTool]
+        K[PythonTool]
+        L[FileTool]
+        M[BrowserTool]
+        N[ReflectionTool]
     end
     
-    subgraph "记忆层"
-        M[ConversationBuffer<br/>短期记忆]
-        N[VectorStore<br/>长期记忆]
+    subgraph "监控层"
+        O[AgentExecutionTracker]
+        P[执行状态监控]
     end
     
-    D --> I
-    D --> J
-    D --> K
-    D --> L
-    B --> M
-    B --> N
+    E --> K
+    F --> K
+    G --> L
+    H --> N
+    B --> O
+    O --> P
 ```
 
 ### 技术栈对比
 
-| **组件** | **之前架构** | **新架构 (StateGraph)** |
+| **组件** | **传统架构** | **Think-Do-Reflect架构** |
 |----------|-------------|------------------------|
-| **核心框架** | AI Services | LangGraph4j StateGraph |
-| **推理模式** | 单轮对话 | 多轮 ReAct 循环 |
-| **状态管理** | 无状态 | 完整状态追踪 |
-| **可视化** | 无 | Studio 实时调试 |
-| **记忆系统** | 简单缓存 | 双层记忆架构 |
-| **错误处理** | 基础异常 | 状态恢复机制 |
+| **核心框架** | AI Services | AgentExecutor + AgentHandoff |
+| **推理模式** | 单轮对话 | 多轮循环反思 |
+| **Agent协作** | 单一Agent | 多Agent智能调度 |
+| **监控系统** | 无 | 实时执行监控 |
+| **反思机制** | 无 | 循环评估改进 |
+| **错误处理** | 基础异常 | 智能重试机制 |
 
 ## 🚀 快速开始
 
@@ -124,8 +129,9 @@ mvn spring-boot:run
 ```
 
 4. **访问服务**
-- **Web 界面**: http://localhost:8089
-- **Studio 调试**: http://localhost:8089/ (自动重定向到 Studio)
+- **主界面**: http://localhost:8089
+- **Think-Do-Reflect**: http://localhost:8089/think-do-reflect.html
+- **Agent监控**: http://localhost:8089/agent-execution-monitor.html
 - **API 文档**: http://localhost:8089/swagger-ui.html
 
 ### 快速体验
@@ -142,101 +148,98 @@ curl -X POST http://localhost:8089/api/agent/chat \
 
 ## 📚 核心组件详解
 
-### 1. OpenManusAgentState
+### 1. ThinkDoReflectWorkflow
 
-扩展 LangGraph4j 的 AgentState，管理完整的推理状态：
+核心工作流管理器，协调各个Agent的执行：
 
 ```java
-public class OpenManusAgentState extends AgentState {
-    // ReAct 推理步骤跟踪
-    private List<Map<String, Object>> reasoningSteps;
+@Service
+public class ThinkDoReflectWorkflow {
+    private final CompiledGraph<AgentExecutor.State> handoffExecutor;
     
-    // 工具调用历史
-    private List<Map<String, Object>> toolCalls;
+    // Think-Do-Reflect循环执行
+    public CompletableFuture<String> execute(String userInput);
     
-    // 记忆和反思信息
-    private List<Map<String, Object>> reflections;
-    
-    // 迭代控制和元数据
-    private int iterationCount;
-    private int maxIterations;
+    // 同步执行版本
+    public String executeSync(String userInput);
 }
 ```
 
-### 2. React 节点系统
+### 2. Agent执行系统
 
-#### ThinkNode - 智能思考
+#### ThinkingAgent - 智能规划
 ```java
-@Component
-public class ThinkNode implements AsyncNodeAction<OpenManusAgentState> {
-    // 深度问题分析
-    // 制定行动计划
-    // 决策下一步骤
+public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> {
+    // 任务分析和规划
+    // 执行步骤制定
+    // 策略调整
 }
 ```
 
-#### ActNode - 执行行动
+#### SearchAgent - 信息检索
 ```java
-@Component 
-public class ActNode implements AsyncNodeAction<OpenManusAgentState> {
-    // 解析行动指令
-    // 调用相应工具
-    // 处理执行结果
+public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
+    // 网络搜索
+    // 信息提取
+    // 内容整理
 }
 ```
 
-#### ObserveNode - 结果观察
+#### ReflectionAgent - 结果评估
 ```java
-@Component
-public class ObserveNode implements AsyncNodeAction<OpenManusAgentState> {
-    // 分析执行结果
-    // 评估任务进展
-    // 决定继续或结束
+public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Builder> {
+    // 结果分析
+    // 完成度评估
+    // 循环决策
 }
 ```
 
-### 3. 记忆系统
+### 3. 监控系统
 
-#### 双层记忆架构
-- **短期记忆**: ConversationBuffer 管理对话上下文
-- **长期记忆**: 向量数据库存储重要信息
+#### Agent执行追踪
+- **实时监控**: AgentExecutionTracker 追踪执行状态
+- **历史记录**: 完整的Agent执行轨迹
+- **性能分析**: 工具调用统计和性能指标
 
 ```java
 @Component
-public class MemoryNode implements AsyncNodeAction<OpenManusAgentState> {
-    // 自动重要信息识别
-    // 语义相似度检索
-    // 记忆分类和标签
+public class AgentExecutionTracker {
+    // Agent执行状态追踪
+    public void startAgentExecution(String sessionId, String agentId, String agentName, Map<String, Object> context);
+    
+    // 工具调用记录
+    public void recordToolCall(String sessionId, String agentId, String toolName, String input, String output);
+    
+    // 执行结束记录
+    public void endAgentExecution(String sessionId, String agentId, String agentName, String result, ExecutionStatus status);
 }
 ```
 
-## 🎨 可视化调试
+## 🎨 监控和调试
 
-### LangGraph4j Studio
+### Agent执行监控
 
-启动应用后访问 http://localhost:8089 即可使用 Studio 进行可视化调试：
+启动应用后访问相关界面进行监控和调试：
 
-- **实时流程图**: 查看 StateGraph 执行流程
-- **状态监控**: 实时查看每个节点的状态变化
-- **断点调试**: 在关键节点设置断点
-- **状态编辑**: 手动编辑状态数据并继续执行
+- **执行监控**: http://localhost:8089/agent-execution-monitor.html - 实时查看Agent执行状态
+- **Think-Do-Reflect**: http://localhost:8089/think-do-reflect.html - 体验循环反思工作流
+- **多Agent演示**: http://localhost:8089/agent-monitor-demo.html - 模拟多Agent协作
+- **主界面**: http://localhost:8089 - 智能对话系统
 
-### 流程图生成
+### 监控功能
 
 ```java
-// 生成 Mermaid 图表
-var mermaidGraph = workflow.getGraph(
-    GraphRepresentation.Type.MERMAID, 
-    "OpenManus Agent", 
-    false
-);
+// Agent执行追踪
+AgentExecutionTracker tracker;
 
-// 生成 PlantUML 图表  
-var plantUMLGraph = workflow.getGraph(
-    GraphRepresentation.Type.PLANTUML,
-    "OpenManus Agent",
-    false
-);
+// 开始监控Agent执行
+tracker.startAgentExecution(sessionId, agentId, agentName, context);
+
+// 记录工具调用
+tracker.recordToolCall(sessionId, agentId, toolName, input, output);
+
+// 结束执行监控
+tracker.endAgentExecution(sessionId, agentId, agentName, result, status);
 ```
 
 ## 🔧 配置说明
@@ -264,28 +267,35 @@ openmanus:
 ### 环境变量
 
 ```bash
-# 必需配置
+# 必需配置 - 请在application.yml中配置API密钥
+# 或通过环境变量设置
 OPENMANUS_LLM_API_KEY=your-api-key-here
 
 # 可选配置
 OPENMANUS_LLM_MODEL=qwen-max
-OPENMANUS_SANDBOX_ENABLED=true
-OPENMANUS_STUDIO_ENABLED=true
+OPENMANUS_SANDBOX_ENABLED=false
+OPENMANUS_MONITOR_ENABLED=true
 ```
 
 ## 🚀 进阶使用
 
-### 自定义节点
+### 自定义Agent
 
 ```java
-@Component
-public class CustomNode implements AsyncNodeAction<OpenManusAgentState> {
+public class CustomAgent extends AbstractAgentExecutor<CustomAgent.Builder> {
+    public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
+        public CustomAgent build() throws GraphStateException {
+            this.name("custom_agent")
+                .description("自定义Agent描述")
+                .systemMessage(SystemMessage.from("自定义系统提示"));
+            return new CustomAgent(this);
+        }
+    }
+    
     @Override
-    public CompletableFuture<Map<String, Object>> apply(OpenManusAgentState state) {
-        return CompletableFuture.supplyAsync(() -> {
-            // 自定义逻辑
-            return Map.of("custom_result", "processed");
-        });
+    public String execute(ToolExecutionRequest request, Object context) {
+        // 自定义执行逻辑
+        return "处理结果";
     }
 }
 ```
@@ -303,17 +313,17 @@ public class CustomTool {
 }
 ```
 
-### 记忆策略定制
+### 监控配置定制
 
 ```java
 @Configuration
-public class MemoryConfig {
+public class MonitorConfig {
     @Bean
-    public ConversationBuffer conversationBuffer() {
-        return new ConversationBuffer(
-            maxMessages: 50,
-            maxTokens: 4000,
-            compressionThreshold: 30
+    public AgentExecutionTracker agentExecutionTracker() {
+        return new AgentExecutionTracker(
+            maxHistorySize: 1000,
+            enableRealTimeMonitoring: true,
+            retentionPeriod: Duration.ofHours(24)
         );
     }
 }
@@ -329,10 +339,10 @@ public class MemoryConfig {
 
 ### 性能优化
 
-- **异步执行**: 所有节点支持异步处理
-- **连接池**: 数据库和HTTP连接复用
-- **缓存策略**: 智能记忆缓存机制
-- **资源限制**: Docker沙箱资源控制
+- **异步执行**: Agent支持异步处理和并发执行
+- **连接池**: HTTP连接复用和资源管理
+- **监控优化**: 轻量级执行状态追踪
+- **内存管理**: 智能的执行历史清理机制
 
 ## 🔒 安全特性
 
