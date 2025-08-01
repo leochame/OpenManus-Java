@@ -1,7 +1,7 @@
-package com.openmanus.java.agent.impl.executor;
+package com.openmanus.agent.impl.executor;
 
-import com.openmanus.java.agent.base.AbstractAgentExecutor;
-import com.openmanus.java.agent.tool.FileTool;
+import com.openmanus.agent.base.AbstractAgentExecutor;
+import com.openmanus.agent.tool.FileTool;
 import dev.langchain4j.data.message.SystemMessage;
 import org.bsc.langgraph4j.GraphStateException;
 

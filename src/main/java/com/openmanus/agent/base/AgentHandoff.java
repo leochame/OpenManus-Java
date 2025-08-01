@@ -1,4 +1,4 @@
-package com.openmanus.java.agent.base;
+package com.openmanus.agent.base;
 
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.GraphStateException;

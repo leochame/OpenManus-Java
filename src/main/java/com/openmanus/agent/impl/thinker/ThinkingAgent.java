@@ -1,10 +1,13 @@
-package com.openmanus.java.agent.impl.thinker;
+package com.openmanus.agent.impl.thinker;
 
-import com.openmanus.java.agent.base.AbstractAgentExecutor;
+import com.openmanus.agent.base.AbstractAgentExecutor;
+import com.openmanus.infra.monitoring.AgentExecutionTracker;
+import com.openmanus.domain.model.DetailedExecutionFlow;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
@@ -19,6 +22,9 @@ import java.util.Map;
  */
 @Slf4j
 public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> {
+
+    @Autowired
+    private AgentExecutionTracker executionTracker;
     
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
         public ThinkingAgent build() throws GraphStateException {
@@ -56,24 +62,71 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
     @Override
     public String execute(ToolExecutionRequest request, Object context) {
         log.info("🚀🚀🚀 ThinkingAgent.execute 被调用了！🚀🚀🚀");
-        log.info("Request: {}", request.arguments());
-        log.info("Context: {}", context != null ? context.toString() : "null");
+        log.info("ThinkingAgent Request: {}", request.arguments());
+        log.info("ThinkingAgent Context: {}", context != null ? context.toString() : "null");
 
-        String thinkingResult;
-        if (context != null) {
-            // 来自AgentHandoff的调用，使用内部AgentExecutor处理
-            thinkingResult = super.execute(request, context);
-            
-            // 更新状态
-            Map<String, Object> state = (Map<String, Object>) context;
-            state.put("execution_plan", thinkingResult);
-            state.put("phase", "doing");
-        } else {
-            // 直接调用，从参数中解析必要信息
-            // 这里只是模拟，实际实现需调用语言模型
-            thinkingResult = "基于输入「" + request.arguments() + "」的规划结果";
+        // 生成会话ID用于跟踪
+        String sessionId = generateSessionId(context);
+
+        // 开始思考阶段跟踪
+        if (executionTracker != null) {
+            executionTracker.startPhaseTracking(
+                sessionId,
+                "思考阶段",
+                DetailedExecutionFlow.PhaseType.THINKING,
+                "thinking_agent",
+                "ThinkingAgent",
+                request.arguments()
+            );
         }
-        
+
+        String thinkingResult = ""; // 初始化为空字符串
+        boolean success = true;
+        String error = null;
+
+        try {
+            if (context != null) {
+                log.info("🚀🚀🚀 ThinkingAgent -> LLM调用开始！🚀🚀🚀");
+                thinkingResult = super.execute(request, context);
+                log.info("大模型调用结果：——————————：{}",thinkingResult);
+                // 更新状态
+                Map<String, Object> state = (Map<String, Object>) context;
+                state.put("execution_plan", thinkingResult);
+                state.put("phase", "doing");
+            } else {
+                // 直接调用，从参数中解析必要信息
+                // 这里只是模拟，实际实现需调用语言模型
+                thinkingResult = "基于输入「" + request.arguments() + "」的规划结果";
+            }
+        } catch (Exception e) {
+            success = false;
+            error = e.getMessage();
+            thinkingResult = "思考过程中发生错误: " + e.getMessage();
+            log.error("ThinkingAgent execution failed", e);
+        } finally {
+            // 结束思考阶段跟踪
+            if (executionTracker != null) {
+                executionTracker.endPhaseTracking(sessionId, thinkingResult, success, error);
+            }
+        }
+
+        log.info("ThinkingAgent Result:{}",thinkingResult);
+
         return thinkingResult;
+    }
+
+    /**
+     * 生成或提取会话ID
+     */
+    private String generateSessionId(Object context) {
+        if (context instanceof Map) {
+            Map<String, Object> state = (Map<String, Object>) context;
+            Object sessionId = state.get("sessionId");
+            if (sessionId != null) {
+                return sessionId.toString();
+            }
+        }
+        // 如果没有现有的会话ID，生成一个新的
+        return "thinking-session-" + System.currentTimeMillis();
     }
 }

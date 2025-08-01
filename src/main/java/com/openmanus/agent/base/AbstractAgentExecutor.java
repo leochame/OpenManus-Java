@@ -1,4 +1,4 @@
-package com.openmanus.java.agent.base;
+package com.openmanus.agent.base;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -57,11 +57,9 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object o) {
-        log.info("excute 执行");
+        log.info("大模型调用执行：————————————————————————————：{}",toolExecutionRequest.toString());
         var userMessage = UserMessage.from( toolExecutionRequest.arguments() );
-
         var result = agentExecutor.invoke( Map.of( "messages", userMessage ) );
-
         return result.flatMap(AgentExecutor.State::finalResponse).orElseThrow();
     }
 

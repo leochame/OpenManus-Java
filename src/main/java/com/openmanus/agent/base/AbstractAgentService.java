@@ -1,4 +1,4 @@
-package com.openmanus.java.agent.base;
+package com.openmanus.agent.base;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;

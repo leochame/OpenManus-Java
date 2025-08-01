@@ -1,7 +1,7 @@
-package com.openmanus.java.agent.impl.supervisor;
+package com.openmanus.agent.impl.supervisor;
 
-import com.openmanus.java.agent.base.AbstractAgentExecutor;
-import com.openmanus.java.agent.tool.AgentToolCatalog;
+import com.openmanus.agent.base.AbstractAgentExecutor;
+import com.openmanus.agent.tool.AgentToolCatalog;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +20,7 @@ import java.util.Map;
  * 4. 防止无限循环
  */
 @Slf4j
+@Deprecated
 public class SupervisorAgent extends AbstractAgentExecutor<SupervisorAgent.Builder> {
     
     // 防止无限循环的最大循环次数

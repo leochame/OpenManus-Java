@@ -1,8 +1,9 @@
-package com.openmanus.java.agent.impl.reflection;
+package com.openmanus.agent.impl.reflection;
 
-import com.openmanus.java.agent.base.AbstractAgentExecutor;
+import com.openmanus.agent.base.AbstractAgentExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.Map;
  * 3. 提供具体的改进建议
  * 4. 控制循环执行流程
  */
+@Slf4j
 public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Builder> {
     
     // 状态常量
@@ -64,9 +66,7 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
     
     @Override
     public String execute(ToolExecutionRequest request, Object context) {
-        // 如果是来自AgentHandoff的调用，context是AgentExecutor.State
-        // 如果是来自AgentToolbox的调用，context为null，需要从请求参数中提取必要信息
-        
+        log.info("✅ Reflection request:{}\n context :{}",request,context);
         String originalRequest;
         String executionResult;
         int cycleCount;
@@ -111,6 +111,8 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
             // 直接构造结果 (实际实现需要调用语言模型)
             evaluationResult = "模拟评估结果";
         }
+
+        log.info("✅ Reflection evaluationResult:{}",evaluationResult);
         
         // 处理评估结果
         boolean isComplete = evaluationResult.contains(STATUS_COMPLETE);

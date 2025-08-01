@@ -1,6 +1,6 @@
-package com.openmanus.java.agent.impl.marketplace;
+package com.openmanus.agent.impl.marketplace;
 
-import com.openmanus.java.agent.base.AbstractAgentExecutor;
+import com.openmanus.agent.base.AbstractAgentExecutor;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.data.message.SystemMessage;
