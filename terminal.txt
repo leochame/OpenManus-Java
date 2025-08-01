@@ -1,0 +1,1260 @@
+2025-08-01T14:53:38.536+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:53:38.536+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:53:38.536+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:53:38.537+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:53:38.537+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:38.537+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:38.538+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:53:38.538+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:53:38.539+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:38.539+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:43.023+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:53:43.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:53:43.024+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:53:43.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:53:43.024+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:43.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:43.025+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:53:43.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:53:43.026+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:43.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:48.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:53:48.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:53:48.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:53:48.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:53:48.029+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:48.029+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:48.029+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:53:48.029+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:53:48.031+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:48.034+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:53.026+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:53:53.026+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:53:53.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:53:53.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:53:53.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:53.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:53.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:53:53.028+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:53:53.030+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:53.030+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:58.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:53:58.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:53:58.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:53:58.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:53:58.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:58.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:53:58.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:53:58.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:53:58.026+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:53:58.026+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:03.021+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:03.021+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:03.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:03.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:03.022+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:03.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:03.022+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:03.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:03.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:03.024+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:08.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:08.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:08.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:08.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:08.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:08.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:08.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:08.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:08.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:08.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:13.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:13.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:13.026+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:13.026+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:13.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:13.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:13.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:13.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:13.029+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:13.029+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:18.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:18.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:18.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:18.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:18.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:18.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:18.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:18.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:18.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:18.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:23.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:23.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:23.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:23.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:23.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:23.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:23.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:23.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:23.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:23.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:28.021+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:28.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:28.022+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:28.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:28.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:28.022+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:28.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:28.022+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:28.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:28.023+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:33.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:33.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:33.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:33.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:33.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:33.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:33.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:33.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:33.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:33.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:38.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:38.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:38.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:38.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:38.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:38.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:38.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=1, totalActiveAgents=0, totalActiveSessi (truncated)...]
+2025-08-01T14:54:38.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:38.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:38.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:39.221+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] o.s.web.servlet.DispatcherServlet        : POST "/api/think-do-reflect/execute-sync", parameters={}
+2025-08-01T14:54:39.221+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.ThinkDoReflectController#executeSync(Map)
+2025-08-01T14:54:39.222+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.i.m.UnifiedMonitoringService         : Started request tracking - RequestId: 55fa897f-0387-47d5-81fa-c4259cf27e05, SessionId: unified-session-213eca81-074a-464b-8c7c-76287a6dcee3, Path: /api/think-do-reflect/execute-sync
+2025-08-01T14:54:39.222+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-9] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [{input=我想要写一个 关于 李白的介绍，请你生成提纲，并放入 libai.txt 文件中}]
+2025-08-01T14:54:39.223+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.i.monitoring.AgentExecutionTracker   : Agent execution started - Session: 69f006c4-983b-4566-af34-ba56a25dac97, Agent: workflow_manager, Type: WORKFLOW_START
+2025-08-01T14:54:39.224+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个智能的任务执行系统，遵循\"Think-Do-Reflect\"工作流程：\n\n🧠 THINK阶段：对于新任务，首先使用thinking_agent进行任务分析和规划\n🔧 DO阶段：根据规划使用适当的执行工具：\n   - search_agent：获取信息、搜索网络内容\n   - code_agent：编写代码、执行计算、数据分析\n   - file_agent：文件读写、目录操作\n🤔 REFLECT阶段：执行完成后使用reflection_agent评估结果\n\n工作流程：\n1. 新任务 → 使用thinking_agent分析规划\n2. 执行规划 → 选择合适的执行工具\n3. 评估结果 → 使用reflection_agent检查完成度\n4. 如果未完成 → 返回步骤1重新规划\n\n重要原则：\n- 对于复杂任务，必须先思考再执行\n- 执行完成后必须进行反思评估\n- 根据反思结果决定是否需要进一步改进\n"
+  }, {
+    "role" : "user",
+    "content" : "我想要写一个 关于 李白的介绍，请你生成提纲，并放入 libai.txt 文件中"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "file_agent",
+      "description" : "当需要读取、写入、创建或管理文件时使用。适用于：文件读写、目录操作、文件管理、内容处理",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "文件操作需求和文件路径"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "search_agent",
+      "description" : "当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "搜索查询或网页URL"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "code_agent",
+      "description" : "当需要编写代码、执行计算、数据分析或处理编程任务时使用。适用于：Python代码执行、数据分析、算法实现、计算任务",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "代码需求或计算任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "thinking_agent",
+      "description" : "当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "用户请求或需要重新规划的任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "reflection_agent",
+      "description" : "当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "执行结果和原始任务要求"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:54:41.285+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/agent-execution/sessions/f42e7e8b-9dbf-496e-85ce-1a0b7fa7fa1f/events", parameters={}
+2025-08-01T14:54:41.286+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [static/], ServletContext [/]]
+2025-08-01T14:54:41.288+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.r.ResourceHttpRequestHandler     : Resource not found
+2025-08-01T14:54:41.289+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.servlet.resource.NoResourceFoundException: No static resource api/agent-execution/sessions/f42e7e8b-9dbf-496e-85ce-1a0b7fa7fa1f/events.]
+2025-08-01T14:54:41.289+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 404 NOT_FOUND
+2025-08-01T14:54:41.290+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : "ERROR" dispatch for GET "/error", parameters={}
+2025-08-01T14:54:41.290+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2025-08-01T14:54:41.291+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:41.291+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{timestamp=Fri Aug 01 14:54:41 CST 2025, status=404, error=Not Found, message=No static resource api (truncated)...]
+2025-08-01T14:54:41.292+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Exiting from "ERROR" dispatch, status 404
+2025-08-01T14:54:41.824+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/agent-execution/sessions/f42e7e8b-9dbf-496e-85ce-1a0b7fa7fa1f/events", parameters={}
+2025-08-01T14:54:41.825+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [static/], ServletContext [/]]
+2025-08-01T14:54:41.826+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.r.ResourceHttpRequestHandler     : Resource not found
+2025-08-01T14:54:41.826+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.servlet.resource.NoResourceFoundException: No static resource api/agent-execution/sessions/f42e7e8b-9dbf-496e-85ce-1a0b7fa7fa1f/events.]
+2025-08-01T14:54:41.826+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 404 NOT_FOUND
+2025-08-01T14:54:41.827+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : "ERROR" dispatch for GET "/error", parameters={}
+2025-08-01T14:54:41.828+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2025-08-01T14:54:41.828+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:41.829+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{timestamp=Fri Aug 01 14:54:41 CST 2025, status=404, error=Not Found, message=No static resource api (truncated)...]
+2025-08-01T14:54:41.829+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Exiting from "ERROR" dispatch, status 404
+2025-08-01T14:54:42.544+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [content-length: 638], [content-type: application/json], [date: Fri, 01 Aug 2025 06:54:46 GMT], [req-arrive-time: 1754031284137], [req-cost-time: 3192], [resp-start-time: 1754031287330], [server: istio-envoy], [set-cookie: acw_tc=f3b39fc9-32b0-91ef-a12e-0af395e8eba0058a66047d4a7e622c3688932ffb2043;path=/;HttpOnly;Max-Age=1800], [vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding], [x-dashscope-call-gateway: true], [x-envoy-upstream-service-time: 3191], [x-request-id: f3b39fc9-32b0-91ef-a12e-0af395e8eba0]
+- body: {"choices":[{"message":{"content":"","role":"assistant","tool_calls":[{"function":{"name":"thinking_agent","arguments":"{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}"},"index":0,"id":"call_c39a3ff86fc04fbebe8e0f","type":"function"}]},"finish_reason":"tool_calls","index":0,"logprobs":null}],"object":"chat.completion","usage":{"prompt_tokens":753,"completion_tokens":42,"total_tokens":795,"prompt_tokens_details":{"cached_tokens":0}},"created":1754031287,"system_fingerprint":null,"model":"qwen-max","id":"chatcmpl-f3b39fc9-32b0-91ef-a12e-0af395e8eba0"}
+
+2025-08-01T14:54:42.545+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.agent.impl.thinker.ThinkingAgent     : 🚀🚀🚀 ThinkingAgent.execute 被调用了！🚀🚀🚀
+2025-08-01T14:54:42.545+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.agent.impl.thinker.ThinkingAgent     : Request: {"context": "用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。"}
+2025-08-01T14:54:42.546+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.agent.impl.thinker.ThinkingAgent     : Context: null
+2025-08-01T14:54:42.547+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个智能的任务执行系统，遵循\"Think-Do-Reflect\"工作流程：\n\n🧠 THINK阶段：对于新任务，首先使用thinking_agent进行任务分析和规划\n🔧 DO阶段：根据规划使用适当的执行工具：\n   - search_agent：获取信息、搜索网络内容\n   - code_agent：编写代码、执行计算、数据分析\n   - file_agent：文件读写、目录操作\n🤔 REFLECT阶段：执行完成后使用reflection_agent评估结果\n\n工作流程：\n1. 新任务 → 使用thinking_agent分析规划\n2. 执行规划 → 选择合适的执行工具\n3. 评估结果 → 使用reflection_agent检查完成度\n4. 如果未完成 → 返回步骤1重新规划\n\n重要原则：\n- 对于复杂任务，必须先思考再执行\n- 执行完成后必须进行反思评估\n- 根据反思结果决定是否需要进一步改进\n"
+  }, {
+    "role" : "user",
+    "content" : "我想要写一个 关于 李白的介绍，请你生成提纲，并放入 libai.txt 文件中"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_c39a3ff86fc04fbebe8e0f",
+      "type" : "function",
+      "function" : {
+        "name" : "thinking_agent",
+        "arguments" : "{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_c39a3ff86fc04fbebe8e0f",
+    "content" : "基于输入「{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}」的规划结果"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "file_agent",
+      "description" : "当需要读取、写入、创建或管理文件时使用。适用于：文件读写、目录操作、文件管理、内容处理",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "文件操作需求和文件路径"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "search_agent",
+      "description" : "当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "搜索查询或网页URL"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "code_agent",
+      "description" : "当需要编写代码、执行计算、数据分析或处理编程任务时使用。适用于：Python代码执行、数据分析、算法实现、计算任务",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "代码需求或计算任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "thinking_agent",
+      "description" : "当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "用户请求或需要重新规划的任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "reflection_agent",
+      "description" : "当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "执行结果和原始任务要求"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:54:43.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:43.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:43.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:43.022+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:43.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:43.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:43.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:43.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:54:43.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:43.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:48.023+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:48.023+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:48.024+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:48.024+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:48.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:48.025+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:48.025+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:48.025+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:54:48.027+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:48.027+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:49.743+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:49.743+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:49.744+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:49.744+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:49.745+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:53.019+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:53.019+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:53.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:53.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:53.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:53.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:53.020+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:53.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:54:53.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:53.021+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:55.764+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [content-length: 1156], [content-type: application/json], [date: Fri, 01 Aug 2025 06:55:00 GMT], [req-arrive-time: 1754031287370], [req-cost-time: 13181], [resp-start-time: 1754031300551], [server: istio-envoy], [set-cookie: acw_tc=160483b3-97ff-9915-9e78-bd8c97416d0418f9e4699eee859de52af79dcf88217f;path=/;HttpOnly;Max-Age=1800], [vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding], [x-dashscope-call-gateway: true], [x-envoy-upstream-service-time: 13178], [x-request-id: 160483b3-97ff-9915-9e78-bd8c97416d04]
+- body: {"choices":[{"message":{"content":"为了完成这个任务，我将遵循以下步骤：\n\n1. **生成提纲**：根据李白的生平事迹、文学成就以及对后世的影响等方面制定一个详细的介绍提纲。\n2. **创建文件**：使用file_agent创建一个名为libai.txt的文本文件，并将上述提纲写入到该文件中。\n\n现在，我将开始第一步，即生成关于李白介绍的提纲。","role":"assistant","tool_calls":[{"function":{"name":"code_agent","arguments":"{\"context\": \"生成一个关于李白的介绍性文章的大纲。\\n大纲应包括以下几个部分：\\n- 引言\\n- 李白的生平简介\\n- 李白的主要作品及其风格特点\\n- 李白对唐代诗歌及后世文化的影响\\n- 结论\"}"},"index":0,"id":"call_a40e234264524330a250eb","type":"function"}]},"finish_reason":"tool_calls","index":0,"logprobs":null}],"object":"chat.completion","usage":{"prompt_tokens":842,"completion_tokens":166,"total_tokens":1008,"prompt_tokens_details":{"cached_tokens":512}},"created":1754031301,"system_fingerprint":null,"model":"qwen-max","id":"chatcmpl-160483b3-97ff-9915-9e78-bd8c97416d04"}
+
+2025-08-01T14:54:55.766+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.agent.base.AbstractAgentExecutor     : excute 执行
+2025-08-01T14:54:55.767+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是代码执行专家，擅长：\n1. 理解用户的编程需求\n2. 编写高质量的Python代码\n3. 执行代码并处理结果\n4. 进行数据分析和可视化\n5. 调试和优化代码性能\n\n可用工具：\n- executePython(code): 执行Python代码\n\n当用户需要代码执行时，请：\n1. 分析任务需求，确定解决方案\n2. 编写清晰、高效的Python代码\n3. 使用executePython工具执行代码\n4. 分析执行结果，确保正确性\n5. 如有错误，进行调试和修正\n6. 提供代码说明和结果解释\n\n注意：\n- 确保代码安全性，避免危险操作\n- 处理异常情况，提供错误信息\n- 优化代码性能和可读性\n"
+  }, {
+    "role" : "user",
+    "content" : "{\"context\": \"生成一个关于李白的介绍性文章的大纲。\\n大纲应包括以下几个部分：\\n- 引言\\n- 李白的生平简介\\n- 李白的主要作品及其风格特点\\n- 李白对唐代诗歌及后世文化的影响\\n- 结论\"}"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "executePython",
+      "description" : "Execute Python code",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "Python code"
+          }
+        },
+        "required" : [ "code" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "executePythonFile",
+      "description" : "Execute Python file",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "Python file path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:54:58.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:54:58.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:54:58.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:54:58.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:54:58.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:58.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:54:58.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:54:58.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:54:58.534+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:54:58.534+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:03.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:03.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:03.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:03.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:03.533+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:03.533+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:03.533+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:03.533+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:03.535+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:03.535+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:08.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:08.531+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:08.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:08.531+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:08.532+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:08.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:08.533+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:08.533+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:08.534+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:08.534+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:13.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:13.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:13.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:13.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:13.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:13.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:13.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:13.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:13.534+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:13.538+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:18.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:18.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:23.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:23.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:23.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:26.119+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [content-length: 2081], [content-type: application/json], [date: Fri, 01 Aug 2025 06:55:30 GMT], [req-arrive-time: 1754031300591], [req-cost-time: 30316], [resp-start-time: 1754031330908], [server: istio-envoy], [set-cookie: acw_tc=a862975a-b176-9fe0-8aea-87e76a083d9905c945c04019cdffc64d8dfcde94e19b;path=/;HttpOnly;Max-Age=1800], [vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding], [x-dashscope-call-gateway: true], [x-envoy-upstream-service-time: 30314], [x-request-id: a862975a-b176-9fe0-8aea-87e76a083d99]
+- body: {"choices":[{"message":{"content":"下面是关于李白的介绍性文章的大纲，按照您的要求划分成了几个部分：\n\n1. 引言\n   - 简述唐代诗歌在中国文学史上的地位\n   - 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\n\n2. 李白的生平简介\n   - 出生背景：出生于中亚还是中国四川的不同说法\n   - 早年经历：游历四方、结交文人雅士的生活\n   - 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\n   - 晚年生活：因安史之乱而颠沛流离，最终客死他乡\n   - 生活态度与个人性格：豪放不羁、热爱自由的性格特征\n\n3. 李白的主要作品及其风格特点\n   - 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\n   - 诗歌内容：描绘自然风光、抒发个人抱负和感慨\n   - 语言艺术：运用夸张手法、比喻象征以及丰富的想象\n   - 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\n\n4. 李白对唐代诗歌及后世文化的影响\n   - 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\n   - 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\n   - 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\n   - 文化遗产：李白相关的文化遗产保护以及旅游景点开发\n\n5. 结论\n   - 总结李白在文学史上的重要地位\n   - 探讨其作品至今仍受人们喜爱的原因\n   - 展望未来对于李白研究的新方向和发展趋势\n\n以上大纲提供了一个全面了解李白的文章结构，可以根据这个框架进一步展开每个部分的内容。","role":"assistant"},"finish_reason":"stop","index":0,"logprobs":null}],"object":"chat.completion","usage":{"prompt_tokens":464,"completion_tokens":409,"total_tokens":873,"prompt_tokens_details":{"cached_tokens":0}},"created":1754031331,"system_fingerprint":null,"model":"qwen-max","id":"chatcmpl-a862975a-b176-9fe0-8aea-87e76a083d99"}
+
+2025-08-01T14:55:26.123+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个智能的任务执行系统，遵循\"Think-Do-Reflect\"工作流程：\n\n🧠 THINK阶段：对于新任务，首先使用thinking_agent进行任务分析和规划\n🔧 DO阶段：根据规划使用适当的执行工具：\n   - search_agent：获取信息、搜索网络内容\n   - code_agent：编写代码、执行计算、数据分析\n   - file_agent：文件读写、目录操作\n🤔 REFLECT阶段：执行完成后使用reflection_agent评估结果\n\n工作流程：\n1. 新任务 → 使用thinking_agent分析规划\n2. 执行规划 → 选择合适的执行工具\n3. 评估结果 → 使用reflection_agent检查完成度\n4. 如果未完成 → 返回步骤1重新规划\n\n重要原则：\n- 对于复杂任务，必须先思考再执行\n- 执行完成后必须进行反思评估\n- 根据反思结果决定是否需要进一步改进\n"
+  }, {
+    "role" : "user",
+    "content" : "我想要写一个 关于 李白的介绍，请你生成提纲，并放入 libai.txt 文件中"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_c39a3ff86fc04fbebe8e0f",
+      "type" : "function",
+      "function" : {
+        "name" : "thinking_agent",
+        "arguments" : "{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_c39a3ff86fc04fbebe8e0f",
+    "content" : "基于输入「{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}」的规划结果"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_a40e234264524330a250eb",
+      "type" : "function",
+      "function" : {
+        "name" : "code_agent",
+        "arguments" : "{\"context\": \"生成一个关于李白的介绍性文章的大纲。\\n大纲应包括以下几个部分：\\n- 引言\\n- 李白的生平简介\\n- 李白的主要作品及其风格特点\\n- 李白对唐代诗歌及后世文化的影响\\n- 结论\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_a40e234264524330a250eb",
+    "content" : "下面是关于李白的介绍性文章的大纲，按照您的要求划分成了几个部分：\n\n1. 引言\n   - 简述唐代诗歌在中国文学史上的地位\n   - 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\n\n2. 李白的生平简介\n   - 出生背景：出生于中亚还是中国四川的不同说法\n   - 早年经历：游历四方、结交文人雅士的生活\n   - 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\n   - 晚年生活：因安史之乱而颠沛流离，最终客死他乡\n   - 生活态度与个人性格：豪放不羁、热爱自由的性格特征\n\n3. 李白的主要作品及其风格特点\n   - 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\n   - 诗歌内容：描绘自然风光、抒发个人抱负和感慨\n   - 语言艺术：运用夸张手法、比喻象征以及丰富的想象\n   - 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\n\n4. 李白对唐代诗歌及后世文化的影响\n   - 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\n   - 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\n   - 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\n   - 文化遗产：李白相关的文化遗产保护以及旅游景点开发\n\n5. 结论\n   - 总结李白在文学史上的重要地位\n   - 探讨其作品至今仍受人们喜爱的原因\n   - 展望未来对于李白研究的新方向和发展趋势\n\n以上大纲提供了一个全面了解李白的文章结构，可以根据这个框架进一步展开每个部分的内容。"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "file_agent",
+      "description" : "当需要读取、写入、创建或管理文件时使用。适用于：文件读写、目录操作、文件管理、内容处理",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "文件操作需求和文件路径"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "search_agent",
+      "description" : "当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "搜索查询或网页URL"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "code_agent",
+      "description" : "当需要编写代码、执行计算、数据分析或处理编程任务时使用。适用于：Python代码执行、数据分析、算法实现、计算任务",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "代码需求或计算任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "thinking_agent",
+      "description" : "当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "用户请求或需要重新规划的任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "reflection_agent",
+      "description" : "当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "执行结果和原始任务要求"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:55:28.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:28.016+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:28.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:28.016+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:28.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:28.017+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:28.017+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:28.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:28.018+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:28.018+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:33.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:33.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:33.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:33.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:33.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:33.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:33.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:33.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:33.018+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:33.018+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:38.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:38.018+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:38.019+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:38.019+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:41.989+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/agent-execution/sessions/f42e7e8b-9dbf-496e-85ce-1a0b7fa7fa1f/events", parameters={}
+2025-08-01T14:55:41.989+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [static/], ServletContext [/]]
+2025-08-01T14:55:41.990+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.r.ResourceHttpRequestHandler     : Resource not found
+2025-08-01T14:55:41.990+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.servlet.resource.NoResourceFoundException: No static resource api/agent-execution/sessions/f42e7e8b-9dbf-496e-85ce-1a0b7fa7fa1f/events.]
+2025-08-01T14:55:41.990+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 404 NOT_FOUND
+2025-08-01T14:55:41.990+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : "ERROR" dispatch for GET "/error", parameters={}
+2025-08-01T14:55:41.991+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2025-08-01T14:55:41.991+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:41.991+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{timestamp=Fri Aug 01 14:55:41 CST 2025, status=404, error=Not Found, message=No static resource api (truncated)...]
+2025-08-01T14:55:41.992+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Exiting from "ERROR" dispatch, status 404
+2025-08-01T14:55:43.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:43.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:43.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:43.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:43.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:43.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:43.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:43.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:43.018+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:43.018+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:48.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:48.016+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:48.016+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:48.016+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:48.017+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:48.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:48.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:48.017+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:48.017+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:48.017+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:51.059+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [content-length: 2080], [content-type: application/json], [date: Fri, 01 Aug 2025 06:55:55 GMT], [req-arrive-time: 1754031330949], [req-cost-time: 24898], [resp-start-time: 1754031355848], [server: istio-envoy], [set-cookie: acw_tc=bf2ce360-000e-94a1-8f80-bc9fa72037af03a8b001ae680209ba27deb75467c9ec;path=/;HttpOnly;Max-Age=1800], [vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding], [x-dashscope-call-gateway: true], [x-envoy-upstream-service-time: 24896], [x-request-id: bf2ce360-000e-94a1-8f80-bc9fa72037af]
+- body: {"choices":[{"message":{"content":"","role":"assistant","tool_calls":[{"function":{"name":"file_agent","arguments":"{\"context\": \"将下面的提纲写入名为libai.txt的文件中：\\n\\n关于李白的介绍性文章大纲\\n\\n1. 引言\\n- 简述唐代诗歌在中国文学史上的地位\\n- 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\\n\\n2. 李白的生平简介\\n- 出生背景：出生于中亚还是中国四川的不同说法\\n- 早年经历：游历四方、结交文人雅士的生活\\n- 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\\n- 晚年生活：因安史之乱而颠沛流离，最终客死他乡\\n- 生活态度与个人性格：豪放不羁、热爱自由的性格特征\\n\\n3. 李白的主要作品及其风格特点\\n- 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\\n- 诗歌内容：描绘自然风光、抒发个人抱负和感慨\\n- 语言艺术：运用夸张手法、比喻象征以及丰富的想象\\n- 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\\n\\n4. 李白对唐代诗歌及后世文化的影响\\n- 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\\n- 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\\n- 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\\n- 文化遗产：李白相关的文化遗产保护以及旅游景点开发\\n\\n5. 结论\\n- 总结李白在文学史上的重要地位\\n- 探讨其作品至今仍受人们喜爱的原因\\n- 展望未来对于李白研究的新方向和发展趋势\"}"},"index":0,"id":"call_b2e008c7bcfc4c52a38613","type":"function"}]},"finish_reason":"tool_calls","index":0,"logprobs":null}],"object":"chat.completion","usage":{"prompt_tokens":1338,"completion_tokens":399,"total_tokens":1737,"prompt_tokens_details":{"cached_tokens":0}},"created":1754031356,"system_fingerprint":null,"model":"qwen-max","id":"chatcmpl-bf2ce360-000e-94a1-8f80-bc9fa72037af"}
+
+2025-08-01T14:55:51.062+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] c.o.agent.base.AbstractAgentExecutor     : excute 执行
+2025-08-01T14:55:51.064+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是文件操作专家，擅长：\n1. 理解用户的文件操作需求\n2. 执行各种文件和目录操作\n3. 分析和处理文件内容\n4. 确保文件操作的安全性\n5. 提供文件操作结果和状态\n\n可用工具：\n- readFile(path): 读取文件内容\n- writeFile(path, content): 写入文件内容\n- listDirectory(path): 列出目录内容\n- 其他文件操作工具\n\n当用户需要文件操作时，请：\n1. 分析文件操作需求\n2. 选择合适的文件操作工具\n3. 执行文件操作并检查结果\n4. 处理可能的错误和异常\n5. 提供操作结果和状态反馈\n\n注意：\n- 确保文件路径的正确性\n- 处理文件权限和访问问题\n- 避免危险的文件操作\n- 备份重要文件\n"
+  }, {
+    "role" : "user",
+    "content" : "{\"context\": \"将下面的提纲写入名为libai.txt的文件中：\\n\\n关于李白的介绍性文章大纲\\n\\n1. 引言\\n- 简述唐代诗歌在中国文学史上的地位\\n- 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\\n\\n2. 李白的生平简介\\n- 出生背景：出生于中亚还是中国四川的不同说法\\n- 早年经历：游历四方、结交文人雅士的生活\\n- 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\\n- 晚年生活：因安史之乱而颠沛流离，最终客死他乡\\n- 生活态度与个人性格：豪放不羁、热爱自由的性格特征\\n\\n3. 李白的主要作品及其风格特点\\n- 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\\n- 诗歌内容：描绘自然风光、抒发个人抱负和感慨\\n- 语言艺术：运用夸张手法、比喻象征以及丰富的想象\\n- 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\\n\\n4. 李白对唐代诗歌及后世文化的影响\\n- 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\\n- 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\\n- 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\\n- 文化遗产：李白相关的文化遗产保护以及旅游景点开发\\n\\n5. 结论\\n- 总结李白在文学史上的重要地位\\n- 探讨其作品至今仍受人们喜爱的原因\\n- 展望未来对于李白研究的新方向和发展趋势\"}"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "listDirectory",
+      "description" : "List directory contents",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "dirPath" : {
+            "type" : "string",
+            "description" : "Directory path"
+          }
+        },
+        "required" : [ "dirPath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "getFileInfo",
+      "description" : "Get file information",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "readFile",
+      "description" : "Read file content",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "fileExists",
+      "description" : "Check if file exists",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "createDirectory",
+      "description" : "Create directory",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "dirPath" : {
+            "type" : "string",
+            "description" : "Directory path"
+          }
+        },
+        "required" : [ "dirPath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "deleteFile",
+      "description" : "Delete file or directory",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "path" : {
+            "type" : "string",
+            "description" : "File or directory path"
+          }
+        },
+        "required" : [ "path" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "writeFile",
+      "description" : "Write file content",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          },
+          "content" : {
+            "type" : "string",
+            "description" : "File content"
+          }
+        },
+        "required" : [ "filePath", "content" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "appendFile",
+      "description" : "Append file content",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          },
+          "content" : {
+            "type" : "string",
+            "description" : "Content to append"
+          }
+        },
+        "required" : [ "filePath", "content" ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:55:53.529+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:53.529+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:53.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:53.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:53.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:53.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:53.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:53.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:53.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:53.532+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:58.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:55:58.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:55:58.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:55:58.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:55:58.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:58.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:55:58.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:55:58.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:55:58.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:55:58.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:03.524+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:56:03.524+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:56:03.524+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:56:03.524+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:56:03.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:03.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:03.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:56:03.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:56:03.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:03.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:08.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:56:08.526+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:56:08.527+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:56:08.527+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:56:08.528+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:08.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:08.528+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:56:08.528+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:56:08.529+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:08.529+08:00 DEBUG 3998 --- [openmanus-java-web] [io-8089-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:12.516+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [content-length: 2048], [content-type: application/json], [date: Fri, 01 Aug 2025 06:56:16 GMT], [req-arrive-time: 1754031355892], [req-cost-time: 21413], [resp-start-time: 1754031377305], [server: istio-envoy], [set-cookie: acw_tc=36c1bda1-3b42-9931-92c3-a0adca07f7179f7a0841e225430df95138d61094c444;path=/;HttpOnly;Max-Age=1800], [vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding], [x-dashscope-call-gateway: true], [x-envoy-upstream-service-time: 21411], [x-request-id: 36c1bda1-3b42-9931-92c3-a0adca07f717]
+- body: {"choices":[{"message":{"content":"","role":"assistant","tool_calls":[{"function":{"name":"writeFile","arguments":"{\"filePath\": \"libai.txt\", \"content\": \"关于李白的介绍性文章大纲\\n\\n1. 引言\\n- 简述唐代诗歌在中国文学史上的地位\\n- 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\\n\\n2. 李白的生平简介\\n- 出生背景：出生于中亚还是中国四川的不同说法\\n- 早年经历：游历四方、结交文人雅士的生活\\n- 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\\n- 晚年生活：因安史之乱而颠沛流离，最终客死他乡\\n- 生活态度与个人性格：豪放不羁、热爱自由的性格特征\\n\\n3. 李白的主要作品及其风格特点\\n- 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\\n- 诗歌内容：描绘自然风光、抒发个人抱负和感慨\\n- 语言艺术：运用夸张手法、比喻象征以及丰富的想象\\n- 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\\n\\n4. 李白对唐代诗歌及后世文化的影响\\n- 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\\n- 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\\n- 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\\n- 文化遗产：李白相关的文化遗产保护以及旅游景点开发\\n\\n5. 结论\\n- 总结李白在文学史上的重要地位\\n- 探讨其作品至今仍受人们喜爱的原因\\n- 展望未来对于李白研究的新方向和发展趋势\"}"},"index":0,"id":"call_f73205332a1448ee951455","type":"function"}]},"finish_reason":"tool_calls","index":0,"logprobs":null}],"object":"chat.completion","usage":{"prompt_tokens":1197,"completion_tokens":389,"total_tokens":1586,"prompt_tokens_details":{"cached_tokens":0}},"created":1754031377,"system_fingerprint":null,"model":"qwen-max","id":"chatcmpl-36c1bda1-3b42-9931-92c3-a0adca07f717"}
+
+2025-08-01T14:56:12.530+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是文件操作专家，擅长：\n1. 理解用户的文件操作需求\n2. 执行各种文件和目录操作\n3. 分析和处理文件内容\n4. 确保文件操作的安全性\n5. 提供文件操作结果和状态\n\n可用工具：\n- readFile(path): 读取文件内容\n- writeFile(path, content): 写入文件内容\n- listDirectory(path): 列出目录内容\n- 其他文件操作工具\n\n当用户需要文件操作时，请：\n1. 分析文件操作需求\n2. 选择合适的文件操作工具\n3. 执行文件操作并检查结果\n4. 处理可能的错误和异常\n5. 提供操作结果和状态反馈\n\n注意：\n- 确保文件路径的正确性\n- 处理文件权限和访问问题\n- 避免危险的文件操作\n- 备份重要文件\n"
+  }, {
+    "role" : "user",
+    "content" : "{\"context\": \"将下面的提纲写入名为libai.txt的文件中：\\n\\n关于李白的介绍性文章大纲\\n\\n1. 引言\\n- 简述唐代诗歌在中国文学史上的地位\\n- 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\\n\\n2. 李白的生平简介\\n- 出生背景：出生于中亚还是中国四川的不同说法\\n- 早年经历：游历四方、结交文人雅士的生活\\n- 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\\n- 晚年生活：因安史之乱而颠沛流离，最终客死他乡\\n- 生活态度与个人性格：豪放不羁、热爱自由的性格特征\\n\\n3. 李白的主要作品及其风格特点\\n- 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\\n- 诗歌内容：描绘自然风光、抒发个人抱负和感慨\\n- 语言艺术：运用夸张手法、比喻象征以及丰富的想象\\n- 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\\n\\n4. 李白对唐代诗歌及后世文化的影响\\n- 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\\n- 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\\n- 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\\n- 文化遗产：李白相关的文化遗产保护以及旅游景点开发\\n\\n5. 结论\\n- 总结李白在文学史上的重要地位\\n- 探讨其作品至今仍受人们喜爱的原因\\n- 展望未来对于李白研究的新方向和发展趋势\"}"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_f73205332a1448ee951455",
+      "type" : "function",
+      "function" : {
+        "name" : "writeFile",
+        "arguments" : "{\"filePath\": \"libai.txt\", \"content\": \"关于李白的介绍性文章大纲\\n\\n1. 引言\\n- 简述唐代诗歌在中国文学史上的地位\\n- 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\\n\\n2. 李白的生平简介\\n- 出生背景：出生于中亚还是中国四川的不同说法\\n- 早年经历：游历四方、结交文人雅士的生活\\n- 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\\n- 晚年生活：因安史之乱而颠沛流离，最终客死他乡\\n- 生活态度与个人性格：豪放不羁、热爱自由的性格特征\\n\\n3. 李白的主要作品及其风格特点\\n- 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\\n- 诗歌内容：描绘自然风光、抒发个人抱负和感慨\\n- 语言艺术：运用夸张手法、比喻象征以及丰富的想象\\n- 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\\n\\n4. 李白对唐代诗歌及后世文化的影响\\n- 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\\n- 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\\n- 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\\n- 文化遗产：李白相关的文化遗产保护以及旅游景点开发\\n\\n5. 结论\\n- 总结李白在文学史上的重要地位\\n- 探讨其作品至今仍受人们喜爱的原因\\n- 展望未来对于李白研究的新方向和发展趋势\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_f73205332a1448ee951455",
+    "content" : "File written successfully: libai.txt"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "listDirectory",
+      "description" : "List directory contents",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "dirPath" : {
+            "type" : "string",
+            "description" : "Directory path"
+          }
+        },
+        "required" : [ "dirPath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "getFileInfo",
+      "description" : "Get file information",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "readFile",
+      "description" : "Read file content",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "fileExists",
+      "description" : "Check if file exists",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          }
+        },
+        "required" : [ "filePath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "createDirectory",
+      "description" : "Create directory",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "dirPath" : {
+            "type" : "string",
+            "description" : "Directory path"
+          }
+        },
+        "required" : [ "dirPath" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "deleteFile",
+      "description" : "Delete file or directory",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "path" : {
+            "type" : "string",
+            "description" : "File or directory path"
+          }
+        },
+        "required" : [ "path" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "writeFile",
+      "description" : "Write file content",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          },
+          "content" : {
+            "type" : "string",
+            "description" : "File content"
+          }
+        },
+        "required" : [ "filePath", "content" ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "appendFile",
+      "description" : "Append file content",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "filePath" : {
+            "type" : "string",
+            "description" : "File path"
+          },
+          "content" : {
+            "type" : "string",
+            "description" : "Content to append"
+          }
+        },
+        "required" : [ "filePath", "content" ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:56:13.525+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:56:13.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:13.526+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:16.766+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [content-length: 541], [content-type: application/json], [date: Fri, 01 Aug 2025 06:56:21 GMT], [req-arrive-time: 1754031377358], [req-cost-time: 4200], [resp-start-time: 1754031381558], [server: istio-envoy], [set-cookie: acw_tc=dad14b7d-a22c-9067-b1b4-f7bfaea7766f155f890f105836719e5ee43b398cbb89;path=/;HttpOnly;Max-Age=1800], [vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding], [x-dashscope-call-gateway: true], [x-envoy-upstream-service-time: 4192], [x-request-id: dad14b7d-a22c-9067-b1b4-f7bfaea7766f]
+- body: {"choices":[{"message":{"content":"已成功将提纲写入名为 `libai.txt` 的文件中。如果您需要进一步的操作，例如查看文件内容或者对文件进行其他处理，请告诉我。","role":"assistant"},"finish_reason":"stop","index":0,"logprobs":null}],"object":"chat.completion","usage":{"prompt_tokens":1601,"completion_tokens":37,"total_tokens":1638,"prompt_tokens_details":{"cached_tokens":0}},"created":1754031382,"system_fingerprint":null,"model":"qwen-max","id":"chatcmpl-dad14b7d-a22c-9067-b1b4-f7bfaea7766f"}
+
+2025-08-01T14:56:16.770+08:00  INFO 3998 --- [openmanus-java-web] [nio-8089-exec-9] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+- headers: [Authorization: Beare...c4], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "qwen-max",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个智能的任务执行系统，遵循\"Think-Do-Reflect\"工作流程：\n\n🧠 THINK阶段：对于新任务，首先使用thinking_agent进行任务分析和规划\n🔧 DO阶段：根据规划使用适当的执行工具：\n   - search_agent：获取信息、搜索网络内容\n   - code_agent：编写代码、执行计算、数据分析\n   - file_agent：文件读写、目录操作\n🤔 REFLECT阶段：执行完成后使用reflection_agent评估结果\n\n工作流程：\n1. 新任务 → 使用thinking_agent分析规划\n2. 执行规划 → 选择合适的执行工具\n3. 评估结果 → 使用reflection_agent检查完成度\n4. 如果未完成 → 返回步骤1重新规划\n\n重要原则：\n- 对于复杂任务，必须先思考再执行\n- 执行完成后必须进行反思评估\n- 根据反思结果决定是否需要进一步改进\n"
+  }, {
+    "role" : "user",
+    "content" : "我想要写一个 关于 李白的介绍，请你生成提纲，并放入 libai.txt 文件中"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_c39a3ff86fc04fbebe8e0f",
+      "type" : "function",
+      "function" : {
+        "name" : "thinking_agent",
+        "arguments" : "{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_c39a3ff86fc04fbebe8e0f",
+    "content" : "基于输入「{\"context\": \"用户想要写一个关于李白的介绍，并要求生成提纲，然后将提纲放入libai.txt文件中。\"}」的规划结果"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_a40e234264524330a250eb",
+      "type" : "function",
+      "function" : {
+        "name" : "code_agent",
+        "arguments" : "{\"context\": \"生成一个关于李白的介绍性文章的大纲。\\n大纲应包括以下几个部分：\\n- 引言\\n- 李白的生平简介\\n- 李白的主要作品及其风格特点\\n- 李白对唐代诗歌及后世文化的影响\\n- 结论\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_a40e234264524330a250eb",
+    "content" : "下面是关于李白的介绍性文章的大纲，按照您的要求划分成了几个部分：\n\n1. 引言\n   - 简述唐代诗歌在中国文学史上的地位\n   - 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\n\n2. 李白的生平简介\n   - 出生背景：出生于中亚还是中国四川的不同说法\n   - 早年经历：游历四方、结交文人雅士的生活\n   - 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\n   - 晚年生活：因安史之乱而颠沛流离，最终客死他乡\n   - 生活态度与个人性格：豪放不羁、热爱自由的性格特征\n\n3. 李白的主要作品及其风格特点\n   - 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\n   - 诗歌内容：描绘自然风光、抒发个人抱负和感慨\n   - 语言艺术：运用夸张手法、比喻象征以及丰富的想象\n   - 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\n\n4. 李白对唐代诗歌及后世文化的影响\n   - 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\n   - 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\n   - 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\n   - 文化遗产：李白相关的文化遗产保护以及旅游景点开发\n\n5. 结论\n   - 总结李白在文学史上的重要地位\n   - 探讨其作品至今仍受人们喜爱的原因\n   - 展望未来对于李白研究的新方向和发展趋势\n\n以上大纲提供了一个全面了解李白的文章结构，可以根据这个框架进一步展开每个部分的内容。"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_b2e008c7bcfc4c52a38613",
+      "type" : "function",
+      "function" : {
+        "name" : "file_agent",
+        "arguments" : "{\"context\": \"将下面的提纲写入名为libai.txt的文件中：\\n\\n关于李白的介绍性文章大纲\\n\\n1. 引言\\n- 简述唐代诗歌在中国文学史上的地位\\n- 介绍李白作为唐代杰出诗人的独特之处及其在后人心中的形象\\n\\n2. 李白的生平简介\\n- 出生背景：出生于中亚还是中国四川的不同说法\\n- 早年经历：游历四方、结交文人雅士的生活\\n- 成名之路：得到唐玄宗赏识进入宫廷成为翰林学士\\n- 晚年生活：因安史之乱而颠沛流离，最终客死他乡\\n- 生活态度与个人性格：豪放不羁、热爱自由的性格特征\\n\\n3. 李白的主要作品及其风格特点\\n- 主要作品列举：《静夜思》、《将进酒》、《庐山谣》等\\n- 诗歌内容：描绘自然风光、抒发个人抱负和感慨\\n- 语言艺术：运用夸张手法、比喻象征以及丰富的想象\\n- 风格特色：雄浑奔放、意境开阔且富有浪漫主义色彩\\n\\n4. 李白对唐代诗歌及后世文化的影响\\n- 对唐代诗歌发展的贡献：促进了诗歌题材与表现手法的多样化\\n- 对后世诗人和文学创作的影响：成为了后世无数诗人模仿的对象\\n- 在国际上的传播与影响：作品被翻译成多种文字，在世界各地广为流传\\n- 文化遗产：李白相关的文化遗产保护以及旅游景点开发\\n\\n5. 结论\\n- 总结李白在文学史上的重要地位\\n- 探讨其作品至今仍受人们喜爱的原因\\n- 展望未来对于李白研究的新方向和发展趋势\"}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_b2e008c7bcfc4c52a38613",
+    "content" : "已成功将提纲写入名为 `libai.txt` 的文件中。如果您需要进一步的操作，例如查看文件内容或者对文件进行其他处理，请告诉我。"
+  } ],
+  "temperature" : 0.7,
+  "stream" : false,
+  "max_tokens" : 8192,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "file_agent",
+      "description" : "当需要读取、写入、创建或管理文件时使用。适用于：文件读写、目录操作、文件管理、内容处理",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "文件操作需求和文件路径"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "search_agent",
+      "description" : "当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "搜索查询或网页URL"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "code_agent",
+      "description" : "当需要编写代码、执行计算、数据分析或处理编程任务时使用。适用于：Python代码执行、数据分析、算法实现、计算任务",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "代码需求或计算任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "thinking_agent",
+      "description" : "当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "用户请求或需要重新规划的任务描述"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "reflection_agent",
+      "description" : "当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议",
+      "parameters" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "type" : "string",
+            "description" : "执行结果和原始任务要求"
+          }
+        },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2025-08-01T14:56:18.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/sessions/active", parameters={}
+2025-08-01T14:56:18.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/unified-monitoring/dashboard", parameters={}
+2025-08-01T14:56:18.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getActiveSessions()
+2025-08-01T14:56:18.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:18.530+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[MonitoringSession(sessionId=unified-session-26ae97d2-95ef-4bbd-85e1-3a29f2e75091, startTime=2025-08 (truncated)...]
+2025-08-01T14:56:18.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.openmanus.domain.controller.UnifiedMonitoringController#getDashboard()
+2025-08-01T14:56:18.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-08-01T14:56:18.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [UnifiedMonitoringDashboard(systemStats={totalActiveRequests=2, totalActiveAgents=1, totalActiveSessi (truncated)...]
+2025-08-01T14:56:18.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-08-01T14:56:18.531+08:00 DEBUG 3998 --- [openmanus-java-web] [nio-8089-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK

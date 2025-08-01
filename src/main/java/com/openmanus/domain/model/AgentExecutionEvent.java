@@ -106,7 +106,7 @@ public class AgentExecutionEvent {
         SUCCESS,            // 执行成功
         FAILED,             // 执行失败
         CANCELLED,          // 执行取消
-        TIMEOUT             // 执行超时
+        ERROR, TIMEOUT             // 执行超时
     }
     
     /**
