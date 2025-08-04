@@ -56,8 +56,10 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
     }
 
     @Override
-    public String execute(ToolExecutionRequest toolExecutionRequest, Object o) {
+    public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
         log.info("大模型调用执行：————————————————————————————：{}",toolExecutionRequest.toString());
+        log.info("MemoryId: {}", memoryId != null ? memoryId.toString() : "null");
+
         var userMessage = UserMessage.from( toolExecutionRequest.arguments() );
         var result = agentExecutor.invoke( Map.of( "messages", userMessage ) );
         return result.flatMap(AgentExecutor.State::finalResponse).orElseThrow();
