@@ -56,6 +56,16 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-chroma</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-web-search-engine-tavily</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -132,13 +142,19 @@
             <groupId>org.bsc.langgraph4j</groupId>
             <artifactId>langgraph4j-langchain4j</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-chroma</artifactId>
+        </dependency>
         <!-- LangGraph4j Agent Executor -->
         <dependency>
             <groupId>org.bsc.langgraph4j</groupId>
             <artifactId>langgraph4j-agent-executor</artifactId>
         </dependency>
-        
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-tavily</artifactId>
+        </dependency>
         <!-- LangGraph4j Studio for Spring Boot (可视化调试) -->
         <dependency>
             <groupId>org.bsc.langgraph4j</groupId>
