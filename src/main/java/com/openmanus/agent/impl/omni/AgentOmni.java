@@ -15,6 +15,7 @@ import java.util.List;
  * 2. 其 Builder 负责配置这个内部工作流所需的所有资源，包括 ChatModel 和它自己的一组工具。
  * 3. 当被更高阶的工作流（如 MultiAgentHandoffWorkflow）当作工具调用时，它会独立运行自己的工作流来完成任务。
  */
+@Deprecated
 public class AgentOmni extends AbstractAgentExecutor<AgentOmni.Builder> {
 
     /**
