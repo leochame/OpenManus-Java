@@ -5,12 +5,13 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
+ * @deprecated
  * 智能体工具目录 - Think-Do-Reflect系统的工具集合
- * 
  * 类似于现有的OmniToolCatalog，这个类负责管理Think-Do-Reflect系统
  * 中所有智能体工具的集合，为SupervisorAgent提供完整的工具访问能力。
  */
 @Component
+@Deprecated
 public class AgentToolCatalog {
 
     private final AgentToolbox agentToolbox;

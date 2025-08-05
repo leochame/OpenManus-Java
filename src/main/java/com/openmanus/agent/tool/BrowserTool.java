@@ -71,135 +71,173 @@ public class BrowserTool {
     @Tool("Search web content")
     public String searchWeb(@P("Search keywords") String query) {
         try {
-            // 使用Google搜索引擎进行搜索
-            String searchUrl = "https://duckduckgo.com/html/?q=" +
-                URLEncoder.encode(query, StandardCharsets.UTF_8);
+            // 使用DuckDuckGo搜索引擎，支持中文搜索且无需API密钥
+            String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+            String searchUrl = "https://html.duckduckgo.com/html/?q=" + encodedQuery;
             
-            logger.info("正在搜索: {}", query);
-            logger.info("搜索URL: {}", searchUrl);
+            logger.info("Searching web for: {}", query);
             
-            String searchResult = browseWeb(searchUrl);
+            URL url = new URL(searchUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(DEFAULT_TIMEOUT * 1000);
+            connection.setReadTimeout(DEFAULT_TIMEOUT * 1000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
             
-            if (searchResult.startsWith("Failed to access web page")) {
-                // 如果Google搜索失败，尝试使用DuckDuckGo
-                logger.info("Google搜索失败，尝试DuckDuckGo");
-                String duckduckgoUrl = "https://duckduckgo.com/html/?q=" + 
-                    URLEncoder.encode(query, StandardCharsets.UTF_8);
-                searchResult = browseWeb(duckduckgoUrl);
+            int responseCode = connection.getResponseCode();
+            if (responseCode != 200) {
+                return "搜索失败，HTTP状态码: " + responseCode;
             }
             
-            // 简化搜索结果，提取关键信息
-            String simplifiedResult = extractSearchResults(searchResult, query);
+            // 读取搜索结果页面
+            StringBuilder htmlContent = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    htmlContent.append(line).append("\n");
+                }
+            }
             
-            logger.info("搜索完成，结果长度: {}", simplifiedResult.length());
-            return "🔍 搜索结果 for \"" + query + "\":\n\n" + simplifiedResult;
+            // 解析搜索结果
+            String results = parseSearchResults(htmlContent.toString(), query);
+            logger.info("🔍 Search results: {}", results);
+            return results;
             
-        } catch (Exception e) {
-            logger.error("搜索失败: {}", query, e);
+        } catch (IOException e) {
+            logger.error("网页搜索失败: {}", query, e);
             return "搜索失败: " + e.getMessage();
         }
     }
     
     /**
-     * 从HTML搜索结果中提取关键信息
+     * 解析DuckDuckGo搜索结果页面
      */
-    private String extractSearchResults(String htmlContent, String query) {
-        if (htmlContent == null || htmlContent.isEmpty()) {
-            return "未能获取搜索结果";
-        }
+    private String parseSearchResults(String htmlContent, String query) {
+        StringBuilder results = new StringBuilder();
+        results.append("🔍 搜索结果: ").append(query).append("\n\n");
         
-        // 简单的文本提取，寻找可能包含答案的段落
-        String[] lines = htmlContent.split("\n");
-        StringBuilder result = new StringBuilder();
-        boolean foundContent = false;
-        
-        for (String line : lines) {
-            // 移除HTML标签
-            String cleanLine = line.replaceAll("<[^>]*>", "").trim();
+        try {
+            // DuckDuckGo搜索结果的HTML结构解析
+            String[] lines = htmlContent.split("\n");
+            int resultCount = 0;
+            boolean inResult = false;
+            String currentTitle = "";
+            String currentUrl = "";
+            String currentSnippet = "";
             
-            // 如果包含查询关键词，可能是相关内容
-            if (!cleanLine.isEmpty() && 
-                (cleanLine.toLowerCase().contains(query.toLowerCase()) ||
-                 cleanLine.length() > 50)) {
+            for (String line : lines) {
+                line = line.trim();
                 
-                result.append(cleanLine).append("\n");
-                foundContent = true;
+                // 查找搜索结果标题和链接
+                if (line.contains("class=\"result__a\"") && line.contains("href=")) {
+                    // 提取标题和URL
+                    int hrefStart = line.indexOf("href=\"") + 6;
+                    int hrefEnd = line.indexOf("\"", hrefStart);
+                    if (hrefStart > 5 && hrefEnd > hrefStart) {
+                        currentUrl = line.substring(hrefStart, hrefEnd);
+                        // 解码URL
+                        if (currentUrl.startsWith("/l/?uddg=")) {
+                            int urlStart = currentUrl.indexOf("&rut=") + 5;
+                            if (urlStart > 4) {
+                                int urlEnd = currentUrl.indexOf("&", urlStart);
+                                if (urlEnd == -1) urlEnd = currentUrl.length();
+                                currentUrl = URLEncoder.encode(currentUrl.substring(urlStart, urlEnd), StandardCharsets.UTF_8);
+                                try {
+                                    currentUrl = java.net.URLDecoder.decode(currentUrl, StandardCharsets.UTF_8);
+                                } catch (Exception ignored) {}
+                            }
+                        }
+                    }
+                    
+                    // 提取标题
+                    int titleStart = line.indexOf(">") + 1;
+                    int titleEnd = line.lastIndexOf("<");
+                    if (titleStart > 0 && titleEnd > titleStart) {
+                        currentTitle = line.substring(titleStart, titleEnd);
+                        currentTitle = cleanHtmlText(currentTitle);
+                    }
+                    inResult = true;
+                }
                 
-                // 限制结果长度
-                if (result.length() > 2000) {
-                    break;
+                // 查找搜索结果摘要
+                if (inResult && line.contains("class=\"result__snippet\"")) {
+                    int snippetStart = line.indexOf(">") + 1;
+                    int snippetEnd = line.lastIndexOf("<");
+                    if (snippetStart > 0 && snippetEnd > snippetStart) {
+                        currentSnippet = line.substring(snippetStart, snippetEnd);
+                        currentSnippet = cleanHtmlText(currentSnippet);
+                    }
+                    
+                    // 输出完整的搜索结果
+                    if (!currentTitle.isEmpty() && !currentUrl.isEmpty()) {
+                        resultCount++;
+                        results.append(resultCount).append(". **").append(currentTitle).append("**\n");
+                        results.append("   🔗 ").append(currentUrl).append("\n");
+                        if (!currentSnippet.isEmpty()) {
+                            results.append("   📝 ").append(currentSnippet).append("\n");
+                        }
+                        results.append("\n");
+                        
+                        // 限制结果数量
+                        if (resultCount >= 5) {
+                            break;
+                        }
+                    }
+                    
+                    // 重置状态
+                    inResult = false;
+                    currentTitle = "";
+                    currentUrl = "";
+                    currentSnippet = "";
                 }
             }
+            
+            if (resultCount == 0) {
+                results.append("未找到相关搜索结果，请尝试其他关键词。\n");
+            } else {
+                results.append("共找到 ").append(resultCount).append(" 个相关结果\n");
+            }
+            
+        } catch (Exception e) {
+            logger.warn("解析搜索结果时出错: {}", e.getMessage());
+            results.append("搜索结果解析失败，但搜索请求已发送。请尝试直接访问搜索引擎。\n");
         }
         
-        if (!foundContent) {
-            return "搜索已执行，但未找到明确的结果。可能需要使用更具体的搜索关键词。";
+        // 限制返回内容长度
+        String result = results.toString();
+        if (result.length() > 8000) {
+            result = result.substring(0, 8000) + "\n... (结果已截断)";
         }
         
-        return result.toString();
+        return result;
     }
     
-//    @Tool("Get web page title")
-//    public String getWebPageTitle(@P("Web page URL") String url) {
-//        try {
-//            String content = browseWeb(url);
-//            if (content.startsWith("Failed to access web page")) {
-//                return content;
-//    }
-//
-//            // Simple title extraction (actual projects may need HTML parser)
-//            int titleStart = content.indexOf("<title>");
-//            int titleEnd = content.indexOf("</title>");
-//
-//            if (titleStart != -1 && titleEnd != -1) {
-//                String title = content.substring(titleStart + 7, titleEnd);
-//                return "Web page title: " + title;
-//        } else {
-//                return "Unable to extract web page title";
-//    }
-//
-//        } catch (Exception e) {
-//            logger.error("Failed to get web page title: {}", url, e);
-//            return "Failed to get web page title: " + e.getMessage();
-//            }
-//        }
+    /**
+     * 清理HTML文本，移除标签和转义字符
+     */
+    private String cleanHtmlText(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
         
-//    @Tool("Check if website is accessible")
-//    public String checkWebsiteAccessibility(@P("Website URL") String url) {
-//        try {
-//            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-//                url = "https://" + url;
-//    }
-//
-//            URL targetUrl = new URL(url);
-//            HttpURLConnection connection = (HttpURLConnection) targetUrl.openConnection();
-//            connection.setRequestMethod("HEAD");
-//            connection.setConnectTimeout(10000);
-//            connection.setReadTimeout(10000);
-//
-//            int responseCode = connection.getResponseCode();
-//            String responseMessage = connection.getResponseMessage();
-//
-//            return String.format("Website status: %d %s", responseCode, responseMessage);
-//
-//        } catch (IOException e) {
-//            logger.error("Failed to check website accessibility: {}", url, e);
-//            return "Website not accessible: " + e.getMessage();
-//        }
-//    }
-//
-//    @Tool("Asynchronously access web page")
-//    public String browseWebAsync(@P("Web page URL") String url) {
-//        try {
-//            CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> browseWeb(url));
-//
-//            // Wait for result with timeout
-//            String result = future.get(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
-//            return "Asynchronous access result:\n" + result;
-//
-//        } catch (Exception e) {
-//            logger.error("Failed to asynchronously access web page: {}", url, e);
-//            return "Asynchronous access failed: " + e.getMessage();
-//        }
-//    }
+        // 移除HTML标签
+        text = text.replaceAll("<[^>]+>", "");
+        
+        // 处理HTML转义字符
+        text = text.replace("&amp;", "&")
+                   .replace("&lt;", "<")
+                   .replace("&gt;", ">")
+                   .replace("&quot;", "\"")
+                   .replace("&#39;", "'")
+                   .replace("&nbsp;", " ");
+        
+        // 移除多余空白字符
+        text = text.replaceAll("\\s+", " ").trim();
+        
+        return text;
+    }
+
 }

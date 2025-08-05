@@ -11,11 +11,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * 智能体工具箱 - 将所有智能体包装为工具
- * 
+ * @Deprecated 暂时考虑该做法
  * 使用@Tool注解定义智能体接口，使SupervisorAgent能够通过工具调用的方式
  * 选择和调用合适的智能体，而不是通过硬编码的判断逻辑。
  */
 @Component
+@Deprecated
 public class AgentToolbox {
 
     private final ThinkingAgent thinkingAgent;

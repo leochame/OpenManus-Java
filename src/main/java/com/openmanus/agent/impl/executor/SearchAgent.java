@@ -7,23 +7,27 @@ import org.bsc.langgraph4j.GraphStateException;
 
 /**
  * 搜索智能体 - 负责信息检索任务
- * 
- * 核心功能：
- * 1. 网页搜索和信息检索
- * 2. 网页内容获取和分析
- * 3. 信息整理和总结
+ *
+ * 升级功能：
+ * 1. 智能自适应RAG检索 - 自动路由到最佳数据源
+ * 2. 向量存储语义搜索 - 专业领域知识检索
+ * 3. 网页搜索和信息检索 - 时效性信息获取
+ * 4. 文档相关性评分 - 过滤无关内容
+ * 5. 幻觉检测和答案质量评估 - 确保答案准确性
+ * 6. 问题重写优化 - 提高检索效果
+ * 7. 传统浏览器工具 - 保持向后兼容
  */
 public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
     
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
-        
+
         private BrowserTool browserTool;
-        
+
         public Builder browserTool(BrowserTool browserTool) {
             this.browserTool = browserTool;
             return this;
         }
-        
+
         public SearchAgent build() throws GraphStateException {
             this.name("search_agent")
                 .description("当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取")
@@ -47,12 +51,12 @@ public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
                     4. 整理和总结获取的信息
                     5. 确保信息的准确性和时效性
                     """));
-            
+
             // 添加浏览器工具
             if (browserTool != null) {
                 this.toolFromObject(browserTool);
             }
-            
+
             return new SearchAgent(this);
         }
     }

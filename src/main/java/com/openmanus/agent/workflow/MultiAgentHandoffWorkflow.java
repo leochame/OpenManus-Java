@@ -15,12 +15,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * @deprecated 请使用 ThinkDoReflectWorkflow 代替
  * 多 Agent 协作工作流。
  * 这个类是 agents-handoff 模式的核心，它负责：
  * 1. 初始化所有参与的子 Agent。
  * 2. 构建一个总控 Agent (Supervisor)，并将子 Agent 作为其工具。
  * 3. 编译并执行整个图流程。
  */
+@Deprecated
 @Service
 public class MultiAgentHandoffWorkflow {
 

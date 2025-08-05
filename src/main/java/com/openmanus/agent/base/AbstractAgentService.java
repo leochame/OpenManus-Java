@@ -11,6 +11,11 @@ import dev.langchain4j.service.AiServices;
 
 import java.util.Map;
 
+/**
+ * @deprecated 请使用 AbstractAgentExecutor 代替
+ * @param <B>
+ */
+@Deprecated
 public abstract class AbstractAgentService<B extends AbstractAgentService.Builder<B>> extends AbstractAgent<B> {
 
     public static abstract class Builder<B extends AbstractAgentService.Builder<B>> extends AbstractAgent.Builder<B> {
