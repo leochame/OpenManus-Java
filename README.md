@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="assets/img/openmanus-logo.svg" alt="OpenManus Logo" width="256" height="256">
+<img src="assets/img/logo.png" alt="OpenManus Logo" width="256" height="256">
 
 **基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架**
 
@@ -14,7 +14,6 @@
 [🚀 快速开始](#-快速开始) •
 [🎯 功能特性](#-功能特性) •
 [🏗️ 架构设计](#️-架构设计) •
-[📚 文档](#-文档)
 
 </div>
 
