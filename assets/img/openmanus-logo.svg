@@ -1,1 +1,42 @@
- 
+<svg width="256" height="256" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆 -->
+  <circle cx="128" cy="128" r="120" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="2"/>
+  
+  <!-- 大脑轮廓 -->
+  <path d="M128,60 C175,60 188,95 188,128 C188,161 175,180 128,180 C81,180 68,161 68,128 C68,95 81,60 128,60 Z" 
+        fill="none" stroke="#1E88E5" stroke-width="4" />
+  
+  <!-- 大脑内部节点网络 -->
+  <circle cx="108" cy="100" r="5" fill="#1E88E5" />
+  <circle cx="148" cy="100" r="5" fill="#1E88E5" />
+  <circle cx="128" cy="115" r="5" fill="#1E88E5" />
+  <circle cx="98" cy="130" r="5" fill="#1E88E5" />
+  <circle cx="158" cy="130" r="5" fill="#1E88E5" />
+  <circle cx="128" cy="145" r="5" fill="#1E88E5" />
+  
+  <!-- 节点连接线 -->
+  <line x1="108" y1="100" x2="128" y2="115" stroke="#1E88E5" stroke-width="2" />
+  <line x1="148" y1="100" x2="128" y2="115" stroke="#1E88E5" stroke-width="2" />
+  <line x1="128" y1="115" x2="98" y2="130" stroke="#1E88E5" stroke-width="2" />
+  <line x1="128" y1="115" x2="158" y2="130" stroke="#1E88E5" stroke-width="2" />
+  <line x1="98" y1="130" x2="128" y2="145" stroke="#1E88E5" stroke-width="2" />
+  <line x1="158" y1="130" x2="128" y2="145" stroke="#1E88E5" stroke-width="2" />
+  
+  <!-- 快思考路径 -->
+  <path d="M128,145 L128,190" stroke="#FF9800" stroke-width="4" />
+  
+  <!-- 慢思考路径 -->
+  <path d="M128,145 C100,160 155,175 128,190" stroke="#1E88E5" stroke-width="4" fill="none" />
+  
+  <!-- 结果点 -->
+  <circle cx="128" cy="190" r="8" fill="#4CAF50" />
+  
+  <!-- Java 杯子图标 -->
+  <path d="M143,70 C143,70 150,80 140,85 C130,90 150,95 150,95" stroke="#FF9800" stroke-width="2.5" fill="none" />
+  
+  <!-- 文字 - OpenManus -->
+  <text x="128" y="220" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#1E88E5">OpenManus</text>
+  
+  <!-- 文字 - Java -->
+  <text x="128" y="238" font-family="Arial, sans-serif" font-size="14" font-style="italic" text-anchor="middle" fill="#FF9800">Java</text>
+</svg> 
