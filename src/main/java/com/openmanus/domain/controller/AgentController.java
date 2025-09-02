@@ -1,7 +1,6 @@
 package com.openmanus.domain.controller;
-import com.openmanus.agent.tool.BrowserTool;
-import com.openmanus.agent.tool.OmniToolCatalog;
-import com.openmanus.agent.workflow.MultiAgentHandoffWorkflow;
+import com.openmanus.domain.service.AgentService;
+import com.openmanus.domain.service.ThinkDoReflectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -9,114 +8,122 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * REST controller for interacting with the AgentOmni.
- * Provides endpoints for both stateful (multi-turn) and stateless (single-turn) conversations.
+ * REST controller for interacting with Agent capabilities.
+ * Provides endpoints for both fast thinking and deep thinking workflows.
  */
 @RestController
 @RequestMapping("/api/agent")
 @Tag(name = "Agent API", description = "Web API interface for intelligent agent")
+@CrossOrigin(origins = "*")
 @Slf4j
 public class AgentController {
 
-    private final MultiAgentHandoffWorkflow multiAgentHandoffWorkflow;
-    private final OmniToolCatalog omniToolCatalog;
+    private final AgentService agentService;
+    private final ThinkDoReflectService thinkDoReflectService;
     
     @Autowired
-    public AgentController(MultiAgentHandoffWorkflow multiAgentHandoffWorkflow, OmniToolCatalog omniToolCatalog) {
-        this.multiAgentHandoffWorkflow = multiAgentHandoffWorkflow;
-        this.omniToolCatalog = omniToolCatalog;
+    public AgentController(AgentService agentService, ThinkDoReflectService thinkDoReflectService) {
+        this.agentService = agentService;
+        this.thinkDoReflectService = thinkDoReflectService;
     }
-
     /**
-     * 测试工具识别的端点
-     */
-    @GetMapping("/test-tools")
-    @Operation(summary = "Test Tools", description = "Test if tools are properly recognized.")
-    public ResponseEntity<Map<String, Object>> testTools() {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            // 获取工具列表
-            var tools = omniToolCatalog.getTools();
-            result.put("toolsCount", tools.size());
-            result.put("toolsInfo", tools.stream().map(tool -> 
-                Map.of(
-                    "className", tool.getClass().getSimpleName(),
-                    "fullClassName", tool.getClass().getName()
-                )
-            ).toList());
-            
-            // 直接测试BrowserTool的searchWeb方法
-            var browserTool = tools.stream()
-                .filter(tool -> tool.getClass().getSimpleName().equals("BrowserTool"))
-                .findFirst();
-                
-            if (browserTool.isPresent()) {
-                result.put("browserToolFound", true);
-                try {
-                    // 直接调用searchWeb方法进行测试
-                    var tool = (BrowserTool) browserTool.get();
-                    String searchResult = tool.searchWeb("test search");
-                    result.put("directSearchTest", "Success: " + searchResult.substring(0, Math.min(200, searchResult.length())));
-                } catch (Exception e) {
-                    result.put("directSearchTest", "Error: " + e.getMessage());
-                }
-            } else {
-                result.put("browserToolFound", false);
-            }
-            
-            result.put("status", "success");
-        } catch (Exception e) {
-            log.error("Tool test failed", e);
-            result.put("status", "error");
-            result.put("error", e.getMessage());
-        }
-        
-        return ResponseEntity.ok(result);
-    }
-
-
-    /**
-     * Handles stateful, multi-turn conversations with the agent.
-     * A `conversationId` is required to maintain context across multiple requests.
+     * 快思考模式 - 处理简单明确的任务，快速响应
+     * 
+     * 适用场景：
+     * 1. 简单明确的任务
+     * 2. 需要快速响应的场景
+     * 3. 对话式交互
      *
-     * @param payload A map containing "conversationId" and "message".
-     * @return A CompletableFuture wrapping the agent's response.
-     */
-    @PostMapping("/chat/multi_turn")
-    @Operation(summary = "Stateful Chat", description = "Handles multi-turn conversations using a conversation ID.")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> multiTurnChat(@RequestBody Map<String, String> payload) {
-        String conversationId = payload.get("conversationId");
-        String message = payload.get("message");
-
-        return multiAgentHandoffWorkflow.execute(message).thenApply(response -> {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("answer", response);
-                    result.put("conversationId", conversationId);
-                    result.put("timestamp", LocalDateTime.now().toString());
-                    return ResponseEntity.ok(result);
-                });
-    }
-
-    /**
-     * Handles a stateless, single-turn chat.
-     * A new random conversationId is generated for each call.
-     *
-     * @param payload A map containing "message".
-     * @return A CompletableFuture wrapping the agent's response.
+     * @param payload 包含"message"和可选的"conversationId"
+     * @param stateful 是否保持会话状态
+     * @param sync 是否同步执行
+     * @return Agent的响应
      */
     @PostMapping("/chat")
-    @Operation(summary = "Stateless Chat", description = "Handles a single-turn conversation.")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> statelessChat(@RequestBody Map<String, String> payload) {
+    @Operation(
+        summary = "Fast Thinking Mode", 
+        description = "Quick response mode for simple tasks and conversational interactions. " +
+                      "Uses direct execution without complex planning or reflection."
+    )
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> chat(
+            @RequestBody Map<String, String> payload,
+            @RequestParam(defaultValue = "false") boolean stateful,
+            @RequestParam(defaultValue = "false") boolean sync) {
+        
         String message = payload.get("message");
-        String conversationId = UUID.randomUUID().toString(); // Create a new conversation for each call
-        return multiTurnChat(Map.of("conversationId", conversationId, "message", message));
+        String conversationId = stateful ? payload.get("conversationId") : null;
+        
+        return agentService.chat(message, conversationId, sync)
+            .thenApply(ResponseEntity::ok);
+    }
+
+    /**
+     * 慢思考模式 - Think-Do-Reflect工作流
+     * 
+     * 适用场景：
+     * 1. 复杂任务需要规划和分析
+     * 2. 需要深度思考的问题
+     * 3. 需要验证和反思结果的场景
+     *
+     * @param request 包含用户输入的请求
+     * @param sync 是否同步执行
+     * @return 执行结果
+     */
+    @PostMapping("/think-do-reflect")
+    @Operation(
+        summary = "Deep Thinking Mode", 
+        description = "Structured Think-Do-Reflect workflow for complex tasks. " +
+                      "Includes task analysis, planning, execution and reflection phases."
+    )
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> thinkDoReflect(
+            @RequestBody Map<String, String> request,
+            @RequestParam(defaultValue = "false") boolean sync) {
+
+        String userInput = request.get("input");
+        return thinkDoReflectService.executeWorkflow(userInput, sync)
+            .thenApply(result -> {
+                if (result.containsKey("error")) {
+                    return ResponseEntity.badRequest().body(result);
+                }
+                return ResponseEntity.ok(result);
+            });
+    }
+
+    /**
+     * 智能路由 - 自动选择合适的思考模式
+     * 
+     * 系统会根据任务复杂度自动选择使用快思考或慢思考模式
+     *
+     * @param request 包含用户输入的请求
+     * @param sync 是否同步执行
+     * @return 执行结果
+     */
+    @PostMapping("/auto")
+    @Operation(
+        summary = "Auto Mode Selection", 
+        description = "Automatically selects between fast and deep thinking modes based on task complexity."
+    )
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> autoMode(
+            @RequestBody Map<String, String> request,
+            @RequestParam(defaultValue = "false") boolean sync) {
+        
+        String userInput = request.get("input");
+        
+        // 简单启发式：如果输入包含某些关键词，使用慢思考模式，否则使用快思考模式
+        // 这里可以实现更复杂的逻辑来决定使用哪种模式
+        boolean needsDeepThinking = userInput.toLowerCase().matches(".*(分析|计划|复杂|思考|规划|设计|优化|研究|比较|评估).*");
+        
+        if (needsDeepThinking) {
+            log.info("Using deep thinking mode for: {}", userInput);
+            return thinkDoReflect(request, sync);
+        } else {
+            log.info("Using fast thinking mode for: {}", userInput);
+            Map<String, String> chatPayload = Map.of("message", userInput);
+            return chat(chatPayload, false, sync);
+        }
     }
 } 
