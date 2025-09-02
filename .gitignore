@@ -136,6 +136,7 @@ config/secrets.yml
 application-local.yml
 application-dev.yml
 application-prod.yml
+application.yml
 
 # Temporary files
 *.tmp
