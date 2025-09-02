@@ -1,6 +1,5 @@
 package com.openmanus.infra.config;
 
-import com.openmanus.agent.impl.omni.AgentOmniService;
 import com.openmanus.agent.tool.OmniToolCatalog;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -8,7 +7,6 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
-import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
@@ -93,28 +91,6 @@ public class LangChain4jConfig {
                 .modelName(llmConfig.getEmbeddingModel())
                 .logRequests(true)
                 .logResponses(true)
-                .build();
-    }
-
-    /**
-     * Creates the AgentOmniService using LangChain4j's AiServices.
-     * This is the core of our agent, where the AI model, tools, and memory
-     * are wired together into a declarative, service-oriented interface.
-     * The framework handles the underlying ReAct agent loop automatically.
-     *
-     * @param chatModel          The conversational AI model to use.
-     * @param omniToolCatalog        The catalog of available tools for the agent.
-     * @param chatMemoryProvider The provider for managing conversation memory.
-     * @return A fully configured instance of our agent service.
-     */
-    @Bean
-    public AgentOmniService agentOmniService(ChatModel chatModel,
-                                              OmniToolCatalog omniToolCatalog,
-                                              ChatMemoryProvider chatMemoryProvider) {
-        return AiServices.builder(AgentOmniService.class)
-                .chatModel(chatModel)
-                .tools(omniToolCatalog.getTools())
-                .chatMemoryProvider(chatMemoryProvider)
                 .build();
     }
 } 

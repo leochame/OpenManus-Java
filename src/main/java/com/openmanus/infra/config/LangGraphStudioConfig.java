@@ -1,7 +1,7 @@
 package com.openmanus.infra.config;
 
 import com.openmanus.agent.tool.OmniToolCatalog;
-import com.openmanus.agent.workflow.MultiAgentHandoffWorkflow;
+import com.openmanus.agent.workflow.FastThinkWorkflow;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.CompileConfig;
@@ -60,8 +60,8 @@ public class LangGraphStudioConfig extends AbstractLangGraphStudioConfig {
         return this.flow;
     }
 
-    @Bean
-    public MultiAgentHandoffWorkflow multiAgentHandoffWorkflow(ChatModel chatLanguageModel, OmniToolCatalog omniToolCatalog) throws Exception {
-        return new MultiAgentHandoffWorkflow(chatLanguageModel, omniToolCatalog);
-    }
+//    @Bean
+//    public FastThinkWorkflow multiAgentHandoffWorkflow(ChatModel chatLanguageModel, ) throws Exception {
+//        return new FastThinkWorkflow(chatLanguageModel,);
+//    }
 }
