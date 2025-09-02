@@ -4,51 +4,46 @@
 
 ![OpenManus Logo](https://raw.githubusercontent.com/OpenManus/OpenManus/main/assets/logo.png)
 
-**基于 LangChain4j AgentExecutor 和 AgentHandoff 机制的智能 AI Agent 系统**
+**基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架**
 
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)](https://spring.io/projects/spring-boot)
-[![LangGraph4j](https://img.shields.io/badge/LangGraph4j-1.6.0--beta6-blue)](https://github.com/bsorrentino/langgraph4j)
-[![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0--beta7-yellow)](https://github.com/langchain4j/langchain4j)
+[![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-yellow)](https://github.com/langchain4j/langchain4j)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 [🚀 快速开始](#-快速开始) •
-[📚 文档](#-文档) •
 [🎯 功能特性](#-功能特性) •
 [🏗️ 架构设计](#️-架构设计) •
-[🤝 贡献指南](#-贡献指南)
+[📚 文档](#-文档)
 
 </div>
 
 ## 📋 项目概述
 
-OpenManus Java 是一个基于 **LangChain4j AgentExecutor 和 AgentHandoff 机制** 的智能代理系统，专为构建复杂的AI工作流而设计。通过 Think-Do-Reflect 循环反思模式、多Agent协作和智能监控系统，为开发者提供强大而灵活的AI应用开发平台。
+OpenManus Java 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考系统，它采用"快思考/慢思考"双模式架构，结合了直接输出的效率与思考-执行-反思循环的深度。该系统能够根据任务复杂度自动或手动选择最合适的思考模式，大幅提升复杂任务的处理质量。
 
 ### 🎯 功能特性
 
-#### 🧠 Think-Do-Reflect 核心架构
-- **循环反思工作流**: 基于 AgentHandoff 的智能Agent协作
-- **Think-Do-Reflect 模式**: Think → Do → Reflect 完整循环
-- **智能Agent调度**: 根据任务需求动态选择合适的Agent
-- **执行监控机制**: 实时追踪Agent执行状态和工具调用
+#### 🧠 多模式智能思考
+- **快思考模式**: 直接执行，高效响应，适合简单任务
+- **慢思考模式**: 思考-执行-反思循环，适合复杂任务
+- **自动模式**: 根据任务复杂度智能选择思考模式
 
 #### 💭 智能Agent系统
-- **ThinkingAgent**: 深度问题分析和执行规划
-- **SearchAgent**: 网络搜索和信息检索
-- **CodeAgent**: Python代码执行和数据分析
-- **FileAgent**: 文件操作和内容处理
-- **ReflectionAgent**: 结果评估和循环决策
+- **FastThinkWorkflow**: 快速响应工作流
+- **ThinkDoReflectWorkflow**: 循环反思工作流
+- **多种专业Agent**: 思考、执行、反思等专业智能体
 
-#### 🔧 强大的工具生态
-- **代码执行**: Python 代码安全执行环境
-- **文件操作**: 完整的文件系统操作能力
-- **网络访问**: 智能网页浏览和信息提取
-- **记忆管理**: 向量数据库支持的长期记忆
+#### 🔧 工具生态
+- **代码执行能力**: 执行代码并分析结果
+- **文件操作工具**: 管理文件和内容
+- **网络访问能力**: 智能检索信息
 
-#### 🎨 监控和调试
-- **Agent执行监控**: 实时追踪Agent状态和工具调用
-- **Think-Do-Reflect界面**: 可视化循环反思工作流
-- **执行历史记录**: 完整的Agent执行轨迹
-- **多Agent协作演示**: 模拟复杂的多Agent协作场景
+#### 🎨 用户界面
+- **现代化Web界面**: 响应式设计，简洁易用
+- **模式选择器**: 可视化选择思考模式
+- **实时思考指示**: 直观展示处理进度
+- **调试面板**: 快速排查问题
 
 ## 🏗️ 架构设计
 
@@ -56,58 +51,52 @@ OpenManus Java 是一个基于 **LangChain4j AgentExecutor 和 AgentHandoff 机�
 
 ```mermaid
 graph TD
-    A[用户输入] --> B[ThinkDoReflectWorkflow]
-    B --> C[ThinkingAgent<br/>任务分析规划]
-    C --> D{选择执行Agent}
-    D -->|搜索任务| E[SearchAgent<br/>信息检索]
-    D -->|代码任务| F[CodeAgent<br/>代码执行]
-    D -->|文件任务| G[FileAgent<br/>文件操作]
-    E --> H[ReflectionAgent<br/>结果评估]
-    F --> H
-    G --> H
-    H --> I{任务完成?}
-    I -->|否| C
-    I -->|是| J[返回结果]
+    User[用户] --> UI[Web界面]
+    UI --> Controller[AgentController]
+    
+    Controller --> AM{自动模式选择}
+    AM -->|简单任务| FW[FastThinkWorkflow<br/>快速响应]
+    AM -->|复杂任务| TDR[ThinkDoReflectWorkflow<br/>深度思考]
+    
+    FW --> Result1[直接结果]
+    
+    TDR --> TA[ThinkingAgent<br/>分析规划]
+    TA --> EA[ExecutionAgent<br/>执行任务]
+    EA --> RA[ReflectionAgent<br/>结果评估]
+    RA -->|任务完成| Result2[最终结果]
+    RA -->|需要继续| TA
     
     subgraph "工具层"
-        K[PythonTool]
-        L[FileTool]
-        M[BrowserTool]
-        N[ReflectionTool]
+        CodeTool[代码执行工具]
+        FileTool[文件操作工具]
+        SearchTool[信息检索工具]
     end
     
-    subgraph "监控层"
-        O[AgentExecutionTracker]
-        P[执行状态监控]
-    end
+    EA --> CodeTool
+    EA --> FileTool
+    EA --> SearchTool
     
-    E --> K
-    F --> K
-    G --> L
-    H --> N
-    B --> O
-    O --> P
+    Result1 --> User
+    Result2 --> User
 ```
 
-### 技术栈对比
+### 技术栈
 
-| **组件** | **传统架构** | **Think-Do-Reflect架构** |
-|----------|-------------|------------------------|
-| **核心框架** | AI Services | AgentExecutor + AgentHandoff |
-| **推理模式** | 单轮对话 | 多轮循环反思 |
-| **Agent协作** | 单一Agent | 多Agent智能调度 |
-| **监控系统** | 无 | 实时执行监控 |
-| **反思机制** | 无 | 循环评估改进 |
-| **错误处理** | 基础异常 | 智能重试机制 |
+| **组件** | **技术选型** | **用途** |
+|----------|-------------|---------|
+| **后端框架** | Spring Boot 3.2.0 | 应用核心框架 |
+| **AI集成** | LangChain4j 1.1.0 | LLM对接与工具集成 |
+| **前端** | Vue.js 3 + Element Plus | 用户界面 |
+| **API** | RESTful API | 服务接口 |
+| **文档** | Markdown | 项目文档 |
 
 ## 🚀 快速开始
 
 ### 环境要求
 
-- **Java 21+** (LTS 推荐)
+- **Java 21+**
 - **Maven 3.9+**
-- **Docker** (可选，用于沙箱执行)
-- **阿里云百炼 API Key**
+- **阿里云百炼API Key** (或其他支持的LLM服务)
 
 ### 安装步骤
 
@@ -118,280 +107,65 @@ cd OpenManus-Java
 ```
 
 2. **配置环境**
-```bash
-cp env.example .env
-# 编辑 .env 文件，填入你的 API Key
+创建`application.yml`文件并配置LLM服务:
+```yaml
+openmanus:
+  llm:
+    provider: dashscope  # 阿里云百炼
+    api-key: ${YOUR_API_KEY}
+    model-name: qwen-max  # 或其他支持的模型
 ```
 
 3. **启动应用**
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 4. **访问服务**
-- **主界面**: http://localhost:8089
-- **统一监控系统**: http://localhost:8089/pages/unified-monitoring.html
-- **Think-Do-Reflect**: http://localhost:8089/pages/think-do-reflect.html
-- **API 文档**: http://localhost:8089/swagger-ui.html
+浏览器访问: http://localhost:8089
 
-### 快速体验
+## 📊 使用方式
+
+### 思考模式选择
+
+- **快思考模式**: 直接响应，适合简单查询和任务
+- **慢思考模式**: 深度思考，适合复杂问题解决和规划
+- **自动模式**: 系统根据任务复杂度自动选择最佳模式
+
+### API使用
 
 ```bash
-# 发送测试请求
+# 快思考模式
 curl -X POST http://localhost:8089/api/agent/chat \
   -H "Content-Type: application/json" \
-  -d '{
-    "message": "帮我分析一下当前目录的文件结构",
-    "sessionId": "test-session"
-  }'
+  -d '{"message": "今天的天气如何？"}'
+
+# 慢思考模式  
+curl -X POST http://localhost:8089/api/agent/think-do-reflect \
+  -H "Content-Type: application/json" \
+  -d '{"input": "分析一下春节期间旅游行业的发展趋势"}'
+  
+# 自动模式
+curl -X POST http://localhost:8089/api/agent/auto \
+  -H "Content-Type: application/json" \
+  -d '{"input": "帮我写一个Java函数计算斐波那契数列"}'
 ```
 
-## 📚 核心组件详解
 
-### 1. ThinkDoReflectWorkflow
+## 🙏 致谢
 
-核心工作流管理器，协调各个Agent的执行：
-
-```java
-@Service
-public class ThinkDoReflectWorkflow {
-    private final CompiledGraph<AgentExecutor.State> handoffExecutor;
-    
-    // Think-Do-Reflect循环执行
-    public CompletableFuture<String> execute(String userInput);
-    
-    // 同步执行版本
-    public String executeSync(String userInput);
-}
-```
-
-### 2. Agent执行系统
-
-#### ThinkingAgent - 智能规划
-```java
-public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> {
-    // 任务分析和规划
-    // 执行步骤制定
-    // 策略调整
-}
-```
-
-#### SearchAgent - 信息检索
-```java
-public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
-    // 网络搜索
-    // 信息提取
-    // 内容整理
-}
-```
-
-#### ReflectionAgent - 结果评估
-```java
-public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Builder> {
-    // 结果分析
-    // 完成度评估
-    // 循环决策
-}
-```
-
-### 3. 监控系统
-
-#### Agent执行追踪
-- **实时监控**: AgentExecutionTracker 追踪执行状态
-- **历史记录**: 完整的Agent执行轨迹
-- **性能分析**: 工具调用统计和性能指标
-
-```java
-@Component
-public class AgentExecutionTracker {
-    // Agent执行状态追踪
-    public void startAgentExecution(String sessionId, String agentId, String agentName, Map<String, Object> context);
-    
-    // 工具调用记录
-    public void recordToolCall(String sessionId, String agentId, String toolName, String input, String output);
-    
-    // 执行结束记录
-    public void endAgentExecution(String sessionId, String agentId, String agentName, String result, ExecutionStatus status);
-}
-```
-
-## 🎨 监控和调试
-
-### 统一监控系统
-
-启动应用后访问统一监控界面进行全面的系统监控和调试：
-
-- **统一监控**: http://localhost:8089/pages/unified-monitoring.html - 集成所有监控功能的统一界面
-  - 实时Agent执行监控
-  - Think-Do-Reflect工作流执行
-  - 系统性能指标
-  - 实时控制台输出
-  - 执行流程可视化
-- **Think-Do-Reflect**: http://localhost:8089/pages/think-do-reflect.html - 专门的工作流界面
-- **主界面**: http://localhost:8089 - 智能对话系统和功能导航
-
-### 监控功能
-
-```java
-// Agent执行追踪
-AgentExecutionTracker tracker;
-
-// 开始监控Agent执行
-tracker.startAgentExecution(sessionId, agentId, agentName, context);
-
-// 记录工具调用
-tracker.recordToolCall(sessionId, agentId, toolName, input, output);
-
-// 结束执行监控
-tracker.endAgentExecution(sessionId, agentId, agentName, result, status);
-```
-
-## 🔧 配置说明
-
-### 主要配置文件
-
-```yaml
-# application.yml
-openmanus:
-  llm:
-    model: "qwen-max"
-    base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1/"
-    api-key: "${OPENMANUS_LLM_API_KEY}"
-    
-  sandbox:
-    use-sandbox: true
-    memory-limit: "512m"
-    timeout: 120
-    
-  memory:
-    max-messages: 100
-    vector-store: "in-memory"
-```
-
-### 环境变量
-
-```bash
-# 必需配置 - 请在application.yml中配置API密钥
-# 或通过环境变量设置
-OPENMANUS_LLM_API_KEY=your-api-key-here
-
-# 可选配置
-OPENMANUS_LLM_MODEL=qwen-max
-OPENMANUS_SANDBOX_ENABLED=false
-OPENMANUS_MONITOR_ENABLED=true
-```
-
-## 🚀 进阶使用
-
-### 自定义Agent
-
-```java
-public class CustomAgent extends AbstractAgentExecutor<CustomAgent.Builder> {
-    public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
-        public CustomAgent build() throws GraphStateException {
-            this.name("custom_agent")
-                .description("自定义Agent描述")
-                .systemMessage(SystemMessage.from("自定义系统提示"));
-            return new CustomAgent(this);
-        }
-    }
-    
-    @Override
-    public String execute(ToolExecutionRequest request, Object context) {
-        // 自定义执行逻辑
-        return "处理结果";
-    }
-}
-```
-
-### 扩展工具
-
-```java
-@Component
-public class CustomTool {
-    @Tool("自定义工具描述")
-    public String customOperation(String input) {
-        // 工具实现
-        return "result";
-    }
-}
-```
-
-### 监控配置定制
-
-```java
-@Configuration
-public class MonitorConfig {
-    @Bean
-    public AgentExecutionTracker agentExecutionTracker() {
-        return new AgentExecutionTracker(
-            maxHistorySize: 1000,
-            enableRealTimeMonitoring: true,
-            retentionPeriod: Duration.ofHours(24)
-        );
-    }
-}
-```
-
-## 📊 性能与监控
-
-### 内置监控
-
-- **Spring Boot Actuator**: `/actuator/health`
-- **Prometheus 指标**: `/actuator/prometheus`
-- **JVM 监控**: 内存、线程、GC 状态
-
-### 性能优化
-
-- **异步执行**: Agent支持异步处理和并发执行
-- **连接池**: HTTP连接复用和资源管理
-- **监控优化**: 轻量级执行状态追踪
-- **内存管理**: 智能的执行历史清理机制
-
-## 🔒 安全特性
-
-- **沙箱隔离**: Docker容器隔离代码执行
-- **输入验证**: 严格的参数校验和清理
-- **API限流**: 防止恶意调用
-- **敏感信息**: 环境变量管理密钥
-
-## 📚 文档
-
-- [开发文档](docs/DEVELOPMENT.md)
-- [架构设计](docs/ARCHITECTURE.md)
-- [部署指南](docs/DEPLOYMENT_GUIDE.md)
-- [API参考](docs/API_REFERENCE.md)
-
-## 🤝 贡献指南
-
-欢迎参与 OpenManus 的开发！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交变更 (`git commit -m 'Add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
+感谢以下开源项目的支持：
+- [LangChain4j](https://github.com/langchain4j/langchain4j)
+- [Spring Boot](https://spring.io/projects/spring-boot)
 
 ## 📄 许可证
 
 本项目采用 [MIT 许可证](LICENSE)。
 
-## 🙏 致谢
-
-感谢以下开源项目：
-
-- [LangGraph4j](https://github.com/bsorrentino/langgraph4j) - StateGraph 架构
-- [LangChain4j](https://github.com/langchain4j/langchain4j) - LLM 集成
-- [Spring Boot](https://spring.io/projects/spring-boot) - 应用框架
-
 ---
 
 <div align="center">
 
-**🌟 如果这个项目对您有帮助，请给我们一个 Star！**
-
-[GitHub](https://github.com/OpenManus/OpenManus-Java) •
-[文档](https://docs.openmanus.io) •
-[社区](https://discord.gg/openmanus)
+**🌟 如果这个项目对您有帮助，欢迎Star支持！**
 
 </div>
