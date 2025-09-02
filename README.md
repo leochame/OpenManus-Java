@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![OpenManus Logo](https://raw.githubusercontent.com/OpenManus/OpenManus/main/assets/logo.png)
+<img src="assets/img/openmanus-logo.svg" alt="OpenManus Logo" width="256" height="256">
 
 **基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架**
 
