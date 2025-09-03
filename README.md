@@ -1,8 +1,8 @@
-# OpenManus Java
+# OpenManusJava
 
 <div align="center">
 
-<img src="assets/img/logo.png" alt="OpenManus Logo" width="256" height="256">
+<img src="assets/img/logo.png" alt="OpenManusJava Logo" width="256" height="256">
 
 **基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架**
 
@@ -19,7 +19,7 @@
 
 ## 📋 项目概述
 
-OpenManus Java 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考系统，它采用"快思考/慢思考"双模式架构，结合了直接输出的效率与思考-执行-反思循环的深度。该系统能够根据任务复杂度自动或手动选择最合适的思考模式，大幅提升复杂任务的处理质量。
+OpenManusJava 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考系统，它采用"快思考/慢思考"双模式架构，结合了直接输出的效率与思考-执行-反思循环的深度。该系统能够根据任务复杂度自动或手动选择最合适的思考模式，大幅提升复杂任务的处理质量。
 
 ### 🎯 功能特性
 
