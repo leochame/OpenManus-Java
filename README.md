@@ -4,71 +4,71 @@
 
 <img src="assets/img/logo.png" alt="OpenManusJava Logo" width="256" height="256">
 
-**基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架**
+**An Intelligent Thinking System Based on Java - A Multi-modal Agent Framework with Fast/Slow Thinking**
 
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)](https://spring.io/projects/spring-boot)
 [![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-yellow)](https://github.com/langchain4j/langchain4j)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-[🚀 快速开始](#-快速开始) •
-[🎯 功能特性](#-功能特性) •
-[🏗️ 架构设计](#️-架构设计) •
+[🚀 Quick Start](#-quick-start) •
+[🎯 Features](#-features) •
+[🏗️ Architecture](#️-architecture) •
 
 </div>
 
-## 📋 项目概述
+## 📋 Project Overview
 
-OpenManusJava 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考系统，它采用"快思考/慢思考"双模式架构，结合了直接输出的效率与思考-执行-反思循环的深度。该系统能够根据任务复杂度自动或手动选择最合适的思考模式，大幅提升复杂任务的处理质量。
+OpenManusJava is an intelligent thinking system developed based on Spring Boot and LangChain4j. It adopts a "fast thinking/slow thinking" dual-mode architecture, combining the efficiency of direct output with the depth of a think-execute-reflect loop. The system can automatically or manually select the most appropriate thinking mode according to task complexity, significantly improving the processing quality of complex tasks.
 
-### 🎯 功能特性
+### 🎯 Features
 
-#### 🧠 多模式智能思考
-- **快思考模式**: 直接执行，高效响应，适合简单任务
-- **慢思考模式**: 思考-执行-反思循环，适合复杂任务
-- **自动模式**: 根据任务复杂度智能选择思考模式
+#### 🧠 Multi-modal Intelligent Thinking
+- **Fast Thinking Mode**: Direct execution for high efficiency, suitable for simple tasks.
+- **Slow Thinking Mode**: Think-execute-reflect loop, suitable for complex tasks.
+- **Automatic Mode**: Intelligently selects the thinking mode based on task complexity.
 
-#### 💭 智能Agent系统
-- **FastThinkWorkflow**: 快速响应工作流
-- **ThinkDoReflectWorkflow**: 循环反思工作流
-- **多种专业Agent**: 思考、执行、反思等专业智能体
+#### 💭 Intelligent Agent System
+- **FastThinkWorkflow**: A workflow for quick responses.
+- **ThinkDoReflectWorkflow**: A workflow for cyclic reflection.
+- **Multiple Specialized Agents**: Specialized agents for thinking, execution, reflection, etc.
 
-#### 🔧 工具生态
-- **代码执行能力**: 执行代码并分析结果
-- **文件操作工具**: 管理文件和内容
-- **网络访问能力**: 智能检索信息
+#### 🔧 Tool Ecosystem
+- **Code Execution**: Executes code and analyzes the results.
+- **File Operations**: Manages files and content.
+- **Web Access**: Intelligently retrieves information.
 
-#### 🎨 用户界面
-- **现代化Web界面**: 响应式设计，简洁易用
-- **模式选择器**: 可视化选择思考模式
-- **实时思考指示**: 直观展示处理进度
-- **调试面板**: 快速排查问题
+#### 🎨 User Interface
+- **Modern Web Interface**: Responsive design, clean and easy to use.
+- **Mode Selector**: Visually select the thinking mode.
+- **Real-time Thinking Indicator**: Intuitively displays the processing progress.
+- **Debug Panel**: Quickly troubleshoot issues.
 
-## 🏗️ 架构设计
+## 🏗️ Architecture
 
-### 核心架构图
+### Core Architecture Diagram
 
 ```mermaid
 graph TD
-    User[用户] --> UI[Web界面]
+    User --> UI[Web Interface]
     UI --> Controller[AgentController]
     
-    Controller --> AM{自动模式选择}
-    AM -->|简单任务| FW[FastThinkWorkflow<br/>快速响应]
-    AM -->|复杂任务| TDR[ThinkDoReflectWorkflow<br/>深度思考]
+    Controller --> AM{Automatic Mode Selection}
+    AM -->|Simple Task| FW[FastThinkWorkflow<br/>Quick Response]
+    AM -->|Complex Task| TDR[ThinkDoReflectWorkflow<br/>Deep Thinking]
     
-    FW --> Result1[直接结果]
+    FW --> Result1[Direct Result]
     
-    TDR --> TA[ThinkingAgent<br/>分析规划]
-    TA --> EA[ExecutionAgent<br/>执行任务]
-    EA --> RA[ReflectionAgent<br/>结果评估]
-    RA -->|任务完成| Result2[最终结果]
-    RA -->|需要继续| TA
+    TDR --> TA[ThinkingAgent<br/>Analyze & Plan]
+    TA --> EA[ExecutionAgent<br/>Execute Task]
+    EA --> RA[ReflectionAgent<br/>Evaluate Result]
+    RA -->|Task Complete| Result2[Final Result]
+    RA -->|Needs More Work| TA
     
-    subgraph "工具层"
-        CodeTool[代码执行工具]
-        FileTool[文件操作工具]
-        SearchTool[信息检索工具]
+    subgraph "Tool Layer"
+        CodeTool[Code Execution Tool]
+        FileTool[File Operation Tool]
+        SearchTool[Information Retrieval Tool]
     end
     
     EA --> CodeTool
@@ -79,92 +79,92 @@ graph TD
     Result2 --> User
 ```
 
-### 技术栈
+### Technology Stack
 
-| **组件** | **技术选型** | **用途** |
+| **Component** | **Technology** | **Purpose** |
 |----------|-------------|---------|
-| **后端框架** | Spring Boot 3.2.0 | 应用核心框架 |
-| **AI集成** | LangChain4j 1.1.0 | LLM对接与工具集成 |
-| **前端** | Vue.js 3 + Element Plus | 用户界面 |
-| **API** | RESTful API | 服务接口 |
-| **文档** | Markdown | 项目文档 |
+| **Backend Framework** | Spring Boot 3.2.0 | Core application framework |
+| **AI Integration** | LangChain4j 1.1.0 | LLM integration and tool binding |
+| **Frontend** | Vue.js 3 + Element Plus | User interface |
+| **API** | RESTful API | Service interface |
+| **Documentation** | Markdown | Project documentation |
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 环境要求
+### Prerequisites
 
 - **Java 21+**
 - **Maven 3.9+**
-- **阿里云百炼API Key** (或其他支持的LLM服务)
+- **Alibaba Cloud Bailian API Key** (or other supported LLM service)
 
-### 安装步骤
+### Installation
 
-1. **克隆项目**
+1. **Clone the project**
 ```bash
 git clone https://github.com/OpenManus/OpenManus-Java.git
 cd OpenManus-Java
 ```
 
-2. **配置环境**
-创建`application.yml`文件并配置LLM服务:
+2. **Configure the environment**
+Create an `application.yml` file and configure the LLM service:
 ```yaml
 openmanus:
   llm:
-    provider: dashscope  # 阿里云百炼
+    provider: dashscope  # Alibaba Cloud Bailian
     api-key: ${YOUR_API_KEY}
-    model-name: qwen-max  # 或其他支持的模型
+    model-name: qwen-max  # or other supported models
 ```
 
-3. **启动应用**
+3. **Start the application**
 ```bash
 ./mvnw spring-boot:run
 ```
 
-4. **访问服务**
-浏览器访问: http://localhost:8089
+4. **Access the service**
+Open your browser and go to: http://localhost:8089
 
-## 📊 使用方式
+## 📊 Usage
 
-### 思考模式选择
+### Thinking Mode Selection
 
-- **快思考模式**: 直接响应，适合简单查询和任务
-- **慢思考模式**: 深度思考，适合复杂问题解决和规划
-- **自动模式**: 系统根据任务复杂度自动选择最佳模式
+- **Fast Thinking Mode**: Direct response, suitable for simple queries and tasks.
+- **Slow Thinking Mode**: Deep thinking, suitable for complex problem solving and planning.
+- **Automatic Mode**: The system automatically selects the best mode based on task complexity.
 
-### API使用
+### API Usage
 
 ```bash
-# 快思考模式
+# Fast Thinking Mode
 curl -X POST http://localhost:8089/api/agent/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "今天的天气如何？"}'
+  -d '{"message": "What is the weather like today?"}'
 
-# 慢思考模式  
+# Slow Thinking Mode
 curl -X POST http://localhost:8089/api/agent/think-do-reflect \
   -H "Content-Type: application/json" \
-  -d '{"input": "分析一下春节期间旅游行业的发展趋势"}'
+  -d '{"input": "Analyze the development trend of the tourism industry during the Spring Festival."}'
   
-# 自动模式
+# Automatic Mode
 curl -X POST http://localhost:8089/api/agent/auto \
   -H "Content-Type: application/json" \
-  -d '{"input": "帮我写一个Java函数计算斐波那契数列"}'
+  -d '{"input": "Write a Java function to calculate the Fibonacci sequence."}'
 ```
 
 
-## 🙏 致谢
+## 🙏 Acknowledgements
 
-感谢以下开源项目的支持：
+Thanks to the following open-source projects for their support:
 - [LangChain4j](https://github.com/langchain4j/langchain4j)
 - [Spring Boot](https://spring.io/projects/spring-boot)
 
-## 📄 许可证
+## 📄 License
 
-本项目采用 [MIT 许可证](LICENSE)。
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
 <div align="center">
 
-**🌟 如果这个项目对您有帮助，欢迎Star支持！**
+**🌟 If this project is helpful to you, please give it a Star!**
 
-</div>
+</div> 
