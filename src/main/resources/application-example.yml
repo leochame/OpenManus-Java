@@ -59,7 +59,11 @@ server:
     include-message: always
     include-binding-errors: always
 
+# Banner Configuration
 spring:
+  banner:
+    charset: UTF-8
+    location: classpath:banner.txt
   application:
     name: openmanus-java-web
   

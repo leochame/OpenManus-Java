@@ -15,7 +15,7 @@ openmanus:
       max-tokens: 8192
       timeout: 120
       # DashScope API key
-      api-key: "sk-9ced5f4658584abe9b786a0876e850c4"
+      api-key: "sk-9dabe17308594e409583b3d61842c802"
 
   sandbox:
     type: "docker"
@@ -68,9 +68,7 @@ server:
 spring:
   banner:
     charset: UTF-8
-    location: classpath:banner-simple.txt
-
-spring:
+    location: classpath:banner.txt
   application:
     name: openmanus-java-web
   

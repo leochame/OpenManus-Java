@@ -34,9 +34,8 @@
   <!-- Java 杯子图标 -->
   <path d="M143,70 C143,70 150,80 140,85 C130,90 150,95 150,95" stroke="#FF9800" stroke-width="2.5" fill="none" />
   
-  <!-- 文字 - OpenManus -->
-  <text x="128" y="220" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#1E88E5">OpenManus</text>
+  <!-- 文字 - OpenManusJava -->
+  <text x="128" y="220" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#1E88E5">OpenManusJava</text>
   
-  <!-- 文字 - Java -->
-  <text x="128" y="238" font-family="Arial, sans-serif" font-size="14" font-style="italic" text-anchor="middle" fill="#FF9800">Java</text>
+  <!-- 已移除单独的Java文本 -->
 </svg> 

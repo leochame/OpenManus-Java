@@ -15,12 +15,11 @@ public class StartupBanner implements CommandLineRunner {
         System.out.println();
         System.out.println("╭────────────────────────────────────────────────────────────╮");
         System.out.println("│                     OpenManusJava                          │");
-        System.out.println("│                  智能思考系统启动成功!                      │");
+        System.out.println("│                  智能思考系统启动成功!                        ｜");
         System.out.println("╰────────────────────────────────────────────────────────────╯");
         System.out.println();
         System.out.println("🌐 Web界面: http://localhost:8089");
         System.out.println("📚 API文档: http://localhost:8089/swagger-ui.html");
-        System.out.println("🔍 健康检查: http://localhost:8089/actuator/health");
         System.out.println();
         System.out.println("💡 思考模式:");
         System.out.println("   ⚡ 快思考模式 - 直接执行，高效响应，适合简单任务");
