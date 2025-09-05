@@ -151,6 +151,12 @@ curl -X POST http://localhost:8089/api/agent/auto \
 ```
 
 
+## 📬 联系我
+
+- 微信：leochame007
+- 邮箱：liulch.cn@gmail.com
+
+
 ## 🙏 致谢
 
 感谢以下开源项目的支持：
