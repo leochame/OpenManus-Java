@@ -8,7 +8,7 @@ openmanus:
 
   llm:
     default-llm:
-      model: "qwen-plus"
+      model: "qwen-max-latest"
       base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1/"
       api-type: "openai"
       temperature: 0.7

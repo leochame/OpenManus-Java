@@ -1,5 +1,6 @@
 package com.openmanus.agent.base;
 
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.StateGraph;
@@ -31,7 +32,11 @@ public interface AgentHandoff {
             return delegate.build();
         }
 
-    }
+       public Builder systemMessage(String systemMessageTemplate) {
+           delegate.systemMessage(SystemMessage.from(systemMessageTemplate));
+           return this;
+       }
+   }
 
     static Builder builder() {
         return new Builder();
