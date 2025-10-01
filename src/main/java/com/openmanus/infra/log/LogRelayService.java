@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 
 /**
@@ -16,9 +17,26 @@ public class LogRelayService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    // 用于静态访问的实例
+    private static LogRelayService instance;
+
     @Autowired
     public LogRelayService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
+    }
+
+    @PostConstruct
+    public void init() {
+        // 在bean初始化后，将自身赋值给静态实例
+        instance = this;
+    }
+
+    /**
+     * 获取静态实例
+     * @return LogRelayService的实例
+     */
+    public static LogRelayService getInstance() {
+        return instance;
     }
 
     /**
