@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 导入Spring Boot默认配置 -->
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    
+    <!-- WebSocket日志Appender -->
+    <appender name="WEBSOCKET" class="com.openmanus.infra.log.WebSocketLogAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- 文件调试日志 - 记录WebSocket相关问题 -->
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>websocket-debug.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- WebSocket组件的调试日志 -->
+    <logger name="com.openmanus.infra.log" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="DEBUG_FILE" />
+    </logger>
+    
+    <!-- OpenManus主包的日志 - 发送到WebSocket -->
+    <logger name="com.openmanus" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="WEBSOCKET" />
+    </logger>
+    
+    <!-- 默认为继承root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+</configuration>
