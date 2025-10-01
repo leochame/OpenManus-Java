@@ -8,6 +8,7 @@ import com.openmanus.agent.impl.reflection.ReflectionAgent;
 import com.openmanus.agent.tool.BrowserTool;
 import com.openmanus.agent.tool.PythonTool;
 import com.openmanus.agent.tool.FileTool;
+import com.openmanus.infra.monitoring.AgentExecutionTracker;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.GraphStateException;
 import org.springframework.context.annotation.Bean;
@@ -25,9 +26,10 @@ public class SubAgentConfig {
      * 创建思考智能体
      */
     @Bean
-    public ThinkingAgent thinkingAgent(ChatModel chatModel) throws GraphStateException {
+    public ThinkingAgent thinkingAgent(ChatModel chatModel, AgentExecutionTracker agentExecutionTracker) throws GraphStateException {
         return ThinkingAgent.builder()
                 .chatModel(chatModel)
+                .agentExecutionTracker(agentExecutionTracker)
                 .build();
     }
 
@@ -68,9 +70,10 @@ public class SubAgentConfig {
      * 创建反思智能体
      */
     @Bean
-    public ReflectionAgent reflectionAgent(ChatModel chatModel) throws GraphStateException {
+    public ReflectionAgent reflectionAgent(ChatModel chatModel, AgentExecutionTracker agentExecutionTracker) throws GraphStateException {
         return ReflectionAgent.builder()
                 .chatModel(chatModel)
+                .agentExecutionTracker(agentExecutionTracker)
                 .build();
     }
 }
