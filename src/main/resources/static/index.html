@@ -22,6 +22,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.css">
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
     
+    <!-- WebSocket/Stomp -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
     <style>
         :root {
             --primary-color: #409EFF;
@@ -282,6 +286,65 @@
             padding: 0;
         }
         
+        /* 流式日志相关样式 */
+        .stream-container {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .log-container {
+            margin-top: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        
+        .log-header {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: bold;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .log-content {
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85em;
+            background-color: #fff;
+        }
+        
+        .log-entry {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 4px;
+        }
+        
+        .log-time {
+            color: #6c757d;
+        }
+        
+        .log-level {
+            font-weight: bold;
+        }
+        
+        .log-info .log-level { color: #17a2b8; }
+        .log-debug .log-level { color: #6c757d; }
+        .log-warn .log-level { color: #ffc107; }
+        .log-error .log-level { color: #dc3545; }
+        
+        .log-empty {
+            text-align: center;
+            color: #6c757d;
+            padding: 10px;
+        }
+        
         .footer {
             margin-top: 20px;
             text-align: center;
@@ -324,6 +387,56 @@
             bottom: 20px;
             right: 20px;
             z-index: 1000;
+        }
+
+        .result-container {
+            margin-top: 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background-color: #f7f9fc;
+            overflow: hidden;
+        }
+
+        .result-header {
+            padding: 12px 15px;
+            background-color: #eef1f6;
+            border-bottom: 1px solid #dcdfe6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #303133;
+        }
+
+        .result-meta {
+            font-size: 13px;
+            color: #606266;
+            display: flex;
+            gap: 12px;
+        }
+
+        .result-body {
+            padding: 15px;
+            color: #303133;
+            background-color: #ffffff;
+        }
+
+        /* 用于格式化代码区域 */
+        .result-body pre {
+            background-color: #f5f7fa;
+            border-radius: 4px;
+            padding: 12px;
+            overflow: auto;
+            border: 1px solid #ebeef5;
+        }
+
+        .result-body code {
+            font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -381,6 +494,7 @@
                             :key="index" 
                             :class="['message', message.role === 'user' ? 'user-message' : 'assistant-message']"
                         >
+                            <!-- 消息头部 -->
                             <div class="message-header">
                                 <div 
                                     :class="['message-avatar', message.role === 'user' ? 'user-avatar' : 'assistant-avatar']"
@@ -397,8 +511,47 @@
                                     </span>
                     </div>
                 </div>
+                            
+                            <!-- 消息内容 -->
                             <div class="message-content">
                                 <div class="markdown-content" v-html="renderMarkdown(message.content)"></div>
+                                
+                                <!-- 最终结果展示组件 -->
+                                <div v-if="message.role === 'assistant' && message.isComplete && message.resultData" 
+                                     class="result-container">
+                                    <div class="result-header">
+                                        <div class="result-title">执行结果</div>
+                                        <div class="result-meta">
+                                            <span>执行时间: {{ formatDuration(message.resultData.executionTime) }}</span>
+                                            <span>状态: 
+                                                <el-tag size="small" :type="message.resultData.status === 'SUCCESS' ? 'success' : 'danger'">
+                                                    {{ message.resultData.status }}
+                                                </el-tag>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="result-body markdown-content" v-html="renderMarkdown(message.resultData.result)"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 流式日志和事件(只在助手回复中显示) -->
+                            <div v-if="message.role === 'assistant' && message.streamingData" class="stream-container">
+                                <div class="log-container">
+                                    <div class="log-header">
+                                        <span>实时日志 ({{ message.streamingData.logs.length }})</span>
+                                    </div>
+                                    <div class="log-content">
+                                        <div v-for="(log, logIndex) in message.streamingData.logs" :key="logIndex" 
+                                             class="log-entry" :class="`log-${log.level.toLowerCase()}`">
+                                            <span class="log-time">{{ log.timestamp }}</span>
+                                            <span class="log-level">{{ log.level }}</span>
+                                            <span class="log-message">{{ log.message }}</span>
+                                        </div>
+                                        <div v-if="message.streamingData.logs.length === 0" class="log-empty">
+                                            等待实时日志...
+                                        </div>
+                                    </div>
+                                </div>
                     </div>
                 </div>
                 
@@ -418,15 +571,14 @@
                             v-model="inputMessage"
                             placeholder="输入您的问题..."
                             :disabled="loading"
-                            @keyup.enter.prevent="sendMessage()"
+                            @keyup.enter.prevent="() => sendMessage()"
                             type="textarea"
                             :autosize="{ minRows: 1, maxRows: 4 }"
                         ></el-input>
                         <el-button 
                             type="primary" 
                             :loading="loading" 
-                            @click="sendMessage()"
-                            :icon="loading ? '' : 'el-icon-s-promotion'"
+                            @click="sendMessage"
                         >
                             发送
                         </el-button>
@@ -467,7 +619,7 @@
     
     <!-- Vue.js 应用脚本 -->
     <script>
-        const { createApp, ref, nextTick, onMounted } = Vue;
+        const { createApp, ref, reactive, computed, nextTick, onMounted } = Vue;
         const { ElMessage } = ElementPlus;
         
         createApp({
@@ -482,6 +634,62 @@
                 const debugInfo = ref('');
                 const serverStatus = ref('checking');
                 const lastUserMessage = ref('');
+                let stompClient = null;
+
+                // WebSocket连接状态
+                const wsStatus = reactive({
+                    text: '未连接',
+                    type: 'info',
+                    icon: 'Link',
+                    loading: false
+                });
+                
+                // 全局定义WebSocket连接状态监控
+                let wsConnected = false;
+                let wsReconnectAttempts = 0;
+                const MAX_RECONNECT_ATTEMPTS = 3;
+                let wsHeartbeatInterval = null;
+
+                // WebSocket心跳检测函数
+                const startHeartbeat = () => {
+                    if (wsHeartbeatInterval) {
+                        clearInterval(wsHeartbeatInterval);
+                    }
+                    
+                    wsHeartbeatInterval = setInterval(() => {
+                        if (stompClient && wsConnected) {
+                            try {
+                                // 发送心跳包
+                                stompClient.send("/app/heartbeat", {}, JSON.stringify({ timestamp: new Date().getTime() }));
+                                addDebugInfo("发送WebSocket心跳...");
+                            } catch (e) {
+                                addDebugInfo(`发送心跳失败: ${e.message}`);
+                                // 如果发送心跳失败，尝试重连
+                                wsConnected = false;
+                                if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                                    addDebugInfo(`心跳失败，尝试重新连接(${wsReconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
+                                    // 重连逻辑
+                                } else {
+                                    addDebugInfo(`心跳失败，已达最大重连尝试次数，放弃连接`);
+                                    stopHeartbeat();
+                                }
+                            }
+                        } else {
+                            addDebugInfo(`心跳检测：WebSocket未连接`);
+                        }
+                    }, 15000); // 15秒一次心跳
+                    
+                    addDebugInfo("启动WebSocket心跳监测");
+                };
+
+                // 停止心跳检测
+                const stopHeartbeat = () => {
+                    if (wsHeartbeatInterval) {
+                        clearInterval(wsHeartbeatInterval);
+                        wsHeartbeatInterval = null;
+                        addDebugInfo("停止WebSocket心跳监测");
+                    }
+                };
                 
                 // 检查服务器状态
                 const checkServerStatus = async () => {
@@ -518,8 +726,18 @@
                 // 渲染Markdown
                 const renderMarkdown = (content) => {
                     if (!content) return '';
+                    try {
                     const html = marked.parse(content);
+                        nextTick(() => {
+                            document.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightElement(block);
+                            });
+                        });
                     return html;
+                    } catch (e) {
+                        console.error('Markdown渲染错误:', e);
+                        return content;
+                    }
                 };
                 
                 // 滚动到底部
@@ -554,276 +772,311 @@
                 
                 // 发送消息
                 const sendMessage = async (retryMessage = null) => {
-                    // 如果传入的是事件对象，忽略它
-                    if (retryMessage && retryMessage instanceof Event) {
-                        retryMessage = null;
-                        addDebugInfo('忽略事件对象，使用输入框内容');
-                    }
+                    // 确保参数类型是字符串，而不是事件对象
+                    const messageToSend = (typeof retryMessage === 'string') ? retryMessage : inputMessage.value.trim();
                     
-                    const messageToSend = retryMessage || inputMessage.value.trim();
+                    if (!messageToSend || loading.value) return;
                     
-                    // 检查是否是事件对象
-                    if (messageToSend instanceof Event) {
-                        addDebugInfo('警告: messageToSend是事件对象，使用空字符串代替');
-                        return; // 不处理事件对象
-                    }
-                    
-                    if ((!messageToSend || loading.value) && !retryMessage) return;
-                    
-                    // 如果不是重试，则添加用户消息
-                    if (!retryMessage) {
-                        messages.value.push({
-                            role: 'user',
-                            content: messageToSend
-                        });
-                        
-                        // 保存最后发送的消息，用于重试
-                        lastUserMessage.value = messageToSend;
-                        
-                        // 清空输入框
-                        inputMessage.value = '';
-                    }
-                    
-                    // 滚动到底部
+                    // 添加用户消息
+                    messages.value.push({
+                        role: 'user',
+                        content: messageToSend
+                    });
+                    lastUserMessage.value = messageToSend;
+                    inputMessage.value = '';
+
                     await nextTick();
                     scrollToBottom();
                     
                     loading.value = true;
                     
+                    // 慢思考和自动模式使用WebSocket流式处理
+                    if (selectedMode.value === 'deep' || selectedMode.value === 'auto') {
+                        await executeStreamWorkflow(messageToSend);
+                    } else { // 快思考模式使用HTTP
+                        await executeFastWorkflow(messageToSend);
+                    }
+                };
+
+                // 执行快思考工作流
+                const executeFastWorkflow = async (message) => {
                     try {
-                        let endpoint, payload, params = new URLSearchParams();
-                        
-                        // 根据选择的模式确定API端点和参数
-                        if (selectedMode.value === 'fast') {
-                            endpoint = '/api/agent/chat';
-                            
-                            // 安全检查：确保不是事件对象
-                            let safeMessage = messageToSend;
-                            if (safeMessage instanceof Event || typeof safeMessage === 'object') {
-                                safeMessage = inputMessage.value.trim() || "请输入问题";
-                                addDebugInfo(`警告: 检测到对象类型，已替换为输入框内容`);
-                            }
-                            
-                            // 确保message是简单字符串
-                            payload = { 
-                                message: String(safeMessage)
-                            };
-                            
-                            if (conversationId.value) {
-                                payload.conversationId = conversationId.value;
-                                params.append('stateful', 'true');
-                            }
-                            params.append('sync', 'true');
-                            addDebugInfo(`快思考模式: message=${safeMessage}, 类型=${typeof safeMessage}`);
-                        } else if (selectedMode.value === 'deep') {
-                            endpoint = '/api/agent/think-do-reflect';
-                            
-                            // 安全检查：确保不是事件对象
-                            let safeInput = messageToSend;
-                            if (safeInput instanceof Event || typeof safeInput === 'object') {
-                                safeInput = inputMessage.value.trim() || "请输入问题";
-                                addDebugInfo(`警告: 检测到对象类型，已替换为输入框内容`);
-                            }
-                            
-                            // 确保input是简单字符串
-                            payload = { 
-                                input: String(safeInput)
-                            };
-                            params.append('sync', 'true');
-                            addDebugInfo(`慢思考模式: input=${safeInput}, 类型=${typeof safeInput}`);
-                        } else { // auto
-                            endpoint = '/api/agent/auto';
-                            
-                            // 安全检查：确保不是事件对象
-                            let safeInput = messageToSend;
-                            if (safeInput instanceof Event || typeof safeInput === 'object') {
-                                safeInput = inputMessage.value.trim() || "请输入问题";
-                                addDebugInfo(`警告: 检测到对象类型，已替换为输入框内容`);
-                            }
-                            
-                            // 确保input是简单字符串
-                            payload = { 
-                                input: String(safeInput)
-                            };
-                            params.append('sync', 'true');
-                            addDebugInfo(`自动模式: input=${safeInput}, 类型=${typeof safeInput}`);
+                        // 确保message是字符串类型
+                        if (typeof message !== 'string') {
+                            throw new Error(`输入必须是字符串，收到的类型是: ${typeof message}, 值: ${String(message)}`);
                         }
                         
-                        const requestUrl = `${endpoint}?${params.toString()}`;
-                        addDebugInfo(`请求URL: ${requestUrl}`);
+                        const userMessage = message.trim();
                         
-                        // 详细检查payload
-                        addDebugInfo('详细检查payload:');
-                        Object.entries(payload).forEach(([key, value]) => {
-                            addDebugInfo(`  - ${key}: ${value} (类型: ${typeof value})`);
-                            if (typeof value === 'object' && value !== null) {
-                                addDebugInfo(`    对象内容: ${JSON.stringify(value)}`);
-                                addDebugInfo(`    尝试转换为字符串...`);
-                                payload[key] = String(value);
-                                addDebugInfo(`    转换后: ${payload[key]} (类型: ${typeof payload[key]})`);
-                            }
-                        });
+                        // 添加调试信息
+                        addDebugInfo(`发送快思考请求，message类型: ${typeof userMessage}, 值: ${userMessage}`);
                         
-                        addDebugInfo(`最终请求体: ${JSON.stringify(payload)}`);
-                        
-                        // 发送请求
-                        const response = await fetch(requestUrl, {
+                        const endpoint = '/api/agent/chat';
+                        const params = new URLSearchParams({ sync: 'true' });
+                        const payload = { message: userMessage };
+                            
+                        if (conversationId.value) {
+                            payload.conversationId = conversationId.value;
+                            params.append('stateful', 'true');
+                        }
+
+                        const response = await fetch(`${endpoint}?${params.toString()}`, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                             body: JSON.stringify(payload)
                         });
 
-                        addDebugInfo(`响应状态: ${response.status} ${response.statusText}`);
-                        
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            addDebugInfo(`错误响应: ${errorText}`);
-                            
-                            // 尝试解析错误消息
-                            let errorMessage = `HTTP错误! 状态: ${response.status}`;
-                            try {
-                                const errorJson = JSON.parse(errorText);
-                                if (errorJson.message) {
-                                    errorMessage = errorJson.message;
-                                    addDebugInfo(`错误消息: ${errorMessage}`);
-                                    
-                                    // 特别处理JSON解析错误
-                                    if (errorMessage.includes('JSON parse error') || 
-                                        errorMessage.includes('deserialize') ||
-                                        errorMessage.includes('Cannot deserialize')) {
-                                        
-                                        addDebugInfo('检测到JSON解析错误，可能是请求格式问题');
-                                        addDebugInfo('尝试修复请求格式...');
-                                        
-                                        // 尝试不同的请求格式
-                                        if (selectedMode.value === 'fast') {
-                                            // 尝试直接发送字符串而不是对象
-                                            return await retryWithDirectString(endpoint, messageToSend, params);
-                                        }
-                                    }
-                                }
-                            } catch (parseError) {
-                                addDebugInfo(`无法解析错误响应: ${parseError.message}`);
-                            }
-                            
-                            throw new Error(errorMessage);
-                        }
-                        
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                         const data = await response.json();
-                        addDebugInfo(`响应数据: ${JSON.stringify(data)}`);
-                        
-                        // 保存会话ID
-                        if (data.conversationId) {
-                            conversationId.value = data.conversationId;
-                        } else if (data.sessionId) {
-                            conversationId.value = data.sessionId;
-                        }
-                        
-                        // 添加AI响应
+                        if (data.conversationId) conversationId.value = data.conversationId;
+
                         messages.value.push({
                             role: 'assistant',
-                            content: data.answer || data.result || '抱歉，我无法理解您的问题。',
-                            mode: data.mode || (selectedMode.value === 'fast' ? 'fast_thinking' : 'deep_thinking')
+                            content: data.answer || '抱歉，无法处理您的请求。',
+                            mode: 'fast_thinking'
                         });
-                        
-                        // 滚动到底部
-                        await nextTick();
-                        scrollToBottom();
-                        
                     } catch (err) {
-                        console.error('发送消息时出错:', err);
-                        addDebugInfo(`错误: ${err.message}`);
-                        
-                        // 检测是否是SSL握手错误
-                        const isSSLError = err.message.includes('SSL') || 
-                                          err.message.includes('handshake') || 
-                                          err.message.toLowerCase().includes('certificate');
-                        
-                        if (isSSLError) {
-                            ElMessage.error('SSL连接错误: 无法安全连接到服务器。可能是网络问题或证书配置错误。');
-                            addDebugInfo('SSL握手失败，这通常是由于以下原因之一：');
-                            addDebugInfo('1. 网络连接问题');
-                            addDebugInfo('2. 防火墙或代理设置');
-                            addDebugInfo('3. SSL证书问题');
-                            addDebugInfo('4. API密钥配置错误');
-                        } else {
-                            ElMessage.error('发送消息失败: ' + (err.message || '未知错误'));
-                        }
-                        
-                        // 添加错误消息，并提供重试选项
-                        messages.value.push({
-                            role: 'assistant',
-                            content: `抱歉，处理您的请求时出现了错误。${isSSLError ? '服务器连接安全问题，请联系管理员。' : '请稍后再试，或点击 <a href="#" onclick="document.getElementById(\'retry-button\').click(); return false;">重试</a>。'}`,
-                            isError: true
+                        console.error('快思考模式出错:', err);
+                        messages.value.push({ 
+                            role: 'assistant', 
+                            content: `快思考模式出错: ${err.message}`, 
+                            isError: true 
                         });
-                        
-                        // 滚动到底部
-                        await nextTick();
-                        scrollToBottom();
                     } finally {
                         loading.value = false;
+                        await nextTick();
+                        scrollToBottom();
+                    }
+                };
+
+                                // 执行流式工作流
+                const executeStreamWorkflow = async (input) => {
+                    // 为流式响应创建一个新的助手消息占位符
+                    const assistantMessage = reactive({
+                        role: 'assistant',
+                        content: '正在深度思考中...',
+                        mode: 'deep_thinking',
+                        streamingData: { logs: [], events: [] },
+                        isComplete: false
+                    });
+                    messages.value.push(assistantMessage);
+
+                    try {
+                        // 确保input是字符串类型，排除事件对象等非字符串类型
+                        if (typeof input !== 'string') {
+                            throw new Error(`输入必须是字符串，收到的类型是: ${typeof input}, 值: ${String(input)}`);
+                        }
+                        
+                        const userInput = input.trim();
+                        
+                        // 添加调试信息
+                        addDebugInfo(`发送流式请求，input类型: ${typeof userInput}, 值: ${userInput}`);
+                        
+                        const response = await fetch('/api/agent/think-do-reflect-stream', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ input: userInput })
+                        });
+
+                        // 记录原始响应
+                        const responseText = await response.text();
+                        addDebugInfo(`收到原始响应: ${responseText}`);
+                            
+                        let data;
+                        try {
+                            data = JSON.parse(responseText);
+                        } catch (parseErr) {
+                            throw new Error(`解析响应失败: ${parseErr.message}, 原始响应: ${responseText}`);
+                        }
+
+                        if (!response.ok || !data.success) {
+                            throw new Error(data.error || data.message || `HTTP ${response.status}`);
+                        }
+
+                        connectWebSocket(data.topic, assistantMessage);
+
+                    } catch (err) {
+                        console.error('发起流式工作流时出错:', err);
+                        assistantMessage.content = `发起工作流失败: ${err.message}`;
+                        assistantMessage.isError = true;
+                        loading.value = false;
+                    }
+                };
+
+                const connectWebSocket = (topic, assistantMessage) => {
+                    const socket = new SockJS('/ws');
+                    stompClient = Stomp.over(socket);
+                    stompClient.debug = null;
+                    
+                    // 添加WebSocket连接配置
+                    const connectHeaders = {
+                        'heart-beat': '10000,10000' // 10秒一次心跳
+                    };
+                    
+                    wsReconnectAttempts = 0;
+                    addDebugInfo('正在建立WebSocket连接...');
+
+                    stompClient.connect(connectHeaders, (frame) => {
+                        wsConnected = true;
+                        wsReconnectAttempts = 0;
+                        addDebugInfo(`WebSocket连接成功，版本: ${frame.headers['version']}, 服务器: ${frame.headers['server'] || 'unknown'}`);
+                        
+                        // 启动心跳检测
+                        startHeartbeat();
+                        
+                        // 订阅日志主题
+                        const logSubscription = stompClient.subscribe(topic + '/logs', (message) => {
+                            try {
+                                const log = JSON.parse(message.body);
+                                assistantMessage.streamingData.logs.push(log);
+                                nextTick(scrollToBottom);
+                                addDebugInfo(`收到日志: ${log.level} - ${log.message.substring(0, 50)}${log.message.length > 50 ? '...' : ''}`);
+                            } catch (e) {
+                                console.error("解析日志消息失败:", e, message.body);
+                                addDebugInfo(`解析日志消息失败: ${e.message}`);
+                            }
+                        });
+                        addDebugInfo(`已订阅日志主题: ${topic}/logs, ID: ${logSubscription.id}`);
+                        
+                        // 订阅核心事件主题
+                        const eventSubscription = stompClient.subscribe(topic, (message) => {
+                            try {
+                                const event = JSON.parse(message.body);
+                                assistantMessage.streamingData.events.push(event);
+                                addDebugInfo(`收到事件: ${event.eventType}`);
+
+                                // 更新最终结果
+                                if (event.eventType === 'WORKFLOW_COMPLETE') {
+                                    // 在这里我们不立即设置最终结果，而是等待专门的结果消息
+                                    addDebugInfo(`收到工作流完成事件，等待最终结果...`);
+                                    // 不要在这里断开连接，等待最终结果消息
+                                } else if (event.eventType === 'ERROR') {
+                                    assistantMessage.content = `工作流执行出错: ${event.output?.error || '未知错误'}`;
+                                    assistantMessage.isError = true;
+                                    loading.value = false;
+                                    
+                                    // 错误情况下也延迟关闭连接
+                                    setTimeout(() => {
+                                        addDebugInfo('工作流出错，延迟关闭WebSocket连接');
+                                        disconnectWebSocket();
+                                    }, 2000); // 2秒后关闭连接
+                                }
+
+                                nextTick(scrollToBottom);
+                            } catch (e) {
+                                console.error("解析核心事件失败:", e, message.body);
+                                addDebugInfo(`解析核心事件失败: ${e.message}, 原始数据: ${message.body.substring(0, 100)}...`);
+                            }
+                        });
+                        addDebugInfo(`已订阅事件主题: ${topic}, ID: ${eventSubscription.id}`);
+                        
+                        // 订阅最终结果主题
+                        const resultSubscription = stompClient.subscribe(topic + '/result', (message) => {
+                            try {
+                                const resultData = JSON.parse(message.body);
+                                addDebugInfo(`收到最终结果: 类型=${resultData.messageType}, 状态=${resultData.status}`);
+                                
+                                // 设置最终结果到消息中
+                                assistantMessage.content = resultData.result || '任务已完成，但无具体结果';
+                                assistantMessage.isComplete = true;
+                                assistantMessage.resultData = resultData; // 保存完整结果数据
+                                loading.value = false;
+                                
+                                // 处理结果后，安全地断开连接
+                                setTimeout(() => {
+                                    addDebugInfo('已接收最终结果，延迟关闭WebSocket连接');
+                                    disconnectWebSocket();
+                                }, 1000);
+                                
+                                nextTick(scrollToBottom);
+                            } catch (e) {
+                                console.error("解析结果消息失败:", e, message.body);
+                                addDebugInfo(`解析结果消息失败: ${e.message}`);
+                            }
+                        });
+                        addDebugInfo(`已订阅结果主题: ${topic}/result, ID: ${resultSubscription.id}`);
+                        
+                    }, (err) => {
+                        console.error('WebSocket 连接失败:', err);
+                        addDebugInfo(`WebSocket连接失败: ${err.message || '未知错误'}`);
+                        wsConnected = false;
+                        
+                        // 如果连接失败，尝试重连
+                        if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                            wsReconnectAttempts++;
+                            const delay = wsReconnectAttempts * 2000; // 递增重试延迟
+                            addDebugInfo(`连接失败，将在${delay/1000}秒后尝试重新连接(${wsReconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+                            
+                            setTimeout(() => {
+                                addDebugInfo(`正在尝试第${wsReconnectAttempts}次重连...`);
+                                connectWebSocket(topic, assistantMessage);
+                            }, delay);
+                        } else {
+                            assistantMessage.content = 'WebSocket连接失败，无法接收实时事件。请尝试刷新页面或稍后再试。';
+                            assistantMessage.isError = true;
+                            loading.value = false;
+                            addDebugInfo(`已达到最大重连次数(${MAX_RECONNECT_ATTEMPTS})，放弃连接`);
+                        }
+                    });
+                };
+
+                const disconnectWebSocket = () => {
+                    if (stompClient !== null && wsConnected) {
+                        try {
+                            addDebugInfo('正在断开WebSocket连接...');
+                            wsConnected = false;
+                            
+                            // 停止心跳检测
+                            stopHeartbeat();
+                            
+                            // 提供回调函数以确保断开连接后正确处理
+                            stompClient.disconnect(() => { 
+                                console.log('WebSocket连接已安全断开'); 
+                                addDebugInfo('WebSocket连接已安全断开');
+                                stompClient = null;
+                            }, {
+                                // 设置断开连接的头信息
+                                'timeout': 5000 // 5秒超时
+                            });
+                        } catch (e) {
+                            console.error('断开WebSocket连接时出错:', e);
+                            addDebugInfo(`断开连接出错: ${e.message}`);
+                            stompClient = null;
+                            wsConnected = false;
+                        }
+                    } else if (stompClient !== null) {
+                        stompClient = null;
+                        wsConnected = false;
+                        stopHeartbeat();
+                        addDebugInfo('WebSocket连接已关闭（连接状态：未连接）');
                     }
                 };
                 
                 // 重试上一次失败的请求
                 const retryLastMessage = () => {
-                    if (lastUserMessage.value) {
+                    if (lastUserMessage.value && typeof lastUserMessage.value === 'string') {
+                        if (messages.value.length > 0 && messages.value[messages.value.length - 1].isError) {
+                            messages.value.pop(); // 移除上一条错误消息
+                        }
                         sendMessage(lastUserMessage.value);
                     } else {
-                        ElMessage.warning('没有可重试的消息');
+                        ElMessage.warning('没有可重试的消息或消息格式不正确');
                     }
                 };
 
-                // 使用直接字符串重试请求
-                const retryWithDirectString = async (endpoint, message, params) => {
-                    addDebugInfo('尝试使用直接字符串格式重试请求...');
+                // 时间格式化工具函数
+                const formatDuration = (ms) => {
+                    if (!ms) return '未知';
                     
-                    try {
-                        const response = await fetch(`${endpoint}?${params.toString()}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'text/plain',
-                                'Accept': 'application/json'
-                            },
-                            body: message
-                        });
-                        
-                        addDebugInfo(`重试响应状态: ${response.status} ${response.statusText}`);
-                        
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            addDebugInfo(`重试错误响应: ${errorText}`);
-                            throw new Error(`重试失败! 状态: ${response.status}`);
-                    }
-                        
-                        const data = await response.json();
-                        addDebugInfo(`重试响应数据: ${JSON.stringify(data)}`);
-
-                        // 保存会话ID
-                        if (data.conversationId) {
-                            conversationId.value = data.conversationId;
-                        } else if (data.sessionId) {
-                            conversationId.value = data.sessionId;
-                        }
-                        
-                        // 添加AI响应
-                        messages.value.push({
-                            role: 'assistant',
-                            content: data.answer || data.result || '抱歉，我无法理解您的问题。',
-                            mode: data.mode || (selectedMode.value === 'fast' ? 'fast_thinking' : 'deep_thinking')
-                        });
-                        
-                        // 滚动到底部
-                        await nextTick();
-                        scrollToBottom();
-                        
-                        return true; // 表示处理成功
-                    } catch (err) {
-                        addDebugInfo(`重试失败: ${err.message}`);
-                        throw err; // 继续抛出错误
+                    if (ms < 1000) {
+                        return ms + '毫秒';
+                    } else if (ms < 60000) {
+                        return (ms / 1000).toFixed(2) + '秒';
+                    } else {
+                        const minutes = Math.floor(ms / 60000);
+                        const seconds = ((ms % 60000) / 1000).toFixed(1);
+                        return minutes + '分' + seconds + '秒';
                     }
                 };
 
@@ -846,7 +1099,7 @@
                     clearDebugInfo,
                     addDebugInfo,
                     checkServerStatus,
-                    retryWithDirectString
+                    formatDuration, // 添加这个函数
                 };
             }
         }).use(ElementPlus).mount('#app');
@@ -856,13 +1109,6 @@
         for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
             app.component(key, component);
         }
-        
-        // 初始化代码高亮
-        document.addEventListener('DOMContentLoaded', (event) => {
-            document.querySelectorAll('pre code').forEach((el) => {
-                hljs.highlightElement(el);
-            });
-        });
     </script>
 </body>
 </html>
