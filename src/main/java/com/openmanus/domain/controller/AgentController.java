@@ -63,4 +63,38 @@ public class AgentController {
             .thenApply(ResponseEntity::ok);
     }
 
+    /**
+     * 慢思考模式（流式） - Think-Do-Reflect工作流
+     *
+     * @param request 包含用户输入的请求
+     * @return 立即返回一个包含sessionId的响应，用于WebSocket订阅
+     */
+    @PostMapping("/think-do-reflect-stream")
+    @Operation(
+            summary = "Deep Thinking Mode (Streaming)",
+            description = "Initiates the Think-Do-Reflect workflow and returns a session ID for streaming results over WebSocket."
+    )
+    public ResponseEntity<WorkflowResponse> thinkDoReflectStream(
+            @RequestBody WorkflowRequest request) {
+        String userInput = request.getInput();
+        WorkflowResponse serviceResult = thinkDoReflectService.executeWorkflowAndStreamEvents(userInput);
+
+        if (!serviceResult.isSuccess()) {
+            return ResponseEntity.badRequest().body(serviceResult);
+        }
+
+        // 从服务层获取sessionId
+        String sessionId = serviceResult.getSessionId();
+        if (sessionId == null) {
+            // 如果没有sessionId，返回一个错误
+            return ResponseEntity.status(500).body(
+                WorkflowResponse.builder()
+                    .success(false)
+                    .error("无法启动工作流：未生成会话ID")
+                    .build()
+            );
+        }
+
+        return ResponseEntity.ok(serviceResult);
+    }
 } 
