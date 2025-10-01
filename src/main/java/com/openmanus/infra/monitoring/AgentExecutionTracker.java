@@ -119,23 +119,49 @@ public class AgentExecutionTracker {
     }
     
     /**
-     * 记录工具调用事件
+     * 记录工具调用事件（简化版本）
+     * 用于只需要记录成功的工具调用的场景
      */
     public void recordToolCall(String sessionId, String agentName, String toolName, Object input, Object output) {
+        // 调用完整版本，默认为成功状态
+        recordToolCall(sessionId, agentName, toolName, input, output, true, null, 0);
+    }
+
+    /**
+     * 记录工具调用事件（完整版本）
+     * 支持成功/失败状态、错误信息、执行时长
+     * 
+     * @param sessionId 会话ID
+     * @param agentName Agent名称
+     * @param toolName 工具名称
+     * @param input 输入参数
+     * @param output 输出结果
+     * @param success 是否成功
+     * @param error 错误信息（如果有）
+     * @param durationMs 执行时长（毫秒）
+     */
+    public void recordToolCall(String sessionId, String agentName, String toolName, Object input, Object output, 
+                              boolean success, String error, long durationMs) {
+        LocalDateTime callTime = LocalDateTime.now().minusNanos(durationMs * 1_000_000);
+        LocalDateTime completionTime = LocalDateTime.now();
+        
+        // 创建工具调用事件
         AgentExecutionEvent event = AgentExecutionEvent.builder()
                 .sessionId(sessionId)
                 .eventId(UUID.randomUUID().toString())
                 .agentName(agentName)
                 .agentType("TOOL_CALL")
-                .eventType(AgentExecutionEvent.EventType.TOOL_CALL_END)
-                .status(AgentExecutionEvent.ExecutionStatus.SUCCESS)
-                .input(input)
-                .output(output)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now())
+                .eventType(success ? AgentExecutionEvent.EventType.TOOL_CALL_END : AgentExecutionEvent.EventType.ERROR)
+                .status(success ? AgentExecutionEvent.ExecutionStatus.SUCCESS : AgentExecutionEvent.ExecutionStatus.FAILED)
+                .startTime(callTime)
+                .endTime(completionTime)
+                .error(error)
                 .metadata(Map.of("toolName", toolName))
                 .build();
 
+        // 安全地设置输入输出
+        event.setInput(input);
+        event.setOutput(output);
         event.calculateDuration();
 
         // 添加到会话事件列表
@@ -143,8 +169,28 @@ public class AgentExecutionTracker {
 
         // 通知监听器
         notifyListeners(event);
+        
+        // 如果存在当前执行阶段，也记录到DetailedExecutionFlow中
+        DetailedExecutionFlow.ExecutionPhase phase = currentPhases.get(sessionId);
+        if (phase != null) {
+            DetailedExecutionFlow.ToolCall toolCall = DetailedExecutionFlow.ToolCall.builder()
+                    .callId(event.getEventId())
+                    .toolName(toolName)
+                    .callTime(callTime)
+                    .completionTime(completionTime)
+                    .parameters(input)
+                    .result(output)
+                    .status(success ? "SUCCESS" : "FAILED")
+                    .error(error)
+                    .duration(durationMs)
+                    .build();
+            
+            phase.getToolCalls().add(toolCall);
+            log.debug("Tool call also recorded in DetailedExecutionFlow - Session: {}, Tool: {}", sessionId, toolName);
+        }
 
-        log.info("Tool call recorded - Session: {}, Agent: {}, Tool: {}", sessionId, agentName, toolName);
+        log.info("Tool call recorded - Session: {}, Agent: {}, Tool: {}, Status: {}", 
+                sessionId, agentName, toolName, success ? "SUCCESS" : "FAILED");
     }
 
     /**
@@ -236,10 +282,12 @@ public class AgentExecutionTracker {
                 .agentType(agentType)
                 .eventType(AgentExecutionEvent.EventType.STEP_START)
                 .status(AgentExecutionEvent.ExecutionStatus.RUNNING)
-                .input(stepData)
                 .startTime(LocalDateTime.now())
                 .metadata(Map.of("stepName", stepName))
                 .build();
+
+        // 安全地设置输入
+        event.setInput(stepData);
 
         recordCustomEvent(event);
 
@@ -258,12 +306,13 @@ public class AgentExecutionTracker {
                 .agentType(agentType)
                 .eventType(AgentExecutionEvent.EventType.INTERMEDIATE_RESULT)
                 .status(AgentExecutionEvent.ExecutionStatus.SUCCESS)
-                .output(result)
                 .startTime(LocalDateTime.now())
                 .endTime(LocalDateTime.now())
                 .metadata(Map.of("description", description))
                 .build();
 
+        // 安全地设置输出
+        event.setOutput(result);
         event.calculateDuration();
         recordCustomEvent(event);
 
@@ -282,12 +331,13 @@ public class AgentExecutionTracker {
                 .agentType(agentType)
                 .eventType(AgentExecutionEvent.EventType.DECISION_POINT)
                 .status(AgentExecutionEvent.ExecutionStatus.SUCCESS)
-                .output(decision)
                 .startTime(LocalDateTime.now())
                 .endTime(LocalDateTime.now())
                 .metadata(Map.of("reasoning", reasoning))
                 .build();
 
+        // 安全地设置输出
+        event.setOutput(decision);
         event.calculateDuration();
         recordCustomEvent(event);
 
@@ -453,32 +503,6 @@ public class AgentExecutionTracker {
 
             log.debug("Recorded LLM interaction for session: {}, model: {}, tokens: {}",
                     sessionId, model, tokenUsage != null ? tokenUsage.getTotalTokens() : "unknown");
-        }
-    }
-
-    /**
-     * 记录工具调用
-     */
-    public void recordToolCall(String sessionId, String toolName, Object parameters, Object result,
-                              boolean success, String error, long duration) {
-        DetailedExecutionFlow.ExecutionPhase phase = currentPhases.get(sessionId);
-        if (phase != null) {
-            DetailedExecutionFlow.ToolCall toolCall = DetailedExecutionFlow.ToolCall.builder()
-                    .callId(UUID.randomUUID().toString())
-                    .toolName(toolName)
-                    .callTime(LocalDateTime.now().minusNanos(duration * 1_000_000))
-                    .completionTime(LocalDateTime.now())
-                    .parameters(parameters)
-                    .result(result)
-                    .status(success ? "SUCCESS" : "FAILED")
-                    .error(error)
-                    .duration(duration)
-                    .build();
-
-            phase.getToolCalls().add(toolCall);
-
-            log.debug("Recorded tool call for session: {}, tool: {}, status: {}",
-                    sessionId, toolName, toolCall.getStatus());
         }
     }
 
