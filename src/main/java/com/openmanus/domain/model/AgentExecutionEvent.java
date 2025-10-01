@@ -1,5 +1,7 @@
 package com.openmanus.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +18,11 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AgentExecutionEvent {
+    
+    // 使用静态ObjectMapper避免每次序列化都创建新的实例
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     
     /**
      * 执行会话ID
@@ -50,11 +56,13 @@ public class AgentExecutionEvent {
     
     /**
      * 输入数据
+     * 被序列化为字符串以确保WebSocket传输的稳定性
      */
     private Object input;
     
     /**
      * 输出数据
+     * 被序列化为字符串以确保WebSocket传输的稳定性
      */
     private Object output;
     
@@ -82,6 +90,64 @@ public class AgentExecutionEvent {
      * 额外的元数据
      */
     private Map<String, Object> metadata;
+    
+    /**
+     * 安全地设置输入，确保它可以序列化
+     */
+    public void setInput(Object input) {
+        if (input == null) {
+            this.input = null;
+            return;
+        }
+        
+        // 如果是String、Number或Boolean类型，直接设置
+        if (input instanceof String || input instanceof Number || input instanceof Boolean) {
+            this.input = input;
+        } else {
+            // 尝试将复杂对象转换为字符串表示
+            try {
+                // 如果已经是字符串表示，则不需要再转换
+                if (input instanceof String) {
+                    this.input = input;
+                } else {
+                    // 将对象转换为JSON字符串
+                    this.input = objectMapper.writeValueAsString(input);
+                }
+            } catch (Exception e) {
+                // 如果序列化失败，则保存对象的简单字符串表示
+                this.input = input.toString();
+            }
+        }
+    }
+    
+    /**
+     * 安全地设置输出，确保它可以序列化
+     */
+    public void setOutput(Object output) {
+        if (output == null) {
+            this.output = null;
+            return;
+        }
+        
+        // 如果是String、Number或Boolean类型，直接设置
+        if (output instanceof String || output instanceof Number || output instanceof Boolean) {
+            this.output = output;
+        } else {
+            // 尝试将复杂对象转换为字符串表示
+            try {
+                // 如果已经是字符串表示，则不需要再转换
+                if (output instanceof String) {
+                    this.output = output;
+                } else {
+                    // 将对象转换为JSON字符串
+                    this.output = objectMapper.writeValueAsString(output);
+                }
+            } catch (Exception e) {
+                // 如果序列化失败，则保存对象的简单字符串表示
+                this.output = output.toString();
+            }
+        }
+    }
     
     /**
      * 事件类型枚举
@@ -136,16 +202,20 @@ public class AgentExecutionEvent {
      * 创建Agent开始事件
      */
     public static AgentExecutionEvent createStartEvent(String sessionId, String agentName, String agentType, Object input) {
-        return AgentExecutionEvent.builder()
+        AgentExecutionEvent event = AgentExecutionEvent.builder()
                 .sessionId(sessionId)
                 .eventId(java.util.UUID.randomUUID().toString())
                 .agentName(agentName)
                 .agentType(agentType)
                 .eventType(EventType.AGENT_START)
                 .status(ExecutionStatus.RUNNING)
-                .input(input)
                 .startTime(LocalDateTime.now())
                 .build();
+                
+        // 安全地设置输入
+        event.setInput(input);
+        
+        return event;
     }
     
     /**
@@ -159,9 +229,12 @@ public class AgentExecutionEvent {
                 .agentType(agentType)
                 .eventType(EventType.AGENT_END)
                 .status(status)
-                .output(output)
                 .endTime(LocalDateTime.now())
                 .build();
+                
+        // 安全地设置输出
+        event.setOutput(output);
+        
         return event;
     }
     
