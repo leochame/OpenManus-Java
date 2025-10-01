@@ -14,11 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
+import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
 /**
  * 处理Think-Do-Reflect工作流相关的业务逻辑
@@ -97,7 +96,9 @@ public class ThinkDoReflectService {
         final LocalDateTime startTime = LocalDateTime.now();
 
         try (MDC.MDCCloseable ignored = MDC.putCloseable("sessionId", sessionId)) {
-            log.info("异步任务开始执行，会话ID: {}", sessionId);
+            // 【重要日志】工作流开始执行
+            log.info(TO_FRONTEND, "🚀 工作流开始执行 - 会话ID: {}", sessionId);
+            
             executionTracker.startAgentExecution(sessionId, "workflow_manager", "WORKFLOW_START", userInput);
             String result = thinkDoReflectWorkflow.executeSync(userInput);
 
@@ -108,55 +109,51 @@ public class ThinkDoReflectService {
             LocalDateTime endTime = LocalDateTime.now();
             long executionTimeMs = ChronoUnit.MILLIS.between(startTime, endTime);
 
-            // 创建并发送工作流结果VO
-            WorkflowResultVO resultVO = WorkflowResultVO.builder()
-                    .sessionId(sessionId)
-                    .userInput(userInput)
-                    .result(result)
-                    .status("SUCCESS")
-                    .completedTime(endTime)
-                    .executionTime(executionTimeMs)
-                    .build();
+            // 【重要日志】工作流执行成功
+            log.info(TO_FRONTEND, "✅ 工作流执行成功 - 耗时: {}ms", executionTimeMs);
 
-            // 发送到专门的结果主题
-            String resultDestination = "/topic/executions/" + sessionId + "/result";
-            log.info("发送工作流结果到 {}", resultDestination);
-            messagingTemplate.convertAndSend(resultDestination, resultVO);
+            // 发送结果到前端
+            sendWorkflowResult(sessionId, userInput, result, "SUCCESS", endTime, executionTimeMs);
 
-            log.info("工作流执行成功，执行时间: {}ms", executionTimeMs);
-
-            // 额外休眠100毫秒确保消息被发送
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
         } catch (Exception e) {
-            log.error("工作流执行出错，会话ID: {}", sessionId, e);
+            // 【重要日志】工作流执行出错
+            log.error(TO_FRONTEND, "❌ 工作流执行出错 - 会话ID: {} - 错误: {}", sessionId, e.getMessage());
+            
             executionTracker.recordAgentError(sessionId, "workflow_manager", "WORKFLOW_EXECUTION", e.getMessage());
 
             // 发送错误结果
-            WorkflowResultVO errorResult = WorkflowResultVO.builder()
-                    .sessionId(sessionId)
-                    .userInput(userInput)
-                    .status("ERROR")
-                    .result("执行出错: " + e.getMessage())
-                    .completedTime(LocalDateTime.now())
-                    .executionTime(ChronoUnit.MILLIS.between(startTime, LocalDateTime.now()))
-                    .build();
-
-            messagingTemplate.convertAndSend("/topic/executions/" + sessionId + "/result", errorResult);
+            long executionTimeMs = ChronoUnit.MILLIS.between(startTime, LocalDateTime.now());
+            sendWorkflowResult(sessionId, userInput, "执行出错: " + e.getMessage(), "ERROR", LocalDateTime.now(), executionTimeMs);
+            
         } finally {
             try {
-                // 额外休眠以确保所有消息发送完成
+                // 休眠以确保所有消息发送完成
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-
-            log.info("异步任务执行结束，正在清理监听器。");
+            
+            log.debug("异步任务执行结束，正在清理监听器。");
             executionTracker.removeListener(listener);
         }
     }
 
+    /**
+     * 发送工作流结果到前端
+     */
+    private void sendWorkflowResult(String sessionId, String userInput, String result, 
+                                   String status, LocalDateTime completedTime, long executionTimeMs) {
+        WorkflowResultVO resultVO = WorkflowResultVO.builder()
+                .sessionId(sessionId)
+                .userInput(userInput)
+                .result(result)
+                .status(status)
+                .completedTime(completedTime)
+                .executionTime(executionTimeMs)
+                .build();
+
+        String resultDestination = "/topic/executions/" + sessionId + "/result";
+        log.debug("发送工作流结果到 {}", resultDestination);
+        messagingTemplate.convertAndSend(resultDestination, resultVO);
+    }
 } 
