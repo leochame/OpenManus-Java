@@ -1,10 +1,12 @@
 package com.openmanus.agent.impl.thinker;
 
 import com.openmanus.agent.base.AbstractAgentExecutor;
+import com.openmanus.infra.monitoring.AgentExecutionTracker;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
+import com.openmanus.domain.model.AgentExecutionEvent;
 
 /**
  * 思考智能体 - 负责任务分析和规划
@@ -23,6 +25,8 @@ import org.bsc.langgraph4j.GraphStateException;
  */
 @Slf4j
 public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> {
+
+    private final AgentExecutionTracker agentExecutionTracker;
 
     // 系统消息模板提取为常量，便于维护
     private static final String SYSTEM_MESSAGE_TEMPLATE = """
@@ -84,6 +88,13 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
 
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
 
+        private AgentExecutionTracker agentExecutionTracker;
+
+        public Builder agentExecutionTracker(AgentExecutionTracker agentExecutionTracker) {
+            this.agentExecutionTracker = agentExecutionTracker;
+            return this;
+        }
+
         public ThinkingAgent build() throws GraphStateException {
             this.name("thinking_agent")
                 .description("当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略")
@@ -100,15 +111,22 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
 
     public ThinkingAgent(Builder builder) throws GraphStateException {
         super(builder);
+        this.agentExecutionTracker = builder.agentExecutionTracker;
     }
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
-        log.info("🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}",toolExecutionRequest,memoryId);
+        String sessionId = memoryId != null ? memoryId.toString() : "unknown-session";
+        String input = toolExecutionRequest.arguments();
+        
+        agentExecutionTracker.startAgentExecution(sessionId, name(), "THINKING_START", input);
+        log.info("🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
 
         String result = super.execute(toolExecutionRequest, memoryId);
 
         log.info("ThinkingAgent.execute result: {}", result);
+        agentExecutionTracker.recordIntermediateResult(sessionId, name(), "THINKING_PLAN", result, "Generated execution plan");
+        agentExecutionTracker.endAgentExecution(sessionId, name(), "THINKING_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
 
         return result;
     }

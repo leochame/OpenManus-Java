@@ -1,6 +1,8 @@
 package com.openmanus.agent.impl.reflection;
 
 import com.openmanus.agent.base.AbstractAgentExecutor;
+import com.openmanus.domain.model.AgentExecutionEvent;
+import com.openmanus.infra.monitoring.AgentExecutionTracker;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Slf4j
 public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Builder> {
+
+    private final AgentExecutionTracker agentExecutionTracker;
 
     // 状态常量
     private static final String STATUS_COMPLETE = "STATUS: COMPLETE";
@@ -82,6 +86,13 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
 
     public static class Builder extends AbstractAgentExecutor.Builder<Builder> {
 
+        private AgentExecutionTracker agentExecutionTracker;
+
+        public Builder agentExecutionTracker(AgentExecutionTracker agentExecutionTracker) {
+            this.agentExecutionTracker = agentExecutionTracker;
+            return this;
+        }
+
         public ReflectionAgent build() throws GraphStateException {
             this.name("reflection_agent")
                 .description("当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议")
@@ -98,13 +109,23 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
 
     public ReflectionAgent(Builder builder) throws GraphStateException {
         super(builder);
+        this.agentExecutionTracker = builder.agentExecutionTracker;
     }
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
-        log.info("🚀🚀 ToolExecutionRequest:{}\n,memoryId:{}",toolExecutionRequest.toString(),memoryId);
+        String sessionId = memoryId != null ? memoryId.toString() : "unknown-session";
+        String input = toolExecutionRequest.arguments();
+        
+        agentExecutionTracker.startAgentExecution(sessionId, name(), "REFLECTION_START", input);
+        log.info("🚀🚀 ReflectionAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+
         String result = super.execute(toolExecutionRequest, memoryId);
+
         log.info("ReflectionAgent.execute result: {}", result);
+        agentExecutionTracker.recordIntermediateResult(sessionId, name(), "REFLECTION_RESULT", result, "Generated reflection and feedback");
+        agentExecutionTracker.endAgentExecution(sessionId, name(), "REFLECTION_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
+        
         return result;
     }
 }
