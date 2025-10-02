@@ -8,50 +8,51 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
+import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.GraphStateException;
 import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
-import org.bsc.langgraph4j.CompiledGraph;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
 /**
- * Configuration class for LangChain4j, focusing on creating a modern, stateful,
- * and multi-turn capable agent using AiServices.
+ * LangChain4j配置类
+ * 
+ * 配置LLM、嵌入模型、对话记忆和Agent执行器
+ * 采用构建者模式创建各组件实例
  */
 @Configuration
 public class LangChain4jConfig {
 
-    @Autowired
-    private OpenManusProperties openManusProperties;
+    private static final int MAX_MEMORY_MESSAGES = 50;
+    
+    private final OpenManusProperties properties;
+
+    public LangChain4jConfig(OpenManusProperties properties) {
+        this.properties = properties;
+    }
 
     /**
-     * Provides a chat memory store that holds the conversation history in memory.
-     * In a production environment, this could be replaced with a persistent store
-     * like Redis or a database.
-     *
-     * @return A ChatMemoryProvider instance.
+     * 对话记忆提供者
+     * 开发环境使用内存存储，生产环境可替换为Redis等持久化存储
      */
     @Bean
     public ChatMemoryProvider chatMemoryProvider() {
         return conversationId -> MessageWindowChatMemory.builder()
                 .id(conversationId)
-                .maxMessages(50) // Retain the last 50 messages for context
+                .maxMessages(MAX_MEMORY_MESSAGES)
                 .chatMemoryStore(new InMemoryChatMemoryStore())
                 .build();
     }
 
     /**
-     * Creates a shared ChatModel bean based on the application's configuration properties.
-     * This bean is a prerequisite for both AiServices and LangGraph.
-     *
-     * @return A configured ChatModel instance.
+     * 聊天模型
+     * 基于配置文件创建LLM实例
      */
     @Bean
     public ChatModel chatModel() {
-        OpenManusProperties.LlmConfig.DefaultLLM llmConfig = openManusProperties.getLlm().getDefaultLlm();
+        OpenManusProperties.LlmConfig.DefaultLLM llmConfig = properties.getLlm().getDefaultLlm();
 
         return OpenAiChatModel.builder()
                 .baseUrl(llmConfig.getBaseUrl())
@@ -64,17 +65,12 @@ public class LangChain4jConfig {
     }
 
     /**
-     * Creates and compiles the AgentExecutor graph, making it available as a Spring bean.
-     * This compiled graph is the core of the langgraph4j-based agent and can be
-     * injected into other components, such as the LangGraphStudioConfig for visualization.
-     *
-     * @param chatModel   The ChatModel bean to be used by the agent.
-     * @param omniToolCatalog The catalog of tools available to the agent.
-     * @return A {@link CompiledGraph} instance representing the agent.
-     * @throws GraphStateException if there is an error compiling the graph.
+     * Agent执行器图
+     * 编译后的图可被注入到其他组件中使用
      */
     @Bean
-    public CompiledGraph<AgentExecutor.State> compiledGraph(ChatModel chatModel, OmniToolCatalog omniToolCatalog) throws GraphStateException {
+    public CompiledGraph<AgentExecutor.State> compiledGraph(ChatModel chatModel, 
+                                                            OmniToolCatalog omniToolCatalog) throws GraphStateException {
         AgentExecutor.Builder builder = AgentExecutor.builder()
                 .chatModel(chatModel)
                 .toolsFromObject(omniToolCatalog.getTools().toArray(new Object[0]));
@@ -82,9 +78,14 @@ public class LangChain4jConfig {
         return builder.build().compile();
     }
 
+    /**
+     * 嵌入模型
+     * 用于文本向量化和语义搜索
+     */
     @Bean
-    public EmbeddingModel embeddingModel(OpenManusProperties properties) {
+    public EmbeddingModel embeddingModel() {
         OpenManusProperties.LlmConfig.DefaultLLM llmConfig = properties.getLlm().getDefaultLlm();
+        
         return OpenAiEmbeddingModel.builder()
                 .baseUrl(llmConfig.getBaseUrl())
                 .apiKey(llmConfig.getApiKey())

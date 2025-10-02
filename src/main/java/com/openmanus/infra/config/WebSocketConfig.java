@@ -1,10 +1,12 @@
 package com.openmanus.infra.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompReactorNettyCodec;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -14,10 +16,23 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.util.List;
 
+/**
+ * WebSocket配置类
+ * 
+ * 负责配置WebSocket消息代理、端点注册和传输配置
+ * 遵循单一职责原则，配置清晰简洁
+ */
 @Configuration
 @EnableWebSocketMessageBroker
 @Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private static final int MESSAGE_SIZE_LIMIT = 128 * 1024; // 128KB
+    private static final int SEND_BUFFER_SIZE_LIMIT = 512 * 1024; // 512KB
+    private static final int SEND_TIME_LIMIT = 30000; // 30秒
+    private static final long HEARTBEAT_INTERVAL = 10000; // 10秒
+    private static final long SOCKJS_HEARTBEAT_TIME = 25000; // 25秒
+    private static final long SOCKJS_DISCONNECT_DELAY = 60000; // 60秒
 
     private final MappingJackson2MessageConverter messageConverter;
     
@@ -25,52 +40,57 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         this.messageConverter = messageConverter;
     }
 
+    /**
+     * WebSocket心跳任务调度器
+     */
+    @Bean
+    public TaskScheduler webSocketTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(2);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.initialize();
+        return scheduler;
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic")
-              .setHeartbeatValue(new long[]{10000, 10000}) // 设置心跳间隔为10秒
-              .setTaskScheduler(new org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler() {{
-                  setPoolSize(2);
-                  setThreadNamePrefix("ws-heartbeat-thread-");
-                  initialize();
-              }});
+              .setHeartbeatValue(new long[]{HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL})
+              .setTaskScheduler(webSocketTaskScheduler());
         config.setApplicationDestinationPrefixes("/app");
         
-        // 记录配置信息
-        log.info("WebSocket消息代理配置完成，心跳间隔：10秒，应用前缀：/app");
+        log.info("WebSocket消息代理配置完成 - 心跳间隔: {}ms", HEARTBEAT_INTERVAL);
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // 增强WebSocket配置，使用明确的升级策略和握手处理器
         registry.addEndpoint("/ws")
                .setAllowedOriginPatterns("*")
                .setHandshakeHandler(new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy()))
                .withSockJS()
                .setWebSocketEnabled(true)
-               .setHeartbeatTime(25000) // 25秒心跳
-               .setDisconnectDelay(60000);  // 增加断开延迟到60秒，提高稳定性
+               .setHeartbeatTime(SOCKJS_HEARTBEAT_TIME)
+               .setDisconnectDelay(SOCKJS_DISCONNECT_DELAY);
         
-        log.info("WebSocket端点注册完成，心跳时间：25秒，断开延迟：60秒");
+        log.info("WebSocket端点注册完成 - SockJS心跳: {}ms, 断开延迟: {}ms", 
+                SOCKJS_HEARTBEAT_TIME, SOCKJS_DISCONNECT_DELAY);
     }
     
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-        registration.setMessageSizeLimit(8192 * 4)  // 增加消息大小限制
-                   .setSendBufferSizeLimit(512 * 1024)  // 增加发送缓冲区限制
-                   .setSendTimeLimit(30000)  // 增加发送超时时间到30秒
-                   .setMessageSizeLimit(128 * 1024); // 设置消息大小限制为128KB
+        registration.setMessageSizeLimit(MESSAGE_SIZE_LIMIT)
+                   .setSendBufferSizeLimit(SEND_BUFFER_SIZE_LIMIT)
+                   .setSendTimeLimit(SEND_TIME_LIMIT);
         
-        log.info("WebSocket传输配置完成，消息大小限制：128KB，发送超时：30秒");
+        log.info("WebSocket传输配置完成 - 消息大小: {}KB, 发送超时: {}ms", 
+                MESSAGE_SIZE_LIMIT / 1024, SEND_TIME_LIMIT);
     }
     
     @Override
     public boolean configureMessageConverters(List<org.springframework.messaging.converter.MessageConverter> messageConverters) {
-        // 清除默认转换器
         messageConverters.clear();
-        // 添加我们自定义的转换器
         messageConverters.add(messageConverter);
-        log.info("WebSocket消息转换器配置完成，使用自定义Jackson消息转换器");
         return true;
     }
 } 

@@ -1,35 +1,22 @@
 package com.openmanus.infra.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 
 /**
  * Jackson配置类
- * 提供统一的对象序列化和反序列化配置
+ * 
+ * 提供WebSocket消息转换器配置
+ * 注意：HTTP JSON序列化配置已在application.yaml中统一配置
  */
 @Configuration
 public class JacksonConfig {
-
-    /**
-     * 提供全局ObjectMapper配置
-     */
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        return Jackson2ObjectMapperBuilder.json()
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .modules(new JavaTimeModule())
-                .build();
-    }
     
     /**
-     * 为WebSocket提供专门的消息转换器
+     * WebSocket消息转换器
+     * 复用Spring Boot自动配置的ObjectMapper，保持配置一致性
      */
     @Bean
     public MappingJackson2MessageConverter mappingJackson2MessageConverter(ObjectMapper objectMapper) {
