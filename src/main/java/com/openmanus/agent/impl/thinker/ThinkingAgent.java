@@ -121,8 +121,8 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
         String input = toolExecutionRequest.arguments();
         
         agentExecutionTracker.startAgentExecution(sessionId, name(), "THINKING_START", input);
-        log.info(TO_FRONTEND,"🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
-
+        log.info("🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+        log.info(TO_FRONTEND,"User Request {}",toolExecutionRequest.arguments());
         String result = super.execute(toolExecutionRequest, memoryId);
 
         log.info(TO_FRONTEND,"ThinkingAgent.execute result: {}", result);

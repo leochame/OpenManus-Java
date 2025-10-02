@@ -16,94 +16,105 @@ import java.nio.charset.StandardCharsets;
 import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
 /**
- * Browser tool
- * Using langchain4j @Tool annotation
+ * 浏览器工具
+ * 
+ * 提供网页访问和搜索能力：
+ * 1. 访问网页并获取内容
+ * 2. 搜索网络信息（基于DuckDuckGo）
+ * 
+ * 设计模式：策略模式 - 不同的搜索引擎可以作为不同策略
  */
 @Component
 @Slf4j
 public class BrowserTool {
-    private static final int DEFAULT_TIMEOUT = 30; // 30 second timeout
     
+    // 网络配置常量
+    private static final int DEFAULT_TIMEOUT_SECONDS = 30;
+    private static final int DEFAULT_TIMEOUT_MS = DEFAULT_TIMEOUT_SECONDS * 1000;
+    private static final int MAX_CONTENT_LENGTH = 10000;
+    private static final int MAX_SEARCH_RESULTS = 5;
+    private static final int MAX_RESULT_LENGTH = 8000;
+    private static final int LOG_PREVIEW_LENGTH = 100;
+    
+    // 搜索引擎配置
+    private static final String SEARCH_ENGINE_URL = "https://html.duckduckgo.com/html/?q=";
+    
+    // 用户代理配置
+    private static final String USER_AGENT_BROWSER = "Mozilla/5.0 (compatible; OpenManus/1.0)";
+    private static final String USER_AGENT_SEARCH = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+    
+    // HTTP状态码
+    private static final int HTTP_OK = 200;
+    
+    // 消息模板
+    private static final String MSG_ACCESS_FAILED = "访问失败，HTTP状态码: ";
+    private static final String MSG_SEARCH_FAILED = "搜索失败，HTTP状态码: ";
+    private static final String MSG_CONTENT_TRUNCATED = "\n... (内容已截断)";
+    private static final String MSG_RESULT_TRUNCATED = "\n... (结果已截断)";
+    
+    /**
+     * 访问网页并获取内容
+     */
     @Tool("Visit web page and get content")
     public String browseWeb(@P("Web page URL") String url) {
         try {
-            // Validate URL format
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                url = "https://" + url;
-            }
+            // 标准化URL格式
+            url = normalizeUrl(url);
+            log.info("访问网页: {}", url);
 
-            URL targetUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) targetUrl.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(DEFAULT_TIMEOUT * 1000);
-            connection.setReadTimeout(DEFAULT_TIMEOUT * 1000);
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; OpenManus/1.0)");
-
+            // 建立HTTP连接
+            HttpURLConnection connection = createConnection(url, USER_AGENT_BROWSER);
+            
+            // 检查响应状态
             int responseCode = connection.getResponseCode();
-            if (responseCode != 200) {
-                return "Access failed, HTTP status code: " + responseCode;
+            if (responseCode != HTTP_OK) {
+                return MSG_ACCESS_FAILED + responseCode;
             }
 
-            // Read response content
-            StringBuilder content = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-        }
+            // 读取网页内容
+            String content = readContent(connection);
+            
+            // 限制返回内容长度
+            if (content.length() > MAX_CONTENT_LENGTH) {
+                content = content.substring(0, MAX_CONTENT_LENGTH) + MSG_CONTENT_TRUNCATED;
             }
 
-            String result = content.toString();
-            // Limit return content length to avoid excessive length
-            if (result.length() > 10000) {
-                result = result.substring(0, 10000) + "\n... (Content truncated)";
-            }
-
-            return "Web page content:\n" + result;
+            return "网页内容:\n" + content;
 
         } catch (IOException e) {
-            log.error("Failed to access web page: {}", url, e);
-            return "Failed to access web page: " + e.getMessage();
-                }
+            log.error("访问网页失败: {}", url, e);
+            return "访问网页失败: " + e.getMessage();
+        }
     }
     
+    /**
+     * 搜索网络内容
+     */
     @Tool("Search web content")
     public String searchWeb(@P("Search keywords") String query) {
         try {
-            // 使用DuckDuckGo搜索引擎，支持中文搜索且无需API密钥
+            log.info(TO_FRONTEND, "搜索关键词: {}", query);
+            
+            // 构建搜索URL
             String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-            String searchUrl = "https://html.duckduckgo.com/html/?q=" + encodedQuery;
+            String searchUrl = SEARCH_ENGINE_URL + encodedQuery;
             
-            log.info(TO_FRONTEND,"Searching web for: {}", query);
+            // 建立搜索连接
+            HttpURLConnection connection = createSearchConnection(searchUrl);
             
-            URL url = new URL(searchUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(DEFAULT_TIMEOUT * 1000);
-            connection.setReadTimeout(DEFAULT_TIMEOUT * 1000);
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-            connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-            connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
-            
+            // 检查响应状态
             int responseCode = connection.getResponseCode();
-            if (responseCode != 200) {
-                return "搜索失败，HTTP状态码: " + responseCode;
+            if (responseCode != HTTP_OK) {
+                return MSG_SEARCH_FAILED + responseCode;
             }
             
             // 读取搜索结果页面
-            StringBuilder htmlContent = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    htmlContent.append(line).append("\n");
-                }
-            }
+            String htmlContent = readContent(connection);
             
             // 解析搜索结果
-            String results = parseSearchResults(htmlContent.toString(), query);
-            log.info(TO_FRONTEND,"🔍 Search results: {}", results);
+            String results = parseSearchResults(htmlContent, query);
+            log.info(TO_FRONTEND, "🔍 搜索结果: {}", 
+                    results.length() > LOG_PREVIEW_LENGTH ? results.substring(0, LOG_PREVIEW_LENGTH) + "..." : results);
             return results;
             
         } catch (IOException e) {
@@ -113,87 +124,64 @@ public class BrowserTool {
     }
     
     /**
+     * 标准化URL格式
+     */
+    private String normalizeUrl(String url) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return "https://" + url;
+        }
+        return url;
+    }
+    
+    /**
+     * 创建HTTP连接
+     */
+    private HttpURLConnection createConnection(String urlString, String userAgent) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(DEFAULT_TIMEOUT_MS);
+        connection.setReadTimeout(DEFAULT_TIMEOUT_MS);
+        connection.setRequestProperty("User-Agent", userAgent);
+        return connection;
+    }
+    
+    /**
+     * 创建搜索连接（带额外Header）
+     */
+    private HttpURLConnection createSearchConnection(String urlString) throws IOException {
+        HttpURLConnection connection = createConnection(urlString, USER_AGENT_SEARCH);
+        connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+        return connection;
+    }
+    
+    /**
+     * 读取HTTP响应内容
+     */
+    private String readContent(HttpURLConnection connection) throws IOException {
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        }
+        return content.toString();
+    }
+    
+    /**
      * 解析DuckDuckGo搜索结果页面
+     * 采用状态机模式解析HTML
      */
     private String parseSearchResults(String htmlContent, String query) {
         StringBuilder results = new StringBuilder();
         results.append("🔍 搜索结果: ").append(query).append("\n\n");
         
         try {
-            // DuckDuckGo搜索结果的HTML结构解析
-            String[] lines = htmlContent.split("\n");
-            int resultCount = 0;
-            boolean inResult = false;
-            String currentTitle = "";
-            String currentUrl = "";
-            String currentSnippet = "";
-            
-            for (String line : lines) {
-                line = line.trim();
-                
-                // 查找搜索结果标题和链接
-                if (line.contains("class=\"result__a\"") && line.contains("href=")) {
-                    // 提取标题和URL
-                    int hrefStart = line.indexOf("href=\"") + 6;
-                    int hrefEnd = line.indexOf("\"", hrefStart);
-                    if (hrefStart > 5 && hrefEnd > hrefStart) {
-                        currentUrl = line.substring(hrefStart, hrefEnd);
-                        // 解码URL
-                        if (currentUrl.startsWith("/l/?uddg=")) {
-                            int urlStart = currentUrl.indexOf("&rut=") + 5;
-                            if (urlStart > 4) {
-                                int urlEnd = currentUrl.indexOf("&", urlStart);
-                                if (urlEnd == -1) urlEnd = currentUrl.length();
-                                currentUrl = URLEncoder.encode(currentUrl.substring(urlStart, urlEnd), StandardCharsets.UTF_8);
-                                try {
-                                    currentUrl = java.net.URLDecoder.decode(currentUrl, StandardCharsets.UTF_8);
-                                } catch (Exception ignored) {}
-                            }
-                        }
-                    }
-                    
-                    // 提取标题
-                    int titleStart = line.indexOf(">") + 1;
-                    int titleEnd = line.lastIndexOf("<");
-                    if (titleStart > 0 && titleEnd > titleStart) {
-                        currentTitle = line.substring(titleStart, titleEnd);
-                        currentTitle = cleanHtmlText(currentTitle);
-                    }
-                    inResult = true;
-                }
-                
-                // 查找搜索结果摘要
-                if (inResult && line.contains("class=\"result__snippet\"")) {
-                    int snippetStart = line.indexOf(">") + 1;
-                    int snippetEnd = line.lastIndexOf("<");
-                    if (snippetStart > 0 && snippetEnd > snippetStart) {
-                        currentSnippet = line.substring(snippetStart, snippetEnd);
-                        currentSnippet = cleanHtmlText(currentSnippet);
-                    }
-                    
-                    // 输出完整的搜索结果
-                    if (!currentTitle.isEmpty() && !currentUrl.isEmpty()) {
-                        resultCount++;
-                        results.append(resultCount).append(". **").append(currentTitle).append("**\n");
-                        results.append("   🔗 ").append(currentUrl).append("\n");
-                        if (!currentSnippet.isEmpty()) {
-                            results.append("   📝 ").append(currentSnippet).append("\n");
-                        }
-                        results.append("\n");
-                        
-                        // 限制结果数量
-                        if (resultCount >= 5) {
-                            break;
-                        }
-                    }
-                    
-                    // 重置状态
-                    inResult = false;
-                    currentTitle = "";
-                    currentUrl = "";
-                    currentSnippet = "";
-                }
-            }
+            SearchResultParser parser = new SearchResultParser();
+            int resultCount = parser.parse(htmlContent, results);
             
             if (resultCount == 0) {
                 results.append("未找到相关搜索结果，请尝试其他关键词。\n");
@@ -208,8 +196,8 @@ public class BrowserTool {
         
         // 限制返回内容长度
         String result = results.toString();
-        if (result.length() > 8000) {
-            result = result.substring(0, 8000) + "\n... (结果已截断)";
+        if (result.length() > MAX_RESULT_LENGTH) {
+            result = result.substring(0, MAX_RESULT_LENGTH) + MSG_RESULT_TRUNCATED;
         }
         
         return result;
@@ -239,5 +227,103 @@ public class BrowserTool {
         
         return text;
     }
-
+    
+    /**
+     * 搜索结果解析器 - 状态机模式
+     * 将复杂的HTML解析逻辑封装为独立类
+     */
+    private class SearchResultParser {
+        private static final String RESULT_LINK_CLASS = "class=\"result__a\"";
+        private static final String RESULT_SNIPPET_CLASS = "class=\"result__snippet\"";
+        private static final String HREF_ATTR = "href=\"";
+        
+        private int resultCount = 0;
+        private boolean inResult = false;
+        private String currentTitle = "";
+        private String currentUrl = "";
+        private String currentSnippet = "";
+        
+        int parse(String htmlContent, StringBuilder results) {
+            String[] lines = htmlContent.split("\n");
+            
+            for (String line : lines) {
+                line = line.trim();
+                
+                if (line.contains(RESULT_LINK_CLASS) && line.contains(HREF_ATTR)) {
+                    parseResultLink(line);
+                    inResult = true;
+                } else if (inResult && line.contains(RESULT_SNIPPET_CLASS)) {
+                    parseSnippet(line);
+                    appendResult(results);
+                    resetState();
+                    
+                    if (resultCount >= MAX_SEARCH_RESULTS) {
+                        break;
+                    }
+                }
+            }
+            
+            return resultCount;
+        }
+        
+        private void parseResultLink(String line) {
+            // 提取URL
+            int hrefStart = line.indexOf(HREF_ATTR) + HREF_ATTR.length();
+            int hrefEnd = line.indexOf("\"", hrefStart);
+            if (hrefStart > HREF_ATTR.length() - 1 && hrefEnd > hrefStart) {
+                currentUrl = decodeUrl(line.substring(hrefStart, hrefEnd));
+            }
+            
+            // 提取标题
+            int titleStart = line.indexOf(">") + 1;
+            int titleEnd = line.lastIndexOf("<");
+            if (titleStart > 0 && titleEnd > titleStart) {
+                currentTitle = cleanHtmlText(line.substring(titleStart, titleEnd));
+            }
+        }
+        
+        private void parseSnippet(String line) {
+            int snippetStart = line.indexOf(">") + 1;
+            int snippetEnd = line.lastIndexOf("<");
+            if (snippetStart > 0 && snippetEnd > snippetStart) {
+                currentSnippet = cleanHtmlText(line.substring(snippetStart, snippetEnd));
+            }
+        }
+        
+        private String decodeUrl(String url) {
+            // 解码DuckDuckGo的重定向URL
+            if (url.startsWith("/l/?uddg=")) {
+                int urlStart = url.indexOf("&rut=") + 5;
+                if (urlStart > 4) {
+                    int urlEnd = url.indexOf("&", urlStart);
+                    if (urlEnd == -1) urlEnd = url.length();
+                    try {
+                        return java.net.URLDecoder.decode(url.substring(urlStart, urlEnd), StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        log.warn("URL解码失败: {}", url);
+                    }
+                }
+            }
+            return url;
+        }
+        
+        private void appendResult(StringBuilder results) {
+            if (!currentTitle.isEmpty() && !currentUrl.isEmpty()) {
+                resultCount++;
+                results.append(resultCount).append(". **").append(currentTitle).append("**\n");
+                results.append("   🔗 ").append(currentUrl).append("\n");
+                if (!currentSnippet.isEmpty()) {
+                    results.append("   📝 ").append(currentSnippet).append("\n");
+                }
+                results.append("\n");
+            }
+        }
+        
+        private void resetState() {
+            inResult = false;
+            currentTitle = "";
+            currentUrl = "";
+            currentSnippet = "";
+        }
+    }
 }
