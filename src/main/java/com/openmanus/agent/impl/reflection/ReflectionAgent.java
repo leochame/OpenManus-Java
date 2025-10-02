@@ -7,11 +7,7 @@ import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
 /**
  * 反思智能体 - 负责评估执行结果并决定是否需要继续循环
@@ -118,11 +114,11 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
         String input = toolExecutionRequest.arguments();
         
         agentExecutionTracker.startAgentExecution(sessionId, name(), "REFLECTION_START", input);
-        log.info("🚀🚀 ReflectionAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+        log.info(TO_FRONTEND,"🚀🚀 ReflectionAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
 
         String result = super.execute(toolExecutionRequest, memoryId);
 
-        log.info("ReflectionAgent.execute result: {}", result);
+        log.info(TO_FRONTEND,"ReflectionAgent.execute result: {}", result);
         agentExecutionTracker.recordIntermediateResult(sessionId, name(), "REFLECTION_RESULT", result, "Generated reflection and feedback");
         agentExecutionTracker.endAgentExecution(sessionId, name(), "REFLECTION_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
         

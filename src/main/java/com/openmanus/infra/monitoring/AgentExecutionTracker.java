@@ -169,7 +169,7 @@ public class AgentExecutionTracker {
 
         // 通知监听器
         notifyListeners(event);
-        
+
         // 如果存在当前执行阶段，也记录到DetailedExecutionFlow中
         DetailedExecutionFlow.ExecutionPhase phase = currentPhases.get(sessionId);
         if (phase != null) {

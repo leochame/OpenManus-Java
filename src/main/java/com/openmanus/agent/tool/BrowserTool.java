@@ -2,8 +2,7 @@ package com.openmanus.agent.tool;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -14,14 +13,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
+
 /**
  * Browser tool
  * Using langchain4j @Tool annotation
  */
 @Component
+@Slf4j
 public class BrowserTool {
-
-    private static final Logger logger = LoggerFactory.getLogger(BrowserTool.class);
     private static final int DEFAULT_TIMEOUT = 30; // 30 second timeout
     
     @Tool("Visit web page and get content")
@@ -63,7 +63,7 @@ public class BrowserTool {
             return "Web page content:\n" + result;
 
         } catch (IOException e) {
-            logger.error("Failed to access web page: {}", url, e);
+            log.error("Failed to access web page: {}", url, e);
             return "Failed to access web page: " + e.getMessage();
                 }
     }
@@ -75,7 +75,7 @@ public class BrowserTool {
             String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
             String searchUrl = "https://html.duckduckgo.com/html/?q=" + encodedQuery;
             
-            logger.info("Searching web for: {}", query);
+            log.info(TO_FRONTEND,"Searching web for: {}", query);
             
             URL url = new URL(searchUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -103,11 +103,11 @@ public class BrowserTool {
             
             // 解析搜索结果
             String results = parseSearchResults(htmlContent.toString(), query);
-            logger.info("🔍 Search results: {}", results);
+            log.info(TO_FRONTEND,"🔍 Search results: {}", results);
             return results;
             
         } catch (IOException e) {
-            logger.error("网页搜索失败: {}", query, e);
+            log.error("网页搜索失败: {}", query, e);
             return "搜索失败: " + e.getMessage();
         }
     }
@@ -202,7 +202,7 @@ public class BrowserTool {
             }
             
         } catch (Exception e) {
-            logger.warn("解析搜索结果时出错: {}", e.getMessage());
+            log.warn("解析搜索结果时出错: {}", e.getMessage());
             results.append("搜索结果解析失败，但搜索请求已发送。请尝试直接访问搜索引擎。\n");
         }
         

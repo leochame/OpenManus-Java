@@ -7,6 +7,7 @@ import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.GraphStateException;
 import com.openmanus.domain.model.AgentExecutionEvent;
+import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
 /**
  * 思考智能体 - 负责任务分析和规划
@@ -120,11 +121,11 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
         String input = toolExecutionRequest.arguments();
         
         agentExecutionTracker.startAgentExecution(sessionId, name(), "THINKING_START", input);
-        log.info("🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+        log.info(TO_FRONTEND,"🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
 
         String result = super.execute(toolExecutionRequest, memoryId);
 
-        log.info("ThinkingAgent.execute result: {}", result);
+        log.info(TO_FRONTEND,"ThinkingAgent.execute result: {}", result);
         agentExecutionTracker.recordIntermediateResult(sessionId, name(), "THINKING_PLAN", result, "Generated execution plan");
         agentExecutionTracker.endAgentExecution(sessionId, name(), "THINKING_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
 
