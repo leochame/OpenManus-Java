@@ -12,71 +12,48 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
- * Agent执行跟踪服务
- * 负责跟踪和管理Agent的执行状态
- *
- * 增强功能：
- * 1. 详细的输入输出追踪
- * 2. 工具调用自动监控
- * 3. 执行步骤分解
- * 4. 实时状态更新
- * 5. 深度执行流程分析
+ * Agent 执行跟踪服务（观察者模式）
+ * 
+ * 核心职责：
+ * 1. 跟踪 Agent 执行事件（开始、结束、错误）
+ * 2. 记录工具调用
+ * 3. 管理详细执行流程
+ * 4. 提供事件监听机制
+ * 5. 提供统计查询接口
+ * 
+ * 设计模式：
+ * - 观察者模式：支持多个监听器订阅执行事件
+ * - 单例模式：作为 Spring Service Bean 存在
  */
 @Service
 @Slf4j
 public class AgentExecutionTracker {
     
-    /**
-     * 存储所有执行会话的事件
-     * Key: sessionId, Value: 事件列表
-     */
+    // ==================== 数据存储 ====================
+    
     private final Map<String, List<AgentExecutionEvent>> sessionEvents = new ConcurrentHashMap<>();
-    
-    /**
-     * 存储当前活跃的执行会话
-     * Key: sessionId, Value: 当前执行的Agent信息
-     */
     private final Map<String, AgentExecutionEvent> activeAgents = new ConcurrentHashMap<>();
-    
-    /**
-     * 详细执行流程跟踪
-     * Key: sessionId, Value: 详细执行流程
-     */
     private final Map<String, DetailedExecutionFlow> detailedFlows = new ConcurrentHashMap<>();
-
-    /**
-     * 当前执行阶段跟踪
-     * Key: sessionId, Value: 当前执行阶段
-     */
     private final Map<String, DetailedExecutionFlow.ExecutionPhase> currentPhases = new ConcurrentHashMap<>();
-
-    /**
-     * 事件监听器列表
-     */
     private final List<AgentExecutionEventListener> listeners = new CopyOnWriteArrayList<>();
     
+    // ==================== 核心事件追踪方法 ====================
+    
     /**
-     * 开始跟踪Agent执行
+     * 开始跟踪 Agent 执行
      */
     public void startAgentExecution(String sessionId, String agentName, String agentType, Object input) {
         AgentExecutionEvent event = AgentExecutionEvent.createStartEvent(sessionId, agentName, agentType, input);
-        
-        // 添加到会话事件列表
-        sessionEvents.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(event);
-        
-        // 更新活跃Agent
         activeAgents.put(sessionId, event);
-        
-        // 通知监听器
-        notifyListeners(event);
-        
-        log.info("Agent execution started - Session: {}, Agent: {}, Type: {}", sessionId, agentName, agentType);
+        recordEvent(sessionId, event);
+        log.info("Agent started - Session: {}, Agent: {}, Type: {}", sessionId, agentName, agentType);
     }
     
     /**
-     * 结束Agent执行
+     * 结束 Agent 执行
      */
-    public void endAgentExecution(String sessionId, String agentName, String agentType, Object output, AgentExecutionEvent.ExecutionStatus status) {
+    public void endAgentExecution(String sessionId, String agentName, String agentType, 
+                                   Object output, AgentExecutionEvent.ExecutionStatus status) {
         AgentExecutionEvent event = AgentExecutionEvent.createEndEvent(sessionId, agentName, agentType, output, status);
         
         // 计算执行时间
@@ -86,66 +63,39 @@ public class AgentExecutionTracker {
             event.calculateDuration();
         }
         
-        // 添加到会话事件列表
-        sessionEvents.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(event);
-        
-        // 移除活跃Agent
         activeAgents.remove(sessionId);
-        
-        // 通知监听器
-        notifyListeners(event);
-        
-        log.info("Agent execution ended - Session: {}, Agent: {}, Type: {}, Status: {}, Duration: {}ms", 
-                sessionId, agentName, agentType, status, event.getDuration());
+        recordEvent(sessionId, event);
+        log.info("Agent ended - Session: {}, Agent: {}, Status: {}, Duration: {}ms", 
+                sessionId, agentName, status, event.getDuration());
     }
     
     /**
-     * 记录Agent执行错误
+     * 记录 Agent 执行错误
      */
     public void recordAgentError(String sessionId, String agentName, String agentType, String error) {
         AgentExecutionEvent event = AgentExecutionEvent.createErrorEvent(sessionId, agentName, agentType, error);
-        
-        // 添加到会话事件列表
-        sessionEvents.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(event);
-        
-        // 移除活跃Agent
         activeAgents.remove(sessionId);
-        
-        // 通知监听器
-        notifyListeners(event);
-        
-        log.error("Agent execution error - Session: {}, Agent: {}, Type: {}, Error: {}", 
-                sessionId, agentName, agentType, error);
+        recordEvent(sessionId, event);
+        log.error("Agent error - Session: {}, Agent: {}, Error: {}", sessionId, agentName, error);
     }
     
+    // ==================== 工具调用追踪 ====================
+    
     /**
-     * 记录工具调用事件（简化版本）
-     * 用于只需要记录成功的工具调用的场景
+     * 记录工具调用（简化版）
      */
     public void recordToolCall(String sessionId, String agentName, String toolName, Object input, Object output) {
-        // 调用完整版本，默认为成功状态
         recordToolCall(sessionId, agentName, toolName, input, output, true, null, 0);
     }
 
     /**
-     * 记录工具调用事件（完整版本）
-     * 支持成功/失败状态、错误信息、执行时长
-     * 
-     * @param sessionId 会话ID
-     * @param agentName Agent名称
-     * @param toolName 工具名称
-     * @param input 输入参数
-     * @param output 输出结果
-     * @param success 是否成功
-     * @param error 错误信息（如果有）
-     * @param durationMs 执行时长（毫秒）
+     * 记录工具调用（完整版）
      */
     public void recordToolCall(String sessionId, String agentName, String toolName, Object input, Object output, 
                               boolean success, String error, long durationMs) {
         LocalDateTime callTime = LocalDateTime.now().minusNanos(durationMs * 1_000_000);
         LocalDateTime completionTime = LocalDateTime.now();
         
-        // 创建工具调用事件
         AgentExecutionEvent event = AgentExecutionEvent.builder()
                 .sessionId(sessionId)
                 .eventId(UUID.randomUUID().toString())
@@ -159,22 +109,43 @@ public class AgentExecutionTracker {
                 .metadata(Map.of("toolName", toolName))
                 .build();
 
-        // 安全地设置输入输出
         event.setInput(input);
         event.setOutput(output);
         event.calculateDuration();
+        recordEvent(sessionId, event);
 
-        // 添加到会话事件列表
+        // 同步到详细执行流程
+        addToolCallToPhase(sessionId, toolName, callTime, completionTime, input, output, success, error, durationMs);
+        
+        log.info("Tool call - Session: {}, Tool: {}, Status: {}", sessionId, toolName, success ? "SUCCESS" : "FAILED");
+    }
+
+    /**
+     * 记录自定义事件
+     */
+    public void recordCustomEvent(AgentExecutionEvent event) {
+        recordEvent(event.getSessionId(), event);
+        log.debug("Custom event - Session: {}, Type: {}", event.getSessionId(), event.getEventType());
+    }
+    
+    /**
+     * 模板方法：统一的事件记录流程
+     */
+    private void recordEvent(String sessionId, AgentExecutionEvent event) {
         sessionEvents.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(event);
-
-        // 通知监听器
         notifyListeners(event);
-
-        // 如果存在当前执行阶段，也记录到DetailedExecutionFlow中
+    }
+    
+    /**
+     * 辅助方法：添加工具调用到执行阶段
+     */
+    private void addToolCallToPhase(String sessionId, String toolName, LocalDateTime callTime, 
+                                    LocalDateTime completionTime, Object input, Object output, 
+                                    boolean success, String error, long durationMs) {
         DetailedExecutionFlow.ExecutionPhase phase = currentPhases.get(sessionId);
         if (phase != null) {
             DetailedExecutionFlow.ToolCall toolCall = DetailedExecutionFlow.ToolCall.builder()
-                    .callId(event.getEventId())
+                    .callId(UUID.randomUUID().toString())
                     .toolName(toolName)
                     .callTime(callTime)
                     .completionTime(completionTime)
@@ -184,84 +155,52 @@ public class AgentExecutionTracker {
                     .error(error)
                     .duration(durationMs)
                     .build();
-            
             phase.getToolCalls().add(toolCall);
-            log.debug("Tool call also recorded in DetailedExecutionFlow - Session: {}, Tool: {}", sessionId, toolName);
         }
-
-        log.info("Tool call recorded - Session: {}, Agent: {}, Tool: {}, Status: {}", 
-                sessionId, agentName, toolName, success ? "SUCCESS" : "FAILED");
-    }
-
-    /**
-     * 记录自定义事件
-     */
-    public void recordCustomEvent(AgentExecutionEvent event) {
-        // 添加到会话事件列表
-        sessionEvents.computeIfAbsent(event.getSessionId(), k -> new CopyOnWriteArrayList<>()).add(event);
-
-        // 通知监听器
-        notifyListeners(event);
-
-        log.debug("Custom event recorded - Session: {}, Agent: {}, Type: {}",
-                event.getSessionId(), event.getAgentName(), event.getEventType());
     }
     
-    /**
-     * 获取会话的所有事件
-     */
+    // ==================== 查询方法 ====================
+    
     public List<AgentExecutionEvent> getSessionEvents(String sessionId) {
         return new ArrayList<>(sessionEvents.getOrDefault(sessionId, Collections.emptyList()));
     }
     
-    /**
-     * 获取当前活跃的Agent
-     */
     public AgentExecutionEvent getCurrentActiveAgent(String sessionId) {
         return activeAgents.get(sessionId);
     }
     
-    /**
-     * 获取所有活跃的会话
-     */
     public Map<String, AgentExecutionEvent> getAllActiveSessions() {
         return new HashMap<>(activeAgents);
     }
     
-    /**
-     * 清理会话数据
-     */
     public void clearSession(String sessionId) {
         sessionEvents.remove(sessionId);
         activeAgents.remove(sessionId);
+        detailedFlows.remove(sessionId);
+        currentPhases.remove(sessionId);
         log.info("Session cleared: {}", sessionId);
     }
     
-    /**
-     * 添加事件监听器
-     */
+    // ==================== 观察者模式：事件监听 ====================
+    
     public void addListener(AgentExecutionEventListener listener) {
         listeners.add(listener);
+        log.debug("Listener added: {}", listener.getClass().getSimpleName());
     }
     
-    /**
-     * 移除事件监听器
-     */
     public void removeListener(AgentExecutionEventListener listener) {
         listeners.remove(listener);
+        log.debug("Listener removed: {}", listener.getClass().getSimpleName());
     }
     
-    /**
-     * 通知所有监听器
-     */
     private void notifyListeners(AgentExecutionEvent event) {
-        for (AgentExecutionEventListener listener : listeners) {
+        listeners.forEach(listener -> {
             try {
                 listener.onEvent(event);
             } catch (Exception e) {
-                log.error("Error notifying listener", e);
+                log.error("Error notifying listener: {}", listener.getClass().getSimpleName(), e);
             }
-        }
+        });
     }
     
     /**
@@ -270,131 +209,44 @@ public class AgentExecutionTracker {
     public interface AgentExecutionEventListener {
         void onEvent(AgentExecutionEvent event);
     }
+    // ==================== 统计分析 ====================
     
-    /**
-     * 记录执行步骤
-     */
-    public void recordExecutionStep(String sessionId, String agentName, String agentType, String stepName, Object stepData) {
-        AgentExecutionEvent event = AgentExecutionEvent.builder()
-                .sessionId(sessionId)
-                .eventId(UUID.randomUUID().toString())
-                .agentName(agentName)
-                .agentType(agentType)
-                .eventType(AgentExecutionEvent.EventType.STEP_START)
-                .status(AgentExecutionEvent.ExecutionStatus.RUNNING)
-                .startTime(LocalDateTime.now())
-                .metadata(Map.of("stepName", stepName))
-                .build();
-
-        // 安全地设置输入
-        event.setInput(stepData);
-
-        recordCustomEvent(event);
-
-        log.debug("Execution step recorded - Session: {}, Agent: {}, Step: {}",
-                sessionId, agentName, stepName);
-    }
-
-    /**
-     * 记录中间结果
-     */
-    public void recordIntermediateResult(String sessionId, String agentName, String agentType, Object result, String description) {
-        AgentExecutionEvent event = AgentExecutionEvent.builder()
-                .sessionId(sessionId)
-                .eventId(UUID.randomUUID().toString())
-                .agentName(agentName)
-                .agentType(agentType)
-                .eventType(AgentExecutionEvent.EventType.INTERMEDIATE_RESULT)
-                .status(AgentExecutionEvent.ExecutionStatus.SUCCESS)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now())
-                .metadata(Map.of("description", description))
-                .build();
-
-        // 安全地设置输出
-        event.setOutput(result);
-        event.calculateDuration();
-        recordCustomEvent(event);
-
-        log.info("Intermediate result recorded - Session: {}, Agent: {}, Description: {}",
-                sessionId, agentName, description);
-    }
-
-    /**
-     * 记录决策点
-     */
-    public void recordDecisionPoint(String sessionId, String agentName, String agentType, Object decision, String reasoning) {
-        AgentExecutionEvent event = AgentExecutionEvent.builder()
-                .sessionId(sessionId)
-                .eventId(UUID.randomUUID().toString())
-                .agentName(agentName)
-                .agentType(agentType)
-                .eventType(AgentExecutionEvent.EventType.DECISION_POINT)
-                .status(AgentExecutionEvent.ExecutionStatus.SUCCESS)
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now())
-                .metadata(Map.of("reasoning", reasoning))
-                .build();
-
-        // 安全地设置输出
-        event.setOutput(decision);
-        event.calculateDuration();
-        recordCustomEvent(event);
-
-        log.info("Decision point recorded - Session: {}, Agent: {}, Decision: {}",
-                sessionId, agentName, decision);
-    }
-
-
-
     /**
      * 获取会话统计信息
      */
     public Map<String, Object> getSessionStatistics(String sessionId) {
         List<AgentExecutionEvent> events = getSessionEvents(sessionId);
+        if (events.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        long successCount = events.stream()
+                .filter(e -> e.getStatus() == AgentExecutionEvent.ExecutionStatus.SUCCESS)
+                .count();
+        long errorCount = events.stream()
+                .filter(e -> e.getStatus() == AgentExecutionEvent.ExecutionStatus.FAILED)
+                .count();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalEvents", events.size());
         stats.put("agentCount", events.stream().map(AgentExecutionEvent::getAgentName).distinct().count());
-        stats.put("successCount", events.stream().filter(e -> e.getStatus() == AgentExecutionEvent.ExecutionStatus.SUCCESS).count());
-        stats.put("errorCount", events.stream().filter(e -> e.getStatus() == AgentExecutionEvent.ExecutionStatus.FAILED).count());
-
-        // 计算总执行时间
-        long totalDuration = events.stream()
+        stats.put("successCount", successCount);
+        stats.put("errorCount", errorCount);
+        stats.put("totalDuration", events.stream()
                 .filter(e -> e.getDuration() != null)
                 .mapToLong(AgentExecutionEvent::getDuration)
-                .sum();
-        stats.put("totalDuration", totalDuration);
-
-        // Agent类型统计
-        Map<String, Long> agentTypeStats = events.stream()
-                .collect(Collectors.groupingBy(
-                        AgentExecutionEvent::getAgentType,
-                        Collectors.counting()
-                ));
-        stats.put("agentTypeStats", agentTypeStats);
-
-        // 事件类型统计
-        Map<String, Long> eventTypeStats = events.stream()
-                .collect(Collectors.groupingBy(
-                        event -> event.getEventType().toString(),
-                        Collectors.counting()
-                ));
-        stats.put("eventTypeStats", eventTypeStats);
-
-        // 成功率统计
-        double successRate = events.isEmpty() ? 0 :
-                (double) stats.get("successCount") / events.size() * 100;
-        stats.put("successRate", successRate);
+                .sum());
+        stats.put("agentTypeStats", events.stream()
+                .collect(Collectors.groupingBy(AgentExecutionEvent::getAgentType, Collectors.counting())));
+        stats.put("eventTypeStats", events.stream()
+                .collect(Collectors.groupingBy(e -> e.getEventType().toString(), Collectors.counting())));
+        stats.put("successRate", (double) successCount / events.size() * 100);
 
         return stats;
     }
 
-    // ==================== 详细执行流程跟踪方法 ====================
+    // ==================== 详细执行流程追踪 ====================
 
-    /**
-     * 开始工作流跟踪
-     */
     public void startWorkflowTracking(String sessionId, String userInput) {
         DetailedExecutionFlow flow = DetailedExecutionFlow.builder()
                 .sessionId(sessionId)
@@ -403,41 +255,40 @@ public class AgentExecutionTracker {
                 .status(DetailedExecutionFlow.WorkflowStatus.RUNNING)
                 .phases(new ArrayList<>())
                 .build();
-
         detailedFlows.put(sessionId, flow);
-
-        log.info("Started workflow tracking for session: {}", sessionId);
+        log.info("Workflow tracking started - Session: {}", sessionId);
     }
 
-    /**
-     * 结束工作流跟踪
-     */
     public void endWorkflowTracking(String sessionId, String finalResult, boolean success) {
         DetailedExecutionFlow flow = detailedFlows.get(sessionId);
-        if (flow != null) {
-            flow.setEndTime(LocalDateTime.now());
-            flow.setFinalResult(finalResult);
-            flow.setStatus(success ? DetailedExecutionFlow.WorkflowStatus.COMPLETED : DetailedExecutionFlow.WorkflowStatus.FAILED);
-
-            if (flow.getStartTime() != null) {
-                flow.setTotalDuration(java.time.Duration.between(flow.getStartTime(), flow.getEndTime()).toMillis());
-            }
-
-            log.info("Ended workflow tracking for session: {} with status: {}", sessionId, flow.getStatus());
+        if (flow == null) {
+            return;
         }
+        
+        flow.setEndTime(LocalDateTime.now());
+        flow.setFinalResult(finalResult);
+        flow.setStatus(success ? DetailedExecutionFlow.WorkflowStatus.COMPLETED : DetailedExecutionFlow.WorkflowStatus.FAILED);
+        
+        if (flow.getStartTime() != null) {
+            flow.setTotalDuration(java.time.Duration.between(flow.getStartTime(), flow.getEndTime()).toMillis());
+        }
+        
+        log.info("Workflow tracking ended - Session: {}, Status: {}", sessionId, flow.getStatus());
     }
 
-    /**
-     * 开始执行阶段跟踪
-     */
     public void startPhaseTracking(String sessionId, String phaseName, DetailedExecutionFlow.PhaseType phaseType,
                                   String agentName, String agentType, Object input) {
-        DetailedExecutionFlow flow = detailedFlows.get(sessionId);
-        if (flow == null) {
-            log.warn("No workflow found for session: {}, creating new one", sessionId);
-            startWorkflowTracking(sessionId, "Unknown input");
-            flow = detailedFlows.get(sessionId);
-        }
+        DetailedExecutionFlow flow = detailedFlows.computeIfAbsent(sessionId, k -> {
+            log.warn("No workflow found for session: {}, creating new one", k);
+            DetailedExecutionFlow newFlow = DetailedExecutionFlow.builder()
+                    .sessionId(k)
+                    .userInput("Unknown")
+                    .startTime(LocalDateTime.now())
+                    .status(DetailedExecutionFlow.WorkflowStatus.RUNNING)
+                    .phases(new ArrayList<>())
+                    .build();
+            return newFlow;
+        });
 
         DetailedExecutionFlow.ExecutionPhase phase = DetailedExecutionFlow.ExecutionPhase.builder()
                 .phaseId(UUID.randomUUID().toString())
@@ -455,82 +306,68 @@ public class AgentExecutionTracker {
 
         flow.getPhases().add(phase);
         currentPhases.put(sessionId, phase);
-
-        log.info("Started phase tracking: {} for session: {}", phaseName, sessionId);
+        log.info("Phase tracking started - Session: {}, Phase: {}", sessionId, phaseName);
     }
 
-    /**
-     * 结束执行阶段跟踪
-     */
     public void endPhaseTracking(String sessionId, Object output, boolean success, String error) {
-        DetailedExecutionFlow.ExecutionPhase phase = currentPhases.get(sessionId);
-        if (phase != null) {
-            phase.setEndTime(LocalDateTime.now());
-            phase.setOutput(output);
-            phase.setStatus(success ? DetailedExecutionFlow.PhaseStatus.COMPLETED : DetailedExecutionFlow.PhaseStatus.FAILED);
-            phase.setError(error);
-
-            if (phase.getStartTime() != null) {
-                phase.setDuration(java.time.Duration.between(phase.getStartTime(), phase.getEndTime()).toMillis());
-            }
-
-            currentPhases.remove(sessionId);
-
-            log.info("Ended phase tracking: {} for session: {} with status: {}",
-                    phase.getPhaseName(), sessionId, phase.getStatus());
+        DetailedExecutionFlow.ExecutionPhase phase = currentPhases.remove(sessionId);
+        if (phase == null) {
+            return;
         }
+        
+        phase.setEndTime(LocalDateTime.now());
+        phase.setOutput(output);
+        phase.setStatus(success ? DetailedExecutionFlow.PhaseStatus.COMPLETED : DetailedExecutionFlow.PhaseStatus.FAILED);
+        phase.setError(error);
+        
+        if (phase.getStartTime() != null) {
+            phase.setDuration(java.time.Duration.between(phase.getStartTime(), phase.getEndTime()).toMillis());
+        }
+        
+        log.info("Phase tracking ended - Session: {}, Phase: {}, Status: {}", 
+                sessionId, phase.getPhaseName(), phase.getStatus());
     }
 
-    /**
-     * 记录LLM交互
-     */
     public void recordLLMInteraction(String sessionId, String request, String response, String model,
                                    DetailedExecutionFlow.TokenUsage tokenUsage, long responseTimeMs) {
         DetailedExecutionFlow.ExecutionPhase phase = currentPhases.get(sessionId);
-        if (phase != null) {
-            DetailedExecutionFlow.LLMInteraction interaction = DetailedExecutionFlow.LLMInteraction.builder()
-                    .interactionId(UUID.randomUUID().toString())
-                    .requestTime(LocalDateTime.now().minusNanos(responseTimeMs * 1_000_000))
-                    .responseTime(LocalDateTime.now())
-                    .request(request)
-                    .response(response)
-                    .model(model)
-                    .tokenUsage(tokenUsage)
-                    .responseTime_ms(responseTimeMs)
-                    .build();
-
-            phase.getLlmInteractions().add(interaction);
-
-            log.debug("Recorded LLM interaction for session: {}, model: {}, tokens: {}",
-                    sessionId, model, tokenUsage != null ? tokenUsage.getTotalTokens() : "unknown");
+        if (phase == null) {
+            return;
         }
+        
+        DetailedExecutionFlow.LLMInteraction interaction = DetailedExecutionFlow.LLMInteraction.builder()
+                .interactionId(UUID.randomUUID().toString())
+                .requestTime(LocalDateTime.now().minusNanos(responseTimeMs * 1_000_000))
+                .responseTime(LocalDateTime.now())
+                .request(request)
+                .response(response)
+                .model(model)
+                .tokenUsage(tokenUsage)
+                .responseTime_ms(responseTimeMs)
+                .build();
+
+        phase.getLlmInteractions().add(interaction);
+        log.debug("LLM interaction recorded - Session: {}, Model: {}", sessionId, model);
     }
 
-    /**
-     * 获取详细执行流程
-     */
     public DetailedExecutionFlow getDetailedExecutionFlow(String sessionId) {
         return detailedFlows.get(sessionId);
     }
 
-    /**
-     * 获取所有详细执行流程
-     */
     public Map<String, DetailedExecutionFlow> getAllDetailedExecutionFlows() {
         return new HashMap<>(detailedFlows);
     }
 
-    /**
-     * 清理已完成的执行流程（可选的清理方法）
-     */
-    public void cleanupCompletedFlows(int maxAge_hours) {
-        LocalDateTime cutoff = LocalDateTime.now().minusHours(maxAge_hours);
-
+    public void cleanupCompletedFlows(int maxAgeHours) {
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(maxAgeHours);
+        int removedCount = detailedFlows.size();
+        
         detailedFlows.entrySet().removeIf(entry -> {
             DetailedExecutionFlow flow = entry.getValue();
             return flow.getEndTime() != null && flow.getEndTime().isBefore(cutoff);
         });
-
-        log.info("Cleaned up completed flows older than {} hours", maxAge_hours);
+        
+        removedCount -= detailedFlows.size();
+        log.info("Cleaned up {} flows older than {} hours", removedCount, maxAgeHours);
     }
 }

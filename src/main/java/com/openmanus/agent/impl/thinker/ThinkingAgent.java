@@ -126,7 +126,6 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
         String result = super.execute(toolExecutionRequest, memoryId);
 
         log.info(TO_FRONTEND,"ThinkingAgent.execute result: {}", result);
-        agentExecutionTracker.recordIntermediateResult(sessionId, name(), "THINKING_PLAN", result, "Generated execution plan");
         agentExecutionTracker.endAgentExecution(sessionId, name(), "THINKING_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
 
         return result;

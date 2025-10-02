@@ -119,7 +119,6 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
         String result = super.execute(toolExecutionRequest, memoryId);
 
         log.info(TO_FRONTEND,"ReflectionAgent.execute result: {}", result);
-        agentExecutionTracker.recordIntermediateResult(sessionId, name(), "REFLECTION_RESULT", result, "Generated reflection and feedback");
         agentExecutionTracker.endAgentExecution(sessionId, name(), "REFLECTION_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
         
         return result;
