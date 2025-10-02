@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenManus - 智能思考系统</title>
+    <title>OpenManus - 深度思考系统</title>
     
     <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <!-- Highlight.js for code syntax highlighting -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-dark.css">
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
     
     <!-- WebSocket/Stomp -->
@@ -28,202 +28,315 @@
 
     <style>
         :root {
-            --primary-color: #409EFF;
-            --success-color: #67C23A;
-            --warning-color: #E6A23C;
-            --danger-color: #F56C6C;
-            --info-color: #909399;
-            --bg-color: #f5f7fa;
-            --text-color: #303133;
-            --border-radius: 8px;
-            --shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #64748b;
+            --bg-color: #f8fafc;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-color: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --border-radius: 16px;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-color);
             color: var(--text-color);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* 背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: floatBackground 20s ease-in-out infinite;
+        }
+        
+        @keyframes floatBackground {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, -20px) rotate(5deg); }
         }
         
         .app-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 32px 24px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
         }
         
+        /* 头部样式 */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 0;
-            margin-bottom: 24px;
+            margin-bottom: 40px;
+            padding: 24px 32px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
         }
         
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 16px;
+        }
+        
+        .logo-icon {
+            font-size: 48px;
+            filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .logo-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
         
         .logo-text {
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
         }
         
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            gap: 20px;
-        }
-        
-        .mode-selector {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .mode-card {
-            flex: 1;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        
-        .mode-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .mode-card.active {
-            border-color: var(--primary-color);
-        }
-        
-        .mode-icon {
-            font-size: 36px;
-            margin-bottom: 12px;
-        }
-        
-        .mode-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .mode-description {
+        .logo-subtitle {
             font-size: 14px;
-            color: var(--info-color);
+            color: var(--text-secondary);
+            font-weight: 500;
         }
         
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        /* 主要内容区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        /* 聊天容器 */
         .chat-container {
             display: flex;
             flex-direction: column;
-            background-color: white;
+            background: white;
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-lg);
             flex: 1;
+            overflow: hidden;
+            min-height: 600px;
         }
         
+        /* 消息容器 */
         .messages-container {
             flex: 1;
-            padding: 20px;
+            padding: 32px;
             overflow-y: auto;
-            max-height: 500px;
-            border-bottom: 1px solid #ebeef5;
+            background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
         }
         
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* 消息样式 */
         .message {
-            margin-bottom: 16px;
+            margin-bottom: 32px;
             display: flex;
             flex-direction: column;
+            animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .message-header {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 16px;
+            gap: 12px;
         }
         
         .message-avatar {
-            width: 36px;
-            height: 36px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            margin-right: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 24px;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s;
+        }
+        
+        .message-avatar:hover {
+            transform: scale(1.1);
         }
         
         .user-avatar {
-            background-color: var(--primary-color);
-            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
         .assistant-avatar {
-            background-color: var(--success-color);
-            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            animation: rotate 3s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .message-role {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 16px;
+            color: var(--text-color);
+        }
+        
+        .thinking-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: white;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
         }
         
         .message-content {
-            padding: 12px 16px;
-            border-radius: var(--border-radius);
-            max-width: 80%;
-            align-self: flex-start;
+            padding: 24px 28px;
+            border-radius: 20px;
+            max-width: 88%;
+            position: relative;
+            transition: all 0.3s;
         }
         
         .user-message .message-content {
-            background-color: #ecf5ff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             align-self: flex-end;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            margin-left: auto;
+        }
+        
+        .user-message .markdown-content {
+            color: white;
+        }
+        
+        .user-message .markdown-content * {
+            color: white !important;
         }
         
         .assistant-message .message-content {
-            background-color: #f0f9eb;
+            background: white;
+            border: 2px solid #f1f5f9;
+            box-shadow: var(--shadow-md);
         }
         
+        /* 输入容器 */
         .input-container {
-            padding: 16px;
+            padding: 24px 32px;
             display: flex;
-            gap: 12px;
+            gap: 16px;
+            border-top: 2px solid #f1f5f9;
+            background: white;
+            align-items: flex-end;
         }
         
+        /* 思考指示器 */
         .thinking-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             color: var(--info-color);
-            font-size: 14px;
-            margin-top: 8px;
+            font-size: 15px;
+            margin-top: 16px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 16px;
+            width: fit-content;
+            box-shadow: var(--shadow);
         }
         
         .thinking-dots {
             display: flex;
-            gap: 4px;
+            gap: 6px;
         }
         
         .thinking-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background-color: var(--info-color);
-            animation: pulse 1.5s infinite;
+            background: var(--primary-color);
+            animation: bounce 1.4s infinite ease-in-out;
         }
         
         .thinking-dot:nth-child(2) {
@@ -234,133 +347,416 @@
             animation-delay: 0.4s;
         }
         
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 0.4;
+        @keyframes bounce {
+            0%, 80%, 100% {
                 transform: scale(0.8);
+                opacity: 0.5;
             }
-            50% {
+            40% {
+                transform: scale(1.3);
                 opacity: 1;
-                transform: scale(1);
             }
         }
         
-        .mode-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            color: white;
-            margin-left: 8px;
-        }
-        
-        .fast-thinking {
-            background-color: var(--primary-color);
-        }
-        
-        .deep-thinking {
-            background-color: var(--warning-color);
-        }
-        
+        /* Markdown 内容样式 */
         .markdown-content {
-            line-height: 1.6;
+            line-height: 1.8;
+            color: var(--text-color);
+            font-size: 15px;
+            word-wrap: break-word;
+        }
+        
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        .markdown-content h1 { font-size: 2em; }
+        .markdown-content h2 { font-size: 1.5em; }
+        .markdown-content h3 { font-size: 1.25em; }
+        
+        .markdown-content p {
+            margin-bottom: 16px;
+        }
+        
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 16px;
+            padding-left: 2em;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 8px;
+        }
+        
+        .markdown-content blockquote {
+            margin: 16px 0;
+            padding: 16px 24px;
+            background: #f8fafc;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
         }
         
         .markdown-content pre {
-            background-color: #f6f8fa;
-            border-radius: 6px;
-            padding: 16px;
-            overflow-x: auto;
-        }
-        
-        .markdown-content code {
-            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
-            font-size: 85%;
-            background-color: rgba(175, 184, 193, 0.2);
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
+            background: #282c34;
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            margin: 16px 0;
+            box-shadow: var(--shadow-lg);
         }
         
         .markdown-content pre code {
-            background-color: transparent;
-            padding: 0;
+            display: block;
+            padding: 20px 24px;
+            overflow-x: auto;
+            background: transparent;
+            color: #abb2bf;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.6;
         }
         
-        /* 流式日志相关样式 */
+        .markdown-content code {
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        /* 流式日志容器 */
         .stream-container {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
+            border: 2px solid #e0e7ff;
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
         }
         
         .log-container {
-            margin-top: 10px;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+            box-shadow: var(--shadow);
         }
         
         .log-header {
-            padding: 10px 15px;
-            border-bottom: 1px solid #e9ecef;
-            font-weight: bold;
-            color: #495057;
+            padding: 16px 20px;
+            border-bottom: 2px solid #f1f5f9;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #fafafa 0%, #f8fafc 100%);
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        
+        .log-header:hover {
+            background: linear-gradient(135deg, #f5f5f5 0%, #f0f2f5 100%);
+        }
+        
+        .log-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .log-header-right {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
         }
         
         .log-content {
-            padding: 15px;
-            max-height: 200px;
+            padding: 16px;
+            max-height: 500px;
             overflow-y: auto;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            font-size: 0.85em;
-            background-color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .log-content.collapsed {
+            max-height: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .log-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .log-content::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        
+        .log-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
         }
         
         .log-entry {
             display: flex;
-            gap: 15px;
-            margin-bottom: 4px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            padding: 10px 12px;
+            border-left: 3px solid #e2e8f0;
+            background: #fafbfc;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .log-entry:hover {
+            background: #f8fafc;
+            border-left-color: var(--primary-color);
+            transform: translateX(2px);
+        }
+        
+        .log-entry:last-child {
+            margin-bottom: 0;
         }
         
         .log-time {
-            color: #6c757d;
+            color: #94a3b8;
+            font-size: 12px;
+            white-space: nowrap;
+            font-weight: 500;
+            min-width: 70px;
         }
         
         .log-level {
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-align: center;
+            min-width: 55px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .log-info .log-level { color: #17a2b8; }
-        .log-debug .log-level { color: #6c757d; }
-        .log-warn .log-level { color: #ffc107; }
-        .log-error .log-level { color: #dc3545; }
+        .log-info .log-level { 
+            background: #dbeafe;
+            color: #0284c7;
+        }
+        
+        .log-debug .log-level { 
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .log-warn .log-level { 
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .log-error .log-level { 
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .log-message {
+            flex: 1;
+            word-break: break-word;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            padding-right: 20px;
+        }
+        
+        .log-message::after {
+            content: '⋯';
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .log-message:hover::after {
+            opacity: 0.7;
+        }
+        
+        .log-message:hover {
+            color: var(--primary-color);
+        }
+        
+        .log-message.expanded {
+            -webkit-line-clamp: unset;
+            display: block;
+        }
+        
+        .log-message.expanded::after {
+            content: '︿';
+            opacity: 0.5;
+        }
+        
+        /* 简化日志中的markdown样式 */
+        .log-message.markdown-content h1,
+        .log-message.markdown-content h2,
+        .log-message.markdown-content h3 {
+            font-size: 1em;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .log-message.markdown-content p {
+            margin: 0;
+            display: inline;
+        }
+        
+        .log-message.markdown-content code {
+            font-size: 0.9em;
+            padding: 1px 4px;
+        }
+        
+        .log-message.markdown-content pre {
+            display: none; /* 在折叠状态下隐藏代码块 */
+        }
+        
+        .log-message.expanded pre {
+            display: block;
+            margin: 8px 0;
+            font-size: 0.85em;
+        }
         
         .log-empty {
             text-align: center;
-            color: #6c757d;
-            padding: 10px;
+            color: #94a3b8;
+            padding: 40px;
+            font-style: italic;
+            font-size: 15px;
         }
         
+        .log-summary {
+            padding: 12px 16px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            margin: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .log-summary-left {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .log-summary-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .log-summary-number {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        /* 结果容器 */
+        .result-container {
+            margin-top: 24px;
+            border: 2px solid #e0e7ff;
+            border-radius: var(--border-radius);
+            background: white;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .result-header {
+            padding: 20px 28px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-meta {
+            font-size: 14px;
+            display: flex;
+            gap: 20px;
+            opacity: 0.95;
+        }
+        
+        .result-body {
+            padding: 28px;
+            color: var(--text-color);
+            background: #fafbfc;
+        }
+        
+        /* 页脚 */
         .footer {
-            margin-top: 20px;
+            margin-top: 40px;
             text-align: center;
             font-size: 14px;
             color: var(--info-color);
+            padding: 24px 0;
         }
         
+        /* 调试面板 */
         .debug-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 400px;
+            max-height: 300px;
+            padding: 20px;
+            background: white;
             border-radius: var(--border-radius);
-            border: 1px solid #dee2e6;
+            border: 2px solid var(--border-color);
+            box-shadow: var(--shadow-xl);
             font-family: monospace;
             font-size: 12px;
             display: none;
+            z-index: 1000;
         }
         
         .debug-panel.show {
@@ -369,10 +765,12 @@
         
         .debug-title {
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: var(--text-color);
+            font-size: 14px;
         }
         
         .debug-content {
@@ -380,65 +778,93 @@
             overflow-y: auto;
             white-space: pre-wrap;
             word-break: break-all;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
         }
         
         .debug-toggle {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
         }
-
-        .result-container {
-            margin-top: 16px;
-            border: 1px solid #dcdfe6;
-            border-radius: 4px;
-            background-color: #f7f9fc;
-            overflow: hidden;
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 16px;
+            }
+            
+            .header {
+                padding: 16px 20px;
+                margin-bottom: 24px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+            
+            .logo-icon {
+                font-size: 36px;
+            }
+            
+            .message-content {
+                max-width: 95%;
+                padding: 16px 20px;
+            }
+            
+            .messages-container {
+                padding: 20px;
+            }
+            
+            .input-container {
+                padding: 16px 20px;
+            }
+            
+            .debug-panel {
+                width: calc(100% - 48px);
+            }
         }
-
-        .result-header {
-            padding: 12px 15px;
-            background-color: #eef1f6;
-            border-bottom: 1px solid #dcdfe6;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        
+        /* 代码复制按钮 */
+        .code-block-wrapper {
+            position: relative;
         }
-
-        .result-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: #303133;
-        }
-
-        .result-meta {
+        
+        .copy-code-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #abb2bf;
+            cursor: pointer;
             font-size: 13px;
-            color: #606266;
-            display: flex;
-            gap: 12px;
+            transition: all 0.3s;
+            opacity: 0;
+            font-weight: 500;
         }
-
-        .result-body {
-            padding: 15px;
-            color: #303133;
-            background-color: #ffffff;
+        
+        .code-block-wrapper:hover .copy-code-btn {
+            opacity: 1;
         }
-
-        /* 用于格式化代码区域 */
-        .result-body pre {
-            background-color: #f5f7fa;
-            border-radius: 4px;
-            padding: 12px;
-            overflow: auto;
-            border: 1px solid #ebeef5;
+        
+        .copy-code-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
-
-        .result-body code {
-            font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
-            font-size: 14px;
+        
+        .copy-code-btn.copied {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
         }
     </style>
+
 </head>
 <body>
     <div id="app">
@@ -446,49 +872,33 @@
             <!-- 页面头部 -->
             <div class="header">
                 <div class="logo">
-                    <div class="logo-text">🧠 OpenManus</div>
+                    <div class="logo-icon">🧠</div>
+                    <div class="logo-content">
+                        <div class="logo-text">OpenManus</div>
+                        <div class="logo-subtitle">深度思考·智能对话</div>
+                    </div>
                 </div>
-                <el-button type="primary" @click="startNewConversation">新对话</el-button>
+                <div class="header-actions">
+                    <el-button type="primary" @click="startNewConversation" size="large">
+                        <el-icon style="margin-right: 6px;"><Plus /></el-icon>
+                        新对话
+                    </el-button>
+                </div>
             </div>
             
             <!-- 主要内容 -->
             <div class="main-content">
-                <!-- 模式选择器 -->
-                <div class="mode-selector">
-                    <div 
-                        class="mode-card" 
-                        :class="{ active: selectedMode === 'fast' }"
-                        @click="selectMode('fast')"
-                    >
-                        <div class="mode-icon">⚡</div>
-                        <div class="mode-title">快思考模式</div>
-                        <div class="mode-description">直接执行，快速响应，适合简单任务</div>
-                    </div>
-                    
-                    <div 
-                        class="mode-card" 
-                        :class="{ active: selectedMode === 'deep' }"
-                        @click="selectMode('deep')"
-                    >
-                        <div class="mode-icon">🔍</div>
-                        <div class="mode-title">慢思考模式</div>
-                        <div class="mode-description">分析规划、执行、反思，适合复杂任务</div>
-                </div>
-                
-                    <div 
-                        class="mode-card" 
-                        :class="{ active: selectedMode === 'auto' }"
-                        @click="selectMode('auto')"
-                    >
-                        <div class="mode-icon">🤖</div>
-                        <div class="mode-title">自动模式</div>
-                        <div class="mode-description">根据任务复杂度自动选择合适的思考模式</div>
-                    </div>
-                </div>
-                
                 <!-- 聊天容器 -->
                 <div class="chat-container">
                     <div class="messages-container" ref="messagesContainer">
+                        <!-- 欢迎消息 -->
+                        <div v-if="messages.length === 0" style="text-align: center; padding: 80px 20px;">
+                            <div style="font-size: 64px; margin-bottom: 24px;">🤔</div>
+                            <h2 style="color: var(--text-color); margin-bottom: 12px; font-size: 28px;">开始深度思考</h2>
+                            <p style="color: var(--text-secondary); font-size: 16px;">输入您的问题，我将进行深度分析、规划、执行和反思</p>
+                        </div>
+                        
+                        <!-- 消息列表 -->
                         <div 
                             v-for="(message, index) in messages" 
                             :key="index" 
@@ -496,34 +906,35 @@
                         >
                             <!-- 消息头部 -->
                             <div class="message-header">
-                                <div 
-                                    :class="['message-avatar', message.role === 'user' ? 'user-avatar' : 'assistant-avatar']"
-                                >
+                                <div :class="['message-avatar', message.role === 'user' ? 'user-avatar' : 'assistant-avatar']">
                                     {{ message.role === 'user' ? '👤' : '🤖' }}
-                    </div>
+                                </div>
                                 <div class="message-role">
-                                    {{ message.role === 'user' ? '用户' : '助手' }}
-                                    <span 
-                                        v-if="message.mode" 
-                                        :class="['mode-badge', message.mode === 'fast_thinking' ? 'fast-thinking' : 'deep-thinking']"
-                                    >
-                                        {{ message.mode === 'fast_thinking' ? '快思考' : '慢思考' }}
+                                    {{ message.role === 'user' ? '用户' : 'OpenManus' }}
+                                    <span v-if="message.role === 'assistant'" class="thinking-badge">
+                                        🔍 深度思考中
                                     </span>
-                    </div>
-                </div>
+                                </div>
+                            </div>
                             
                             <!-- 消息内容 -->
                             <div class="message-content">
-                                <div class="markdown-content" v-html="renderMarkdown(message.content)"></div>
+                                <!-- 只在没有完整结果时显示内容，避免重复显示 -->
+                                <div v-if="!(message.role === 'assistant' && message.isComplete && message.resultData)" 
+                                     class="markdown-content" 
+                                     v-html="renderMarkdown(message.content)"></div>
                                 
-                                <!-- 最终结果展示组件 -->
+                                <!-- 最终结果展示 -->
                                 <div v-if="message.role === 'assistant' && message.isComplete && message.resultData" 
                                      class="result-container">
                                     <div class="result-header">
-                                        <div class="result-title">执行结果</div>
+                                        <div class="result-title">
+                                            <span>✨</span>
+                                            <span>执行结果</span>
+                                        </div>
                                         <div class="result-meta">
-                                            <span>执行时间: {{ formatDuration(message.resultData.executionTime) }}</span>
-                                            <span>状态: 
+                                            <span>⏱ {{ formatDuration(message.resultData.executionTime) }}</span>
+                                            <span>
                                                 <el-tag size="small" :type="message.resultData.status === 'SUCCESS' ? 'success' : 'danger'">
                                                     {{ message.resultData.status }}
                                                 </el-tag>
@@ -534,26 +945,41 @@
                                 </div>
                             </div>
                             
-                            <!-- 流式日志和事件(只在助手回复中显示) -->
+                            <!-- 流式日志 -->
                             <div v-if="message.role === 'assistant' && message.streamingData" class="stream-container">
                                 <div class="log-container">
-                                    <div class="log-header">
-                                        <span>实时日志 ({{ message.streamingData.logs.length }})</span>
+                                    <div class="log-header" @click="toggleLogCollapse(message.id)">
+                                        <div class="log-header-left">
+                                            <span>🧠</span>
+                                            <span>思考过程 ({{ message.streamingData.logs.length }} 步)</span>
+                                        </div>
+                                        <div class="log-header-right">
+                                            <span v-if="message.isCollapsed">点击展开</span>
+                                            <span v-else>点击收起</span>
+                                            <el-icon :class="['collapse-icon', message.isCollapsed ? 'collapsed' : '']">
+                                                <CaretRight />
+                                            </el-icon>
+                                        </div>
                                     </div>
-                                    <div class="log-content">
+                                    <div class="log-content" :class="{ collapsed: message.isCollapsed }">
                                         <div v-for="(log, logIndex) in message.streamingData.logs" :key="logIndex" 
                                              class="log-entry" :class="`log-${log.level.toLowerCase()}`">
                                             <span class="log-time">{{ log.timestamp }}</span>
                                             <span class="log-level">{{ log.level }}</span>
-                                            <span class="log-message">{{ log.message }}</span>
+                                            <div 
+                                                class="log-message markdown-content" 
+                                                :class="{ expanded: log.expanded }"
+                                                @click.stop="toggleLogExpand(log)"
+                                                v-html="renderMarkdown(log.message)"
+                                            ></div>
                                         </div>
                                         <div v-if="message.streamingData.logs.length === 0" class="log-empty">
-                                            等待实时日志...
+                                            等待思考过程...
                                         </div>
                                     </div>
                                 </div>
-                    </div>
-                </div>
+                            </div>
+                        </div>
                 
                         <!-- 思考指示器 -->
                         <div v-if="loading" class="thinking-indicator">
@@ -562,25 +988,29 @@
                                 <div class="thinking-dot"></div>
                                 <div class="thinking-dot"></div>
                             </div>
-                            <div>{{ selectedMode === 'fast' ? '快速思考中...' : '深度思考中...' }}</div>
+                            <div>🧠 正在深度思考中...</div>
                         </div>
                     </div>
                     
+                    <!-- 输入区域 -->
                     <div class="input-container">
                         <el-input
                             v-model="inputMessage"
-                            placeholder="输入您的问题..."
+                            placeholder="输入您的问题，我将进行深度思考..."
                             :disabled="loading"
                             @keyup.enter.prevent="() => sendMessage()"
                             type="textarea"
-                            :autosize="{ minRows: 1, maxRows: 4 }"
+                            :autosize="{ minRows: 2, maxRows: 6 }"
+                            size="large"
                         ></el-input>
                         <el-button 
                             type="primary" 
                             :loading="loading" 
                             @click="sendMessage"
+                            size="large"
                         >
-                            发送
+                            <span v-if="!loading">发送</span>
+                            <span v-else>思考中</span>
                         </el-button>
                     </div>
                 </div>
@@ -588,16 +1018,16 @@
             
             <!-- 页脚 -->
             <div class="footer">
-                OpenManus © {{ new Date().getFullYear() }} - 智能思考系统
+                OpenManus © {{ new Date().getFullYear() }} - 深度思考系统 | 让AI像人类一样思考
             </div>
 
             <!-- 调试面板 -->
             <div class="debug-panel" :class="{ show: showDebug }">
                 <div class="debug-title">
-                    <span>调试信息</span>
+                    <span>🔧 调试信息</span>
                     <div>
-                        <el-button size="small" @click="checkServerStatus" style="margin-right: 8px;">检查服务</el-button>
-                        <el-button size="small" id="retry-button" @click="retryLastMessage" style="margin-right: 8px;">重试请求</el-button>
+                        <el-button size="small" @click="checkServerStatus" style="margin-right: 8px;">检查</el-button>
+                        <el-button size="small" @click="retryLastMessage" style="margin-right: 8px;">重试</el-button>
                         <el-button size="small" @click="clearDebugInfo">清除</el-button>
                     </div>
                 </div>
@@ -608,23 +1038,23 @@
             <div class="debug-toggle">
                 <el-button 
                     type="info" 
-                    size="small" 
+                    circle
                     @click="toggleDebug"
+                    :title="showDebug ? '隐藏调试' : '显示调试'"
                 >
-                    {{ showDebug ? '隐藏调试' : '显示调试' }}
-                    </el-button>
+                    <el-icon><Tools /></el-icon>
+                </el-button>
             </div>
         </div>
     </div>
     
     <!-- Vue.js 应用脚本 -->
     <script>
-        const { createApp, ref, reactive, computed, nextTick, onMounted } = Vue;
+        const { createApp, ref, reactive, nextTick, onMounted, watch } = Vue;
         const { ElMessage } = ElementPlus;
         
         createApp({
             setup() {
-                const selectedMode = ref('auto');
                 const messages = ref([]);
                 const inputMessage = ref('');
                 const loading = ref(false);
@@ -637,20 +1067,12 @@
                 let stompClient = null;
 
                 // WebSocket连接状态
-                const wsStatus = reactive({
-                    text: '未连接',
-                    type: 'info',
-                    icon: 'Link',
-                    loading: false
-                });
-                
-                // 全局定义WebSocket连接状态监控
                 let wsConnected = false;
                 let wsReconnectAttempts = 0;
                 const MAX_RECONNECT_ATTEMPTS = 3;
                 let wsHeartbeatInterval = null;
 
-                // WebSocket心跳检测函数
+                // WebSocket心跳检测
                 const startHeartbeat = () => {
                     if (wsHeartbeatInterval) {
                         clearInterval(wsHeartbeatInterval);
@@ -659,30 +1081,18 @@
                     wsHeartbeatInterval = setInterval(() => {
                         if (stompClient && wsConnected) {
                             try {
-                                // 发送心跳包
                                 stompClient.send("/app/heartbeat", {}, JSON.stringify({ timestamp: new Date().getTime() }));
                                 addDebugInfo("发送WebSocket心跳...");
                             } catch (e) {
                                 addDebugInfo(`发送心跳失败: ${e.message}`);
-                                // 如果发送心跳失败，尝试重连
                                 wsConnected = false;
-                                if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                                    addDebugInfo(`心跳失败，尝试重新连接(${wsReconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
-                                    // 重连逻辑
-                                } else {
-                                    addDebugInfo(`心跳失败，已达最大重连尝试次数，放弃连接`);
-                                    stopHeartbeat();
-                                }
                             }
-                        } else {
-                            addDebugInfo(`心跳检测：WebSocket未连接`);
                         }
-                    }, 15000); // 15秒一次心跳
+                    }, 15000);
                     
                     addDebugInfo("启动WebSocket心跳监测");
                 };
 
-                // 停止心跳检测
                 const stopHeartbeat = () => {
                     if (wsHeartbeatInterval) {
                         clearInterval(wsHeartbeatInterval);
@@ -702,6 +1112,7 @@
                         if (response.ok) {
                             serverStatus.value = 'online';
                             addDebugInfo('服务器状态: 在线');
+                            ElMessage.success('服务器连接正常');
                         } else {
                             serverStatus.value = 'error';
                             addDebugInfo(`服务器状态检查失败: ${response.status}`);
@@ -709,42 +1120,83 @@
                     } catch (err) {
                         serverStatus.value = 'offline';
                         addDebugInfo(`服务器状态: 离线 (${err.message})`);
-                        ElMessage.error('无法连接到服务器，请确保后端服务正在运行');
+                        ElMessage.error('无法连接到服务器');
                     }
                 };
                 
-                // 页面加载时检查服务器状态
                 onMounted(() => {
                     checkServerStatus();
                 });
                 
-                // 选择模式
-                const selectMode = (mode) => {
-                    selectedMode.value = mode;
-                };
+                // 配置marked
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: true,
+                    mangle: false,
+                    pedantic: false,
+                    smartLists: true,
+                    smartypants: false
+                });
                 
                 // 渲染Markdown
                 const renderMarkdown = (content) => {
                     if (!content) return '';
                     try {
-                    const html = marked.parse(content);
-                        nextTick(() => {
-                            document.querySelectorAll('pre code').forEach((block) => {
-                                hljs.highlightElement(block);
+                        const html = marked.parse(content);
+                        
+                        setTimeout(() => {
+                            document.querySelectorAll('.markdown-content pre code').forEach((block) => {
+                                if (!block.dataset.highlighted) {
+                                    hljs.highlightElement(block);
+                                    block.dataset.highlighted = 'yes';
+                                }
                             });
-                        });
-                    return html;
+                            
+                            document.querySelectorAll('.markdown-content pre').forEach((pre) => {
+                                if (!pre.parentElement.classList.contains('code-block-wrapper')) {
+                                    const wrapper = document.createElement('div');
+                                    wrapper.className = 'code-block-wrapper';
+                                    pre.parentNode.insertBefore(wrapper, pre);
+                                    wrapper.appendChild(pre);
+                                    
+                                    const copyBtn = document.createElement('button');
+                                    copyBtn.className = 'copy-code-btn';
+                                    copyBtn.textContent = '复制';
+                                    copyBtn.onclick = () => {
+                                        const code = pre.querySelector('code');
+                                        const text = code.textContent;
+                                        navigator.clipboard.writeText(text).then(() => {
+                                            copyBtn.textContent = '✓ 已复制!';
+                                            copyBtn.classList.add('copied');
+                                            setTimeout(() => {
+                                                copyBtn.textContent = '复制';
+                                                copyBtn.classList.remove('copied');
+                                            }, 2000);
+                                        }).catch(err => {
+                                            console.error('复制失败:', err);
+                                            ElMessage.error('复制失败');
+                                        });
+                                    };
+                                    wrapper.appendChild(copyBtn);
+                                }
+                            });
+                        }, 100);
+                        
+                        return html;
                     } catch (e) {
                         console.error('Markdown渲染错误:', e);
-                        return content;
+                        return '<pre>' + content + '</pre>';
                     }
                 };
                 
                 // 滚动到底部
                 const scrollToBottom = () => {
-                    if (messagesContainer.value) {
-                        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-                    }
+                    nextTick(() => {
+                        if (messagesContainer.value) {
+                            messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+                        }
+                    });
                 };
                 
                 // 开始新对话
@@ -772,106 +1224,55 @@
                 
                 // 发送消息
                 const sendMessage = async (retryMessage = null) => {
-                    // 确保参数类型是字符串，而不是事件对象
                     const messageToSend = (typeof retryMessage === 'string') ? retryMessage : inputMessage.value.trim();
                     
                     if (!messageToSend || loading.value) return;
                     
-                    // 添加用户消息
                     messages.value.push({
                         role: 'user',
                         content: messageToSend
                     });
                     lastUserMessage.value = messageToSend;
                     inputMessage.value = '';
-
+                    
                     await nextTick();
                     scrollToBottom();
                     
                     loading.value = true;
                     
-                    // 慢思考和自动模式使用WebSocket流式处理
-                    if (selectedMode.value === 'deep' || selectedMode.value === 'auto') {
-                        await executeStreamWorkflow(messageToSend);
-                    } else { // 快思考模式使用HTTP
-                        await executeFastWorkflow(messageToSend);
-                    }
+                    // 使用慢思考模式
+                    await executeStreamWorkflow(messageToSend);
                 };
 
-                // 执行快思考工作流
-                const executeFastWorkflow = async (message) => {
-                    try {
-                        // 确保message是字符串类型
-                        if (typeof message !== 'string') {
-                            throw new Error(`输入必须是字符串，收到的类型是: ${typeof message}, 值: ${String(message)}`);
-                        }
-                        
-                        const userMessage = message.trim();
-                        
-                        // 添加调试信息
-                        addDebugInfo(`发送快思考请求，message类型: ${typeof userMessage}, 值: ${userMessage}`);
-                        
-                        const endpoint = '/api/agent/chat';
-                        const params = new URLSearchParams({ sync: 'true' });
-                        const payload = { message: userMessage };
-                            
-                        if (conversationId.value) {
-                            payload.conversationId = conversationId.value;
-                            params.append('stateful', 'true');
-                        }
-
-                        const response = await fetch(`${endpoint}?${params.toString()}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-                        const data = await response.json();
-                        if (data.conversationId) conversationId.value = data.conversationId;
-
-                        messages.value.push({
-                            role: 'assistant',
-                            content: data.answer || '抱歉，无法处理您的请求。',
-                            mode: 'fast_thinking'
-                        });
-                    } catch (err) {
-                        console.error('快思考模式出错:', err);
-                        messages.value.push({ 
-                            role: 'assistant', 
-                            content: `快思考模式出错: ${err.message}`, 
-                            isError: true 
-                        });
-                    } finally {
-                        loading.value = false;
-                        await nextTick();
-                        scrollToBottom();
-                    }
-                };
-
-                                // 执行流式工作流
+                // 执行流式工作流
                 const executeStreamWorkflow = async (input) => {
-                    // 为流式响应创建一个新的助手消息占位符
                     const assistantMessage = reactive({
+                        id: Date.now() + Math.random(), // 添加唯一ID
                         role: 'assistant',
-                        content: '正在深度思考中...',
-                        mode: 'deep_thinking',
+                        content: '🤔 正在进行深度思考...',
                         streamingData: { logs: [], events: [] },
-                        isComplete: false
+                        isComplete: false,
+                        isCollapsed: false // 初始不折叠，让用户看到思考过程
                     });
                     messages.value.push(assistantMessage);
+                    
+                    const stopWatch = watch(
+                        () => assistantMessage.content,
+                        (newContent, oldContent) => {
+                            console.log('消息内容已更新:', {
+                                旧内容长度: oldContent?.length || 0,
+                                新内容长度: newContent?.length || 0
+                            });
+                        }
+                    );
 
                     try {
-                        // 确保input是字符串类型，排除事件对象等非字符串类型
                         if (typeof input !== 'string') {
-                            throw new Error(`输入必须是字符串，收到的类型是: ${typeof input}, 值: ${String(input)}`);
+                            throw new Error(`输入必须是字符串，收到的类型是: ${typeof input}`);
                         }
                         
                         const userInput = input.trim();
-                        
-                        // 添加调试信息
-                        addDebugInfo(`发送流式请求，input类型: ${typeof userInput}, 值: ${userInput}`);
+                        addDebugInfo(`发送流式请求: ${userInput}`);
                         
                         const response = await fetch('/api/agent/think-do-reflect-stream', {
                             method: 'POST',
@@ -879,15 +1280,14 @@
                             body: JSON.stringify({ input: userInput })
                         });
 
-                        // 记录原始响应
                         const responseText = await response.text();
-                        addDebugInfo(`收到原始响应: ${responseText}`);
+                        addDebugInfo(`收到响应: ${responseText.substring(0, 100)}...`);
                             
                         let data;
                         try {
                             data = JSON.parse(responseText);
                         } catch (parseErr) {
-                            throw new Error(`解析响应失败: ${parseErr.message}, 原始响应: ${responseText}`);
+                            throw new Error(`解析响应失败: ${parseErr.message}`);
                         }
 
                         if (!response.ok || !data.success) {
@@ -908,115 +1308,101 @@
                     const socket = new SockJS('/ws');
                     stompClient = Stomp.over(socket);
                     stompClient.debug = null;
-                    
-                    // 添加WebSocket连接配置
+
                     const connectHeaders = {
-                        'heart-beat': '10000,10000' // 10秒一次心跳
+                        'heart-beat': '10000,10000'
                     };
                     
                     wsReconnectAttempts = 0;
-                    addDebugInfo('正在建立WebSocket连接...');
+                    addDebugInfo('建立WebSocket连接...');
 
                     stompClient.connect(connectHeaders, (frame) => {
                         wsConnected = true;
                         wsReconnectAttempts = 0;
-                        addDebugInfo(`WebSocket连接成功，版本: ${frame.headers['version']}, 服务器: ${frame.headers['server'] || 'unknown'}`);
-                        
-                        // 启动心跳检测
+                        addDebugInfo(`WebSocket连接成功`);
                         startHeartbeat();
                         
-                        // 订阅日志主题
-                        const logSubscription = stompClient.subscribe(topic + '/logs', (message) => {
+                        // 订阅日志
+                        stompClient.subscribe(topic + '/logs', (message) => {
                             try {
                                 const log = JSON.parse(message.body);
+                                log.expanded = false; // 默认折叠状态
                                 assistantMessage.streamingData.logs.push(log);
                                 nextTick(scrollToBottom);
-                                addDebugInfo(`收到日志: ${log.level} - ${log.message.substring(0, 50)}${log.message.length > 50 ? '...' : ''}`);
+                                addDebugInfo(`日志: ${log.level}`);
                             } catch (e) {
-                                console.error("解析日志消息失败:", e, message.body);
-                                addDebugInfo(`解析日志消息失败: ${e.message}`);
+                                console.error("解析日志失败:", e);
                             }
                         });
-                        addDebugInfo(`已订阅日志主题: ${topic}/logs, ID: ${logSubscription.id}`);
                         
-                        // 订阅核心事件主题
-                        const eventSubscription = stompClient.subscribe(topic, (message) => {
+                        // 订阅事件
+                        stompClient.subscribe(topic, (message) => {
                             try {
                                 const event = JSON.parse(message.body);
                                 assistantMessage.streamingData.events.push(event);
-                                addDebugInfo(`收到事件: ${event.eventType}`);
+                                addDebugInfo(`事件: ${event.eventType}`);
 
-                                // 更新最终结果
                                 if (event.eventType === 'WORKFLOW_COMPLETE') {
-                                    // 在这里我们不立即设置最终结果，而是等待专门的结果消息
-                                    addDebugInfo(`收到工作流完成事件，等待最终结果...`);
-                                    // 不要在这里断开连接，等待最终结果消息
+                                    addDebugInfo('工作流完成，等待结果...');
                                 } else if (event.eventType === 'ERROR') {
-                                    assistantMessage.content = `工作流执行出错: ${event.output?.error || '未知错误'}`;
+                                    assistantMessage.content = `执行出错: ${event.output?.error || '未知错误'}`;
                                     assistantMessage.isError = true;
                                     loading.value = false;
                                     
-                                    // 错误情况下也延迟关闭连接
                                     setTimeout(() => {
-                                        addDebugInfo('工作流出错，延迟关闭WebSocket连接');
                                         disconnectWebSocket();
-                                    }, 2000); // 2秒后关闭连接
+                                    }, 2000);
                                 }
 
                                 nextTick(scrollToBottom);
                             } catch (e) {
-                                console.error("解析核心事件失败:", e, message.body);
-                                addDebugInfo(`解析核心事件失败: ${e.message}, 原始数据: ${message.body.substring(0, 100)}...`);
+                                console.error("解析事件失败:", e);
                             }
                         });
-                        addDebugInfo(`已订阅事件主题: ${topic}, ID: ${eventSubscription.id}`);
                         
-                        // 订阅最终结果主题
-                        const resultSubscription = stompClient.subscribe(topic + '/result', (message) => {
+                        // 订阅结果
+                        stompClient.subscribe(topic + '/result', (message) => {
                             try {
                                 const resultData = JSON.parse(message.body);
-                                addDebugInfo(`收到最终结果: 类型=${resultData.messageType}, 状态=${resultData.status}`);
+                                addDebugInfo(`收到最终结果: ${resultData.status}`);
                                 
-                                // 设置最终结果到消息中
-                                assistantMessage.content = resultData.result || '任务已完成，但无具体结果';
+                                const finalResult = resultData.result || '任务已完成';
+                                assistantMessage.content = finalResult;
                                 assistantMessage.isComplete = true;
-                                assistantMessage.resultData = resultData; // 保存完整结果数据
+                                assistantMessage.resultData = resultData;
+                                assistantMessage.isCollapsed = true; // 结果出来后自动折叠思考流程
                                 loading.value = false;
                                 
-                                // 处理结果后，安全地断开连接
+                                nextTick(() => {
+                                    scrollToBottom();
+                                    setTimeout(scrollToBottom, 300);
+                                });
+                                
                                 setTimeout(() => {
-                                    addDebugInfo('已接收最终结果，延迟关闭WebSocket连接');
                                     disconnectWebSocket();
                                 }, 1000);
-                                
-                                nextTick(scrollToBottom);
                             } catch (e) {
-                                console.error("解析结果消息失败:", e, message.body);
-                                addDebugInfo(`解析结果消息失败: ${e.message}`);
+                                console.error("解析结果失败:", e);
                             }
                         });
-                        addDebugInfo(`已订阅结果主题: ${topic}/result, ID: ${resultSubscription.id}`);
                         
                     }, (err) => {
-                        console.error('WebSocket 连接失败:', err);
-                        addDebugInfo(`WebSocket连接失败: ${err.message || '未知错误'}`);
+                        console.error('WebSocket连接失败:', err);
+                        addDebugInfo(`连接失败: ${err.message || '未知错误'}`);
                         wsConnected = false;
                         
-                        // 如果连接失败，尝试重连
                         if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
                             wsReconnectAttempts++;
-                            const delay = wsReconnectAttempts * 2000; // 递增重试延迟
-                            addDebugInfo(`连接失败，将在${delay/1000}秒后尝试重新连接(${wsReconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+                            const delay = wsReconnectAttempts * 2000;
+                            addDebugInfo(`将在${delay/1000}秒后重连...`);
                             
                             setTimeout(() => {
-                                addDebugInfo(`正在尝试第${wsReconnectAttempts}次重连...`);
                                 connectWebSocket(topic, assistantMessage);
                             }, delay);
                         } else {
-                            assistantMessage.content = 'WebSocket连接失败，无法接收实时事件。请尝试刷新页面或稍后再试。';
+                            assistantMessage.content = 'WebSocket连接失败，请刷新页面重试';
                             assistantMessage.isError = true;
                             loading.value = false;
-                            addDebugInfo(`已达到最大重连次数(${MAX_RECONNECT_ATTEMPTS})，放弃连接`);
                         }
                     });
                 };
@@ -1024,48 +1410,35 @@
                 const disconnectWebSocket = () => {
                     if (stompClient !== null && wsConnected) {
                         try {
-                            addDebugInfo('正在断开WebSocket连接...');
+                            addDebugInfo('断开WebSocket...');
                             wsConnected = false;
-                            
-                            // 停止心跳检测
                             stopHeartbeat();
                             
-                            // 提供回调函数以确保断开连接后正确处理
                             stompClient.disconnect(() => { 
-                                console.log('WebSocket连接已安全断开'); 
-                                addDebugInfo('WebSocket连接已安全断开');
+                                addDebugInfo('WebSocket已断开');
                                 stompClient = null;
-                            }, {
-                                // 设置断开连接的头信息
-                                'timeout': 5000 // 5秒超时
                             });
                         } catch (e) {
-                            console.error('断开WebSocket连接时出错:', e);
-                            addDebugInfo(`断开连接出错: ${e.message}`);
+                            console.error('断开连接出错:', e);
                             stompClient = null;
                             wsConnected = false;
                         }
-                    } else if (stompClient !== null) {
-                        stompClient = null;
-                        wsConnected = false;
-                        stopHeartbeat();
-                        addDebugInfo('WebSocket连接已关闭（连接状态：未连接）');
                     }
                 };
                 
-                // 重试上一次失败的请求
+                // 重试
                 const retryLastMessage = () => {
                     if (lastUserMessage.value && typeof lastUserMessage.value === 'string') {
                         if (messages.value.length > 0 && messages.value[messages.value.length - 1].isError) {
-                            messages.value.pop(); // 移除上一条错误消息
+                            messages.value.pop();
                         }
                         sendMessage(lastUserMessage.value);
                     } else {
-                        ElMessage.warning('没有可重试的消息或消息格式不正确');
+                        ElMessage.warning('没有可重试的消息');
                     }
                 };
 
-                // 时间格式化工具函数
+                // 时间格式化
                 const formatDuration = (ms) => {
                     if (!ms) return '未知';
                     
@@ -1080,15 +1453,26 @@
                     }
                 };
 
+                                // 折叠/展开日志容器
+                const toggleLogCollapse = (messageId) => {
+                    const message = messages.value.find(msg => msg.id === messageId);
+                    if (message) {
+                        message.isCollapsed = !message.isCollapsed;
+                    }
+                };
+                
+                // 展开/收起单条日志
+                const toggleLogExpand = (log) => {
+                    log.expanded = !log.expanded;
+                };
+ 
                 return {
-                    selectedMode,
                     messages,
                     inputMessage,
                     loading,
                     messagesContainer,
                     serverStatus,
                     lastUserMessage,
-                    selectMode,
                     renderMarkdown,
                     sendMessage,
                     retryLastMessage,
@@ -1099,16 +1483,12 @@
                     clearDebugInfo,
                     addDebugInfo,
                     checkServerStatus,
-                    formatDuration, // 添加这个函数
+                    formatDuration,
+                    toggleLogCollapse,
+                    toggleLogExpand,
                 };
             }
         }).use(ElementPlus).mount('#app');
-        
-        // 注册 Element Plus 图标
-        const app = createApp({});
-        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-            app.component(key, component);
-        }
     </script>
 </body>
 </html>
