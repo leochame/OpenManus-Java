@@ -155,6 +155,7 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
+            overflow: hidden;
         }
         
         /* 聊天容器 */
@@ -869,8 +870,10 @@
         /* 主布局 - 支持左右分栏 */
         .main-layout {
             display: flex;
-            gap: 16px;
+            gap: 20px;
             min-height: 600px;
+            height: 100%;
+            align-items: stretch;
         }
         
         .chat-panel {
@@ -997,9 +1000,8 @@
                 <div class="main-layout">
                     <!-- 左侧：聊天面板 -->
                     <div class="chat-panel">
-                        <!-- 聊天容器 -->
                         <div class="chat-container">
-                    <div class="messages-container" ref="messagesContainer">
+                            <div class="messages-container" ref="messagesContainer">
                         <!-- 欢迎消息 -->
                         <div v-if="messages.length === 0" style="text-align: center; padding: 80px 20px;">
                             <div style="font-size: 64px; margin-bottom: 24px;">🤔</div>
@@ -1122,7 +1124,7 @@
                             <span v-else>思考中</span>
                         </el-button>
                     </div>
-                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -1131,12 +1133,12 @@
                         <div class="sandbox-header">
                             <span class="sandbox-title">
                                 <span v-if="sandboxMode === 'web'">
-                                    <span v-if="currentWebUrl && currentWebUrl.includes('duckduckgo.com')">🔍</span>
+                                    <span v-if="currentWebUrl && (currentWebUrl.includes('bing.com/search') || currentWebUrl.includes('duckduckgo.com'))">🔍</span>
                                     <span v-else>🌐</span>
                                 </span>
                                 <span v-else>🖥️</span>
                                 <span v-if="sandboxMode === 'web'">
-                                    <span v-if="currentWebUrl && currentWebUrl.includes('duckduckgo.com')">搜索结果</span>
+                                    <span v-if="currentWebUrl && (currentWebUrl.includes('bing.com/search') || currentWebUrl.includes('duckduckgo.com'))">搜索结果</span>
                                     <span v-else>网页预览</span>
                                 </span>
                                 <span v-else>VNC 沙箱</span>
@@ -1353,12 +1355,12 @@
                         const searchMatch = message.match(/(?:🔍\s*正在搜索|搜索关键词)[:：]\s*(.+)/i);
                         if (searchMatch && searchMatch[1]) {
                             const query = searchMatch[1].trim();
-                            // 构建 DuckDuckGo 搜索 URL
-                            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+                            // 使用 Bing 搜索（支持 iframe 嵌入）
+                            const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
                             currentWebUrl.value = searchUrl;
                             showSandboxPanel.value = true;
                             sandboxMode.value = 'web';  // 强制使用网页预览模式
-                            addDebugInfo(`🔍 检测到搜索关键词，右侧展示: ${query}`);
+                            addDebugInfo(`🔍 检测到搜索关键词，右侧展示 Bing 搜索: ${query}`);
                             ElMessage({
                                 message: `🔍 正在右侧展示搜索: ${query}`,
                                 type: 'success',

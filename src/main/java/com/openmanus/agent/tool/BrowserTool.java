@@ -117,12 +117,13 @@ public class BrowserTool {
             // 确保沙箱已创建（首次调用时触发）
             ensureSandboxCreated();
             
-            // 构建搜索URL
+            // 构建搜索URL（用于后端抓取）
             String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
             String searchUrl = SEARCH_ENGINE_URL + encodedQuery;
             
-            // 通知前端当前搜索的 URL（用于网页预览）
-            log.info(TO_FRONTEND, "📄 搜索页面: {}", searchUrl);
+            // 通知前端使用 Bing 搜索页面（支持 iframe 嵌入）
+            String displayUrl = "https://www.bing.com/search?q=" + encodedQuery;
+            log.info(TO_FRONTEND, "📄 搜索页面: {}", displayUrl);
             
             // 建立搜索连接
             HttpURLConnection connection = createSearchConnection(searchUrl);
