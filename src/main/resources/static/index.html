@@ -890,7 +890,17 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            animation: slideInRight 0.4s ease-out;
+            animation: slideInRight 0.4s ease-out, pulse-attention 1s ease-in-out 0.4s;
+        }
+        
+        /* 面板出现时的脉冲动画 */
+        @keyframes pulse-attention {
+            0%, 100% {
+                box-shadow: var(--shadow-lg);
+            }
+            50% {
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3), var(--shadow-lg);
+            }
         }
         
         @keyframes slideInRight {
@@ -1306,7 +1316,7 @@
                     }, 60000);
                 };
                 
-                // 提取并显示网页 URL
+                // 提取并显示网页 URL（右侧面板）
                 const extractAndShowWebUrl = (message) => {
                     // 匹配日志中的 URL（支持多种格式）
                     // 1. "📄 正在访问: https://..."
@@ -1319,15 +1329,23 @@
                         const url = urlMatch[1];
                         currentWebUrl.value = url;
                         showSandboxPanel.value = true;
-                        sandboxMode.value = 'web';
+                        sandboxMode.value = 'web';  // 强制使用网页预览模式
                         
                         // 判断是搜索还是普通访问
                         if (message.includes('搜索页面') || message.includes('正在搜索')) {
-                            addDebugInfo(`🔍 检测到搜索: ${url}`);
-                            ElMessage.success('正在加载搜索结果页面');
+                            addDebugInfo(`🔍 检测到搜索，右侧展示: ${url}`);
+                            ElMessage({
+                                message: '🔍 搜索结果已在右侧展示',
+                                type: 'success',
+                                duration: 2000
+                            });
                         } else {
-                            addDebugInfo(`📄 检测到网页访问: ${url}`);
-                            ElMessage.success('正在加载网页预览');
+                            addDebugInfo(`📄 检测到网页访问，右侧展示: ${url}`);
+                            ElMessage({
+                                message: '📄 网页已在右侧展示',
+                                type: 'success',
+                                duration: 2000
+                            });
                         }
                     }
                     // 如果是搜索关键词（没有直接URL），构建搜索URL
@@ -1335,12 +1353,17 @@
                         const searchMatch = message.match(/(?:🔍\s*正在搜索|搜索关键词)[:：]\s*(.+)/i);
                         if (searchMatch && searchMatch[1]) {
                             const query = searchMatch[1].trim();
+                            // 构建 DuckDuckGo 搜索 URL
                             const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
                             currentWebUrl.value = searchUrl;
                             showSandboxPanel.value = true;
-                            sandboxMode.value = 'web';
-                            addDebugInfo(`🔍 检测到搜索关键词: ${query}`);
-                            ElMessage.success(`正在搜索: ${query}`);
+                            sandboxMode.value = 'web';  // 强制使用网页预览模式
+                            addDebugInfo(`🔍 检测到搜索关键词，右侧展示: ${query}`);
+                            ElMessage({
+                                message: `🔍 正在右侧展示搜索: ${query}`,
+                                type: 'success',
+                                duration: 3000
+                            });
                         }
                     }
                 };
