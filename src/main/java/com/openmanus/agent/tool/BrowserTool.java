@@ -77,6 +77,9 @@ public class BrowserTool {
             // 标准化URL格式
             url = normalizeUrl(url);
             log.info("访问网页: {}", url);
+            
+            // 通知前端当前访问的 URL（用于网页预览）
+            log.info(TO_FRONTEND, "📄 正在访问: {}", url);
 
             // 建立HTTP连接
             HttpURLConnection connection = createConnection(url, USER_AGENT_BROWSER);

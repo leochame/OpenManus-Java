@@ -1116,29 +1116,60 @@
                         </div>
                     </div>
                     
-                    <!-- 右侧：VNC 沙箱浏览器面板 -->
+                    <!-- 右侧：沙箱浏览器面板（双模式）-->
                     <div class="sandbox-panel" v-if="showSandboxPanel">
                         <div class="sandbox-header">
                             <span class="sandbox-title">
-                                <span>🖥️</span>
-                                <span>Agent 浏览器工作台</span>
+                                <span v-if="sandboxMode === 'web'">🌐</span>
+                                <span v-else>🖥️</span>
+                                <span v-if="sandboxMode === 'web'">网页预览</span>
+                                <span v-else>VNC 沙箱</span>
                             </span>
-                            <el-button size="small" type="info" @click="showSandboxPanel = false">
-                                关闭
-                            </el-button>
+                            <div style="display: flex; gap: 8px;">
+                                <el-button 
+                                    size="small" 
+                                    type="primary" 
+                                    @click="toggleSandboxMode"
+                                    v-if="sandboxVncUrl"
+                                >
+                                    <span v-if="sandboxMode === 'web'">切换到VNC</span>
+                                    <span v-else>切换到网页</span>
+                                </el-button>
+                                <el-button size="small" type="info" @click="showSandboxPanel = false">
+                                    关闭
+                                </el-button>
+                            </div>
                         </div>
                         <div class="sandbox-body">
-                            <iframe 
-                                v-if="sandboxVncUrl"
-                                :src="sandboxVncUrl" 
-                                class="sandbox-iframe"
-                                title="Agent Browser Workspace"
-                                sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
-                            ></iframe>
-                            <div v-else class="sandbox-loading">
-                                <el-icon :size="50" class="is-loading" style="color: #6366f1;"><Loading /></el-icon>
-                                <p style="margin-top: 20px; color: #666; font-size: 16px;">正在启动浏览器工作台...</p>
-                                <p style="margin-top: 8px; color: #999; font-size: 14px;">首次启动约需 10-15 秒</p>
+                            <!-- 网页预览模式 -->
+                            <div v-if="sandboxMode === 'web'" style="width: 100%; height: 100%;">
+                                <iframe 
+                                    v-if="currentWebUrl"
+                                    :src="currentWebUrl" 
+                                    class="sandbox-iframe"
+                                    title="Web Preview"
+                                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                                ></iframe>
+                                <div v-else class="sandbox-loading">
+                                    <el-icon :size="50" class="is-loading" style="color: #6366f1;"><Loading /></el-icon>
+                                    <p style="margin-top: 20px; color: #666; font-size: 16px;">等待网页加载...</p>
+                                </div>
+                            </div>
+                            
+                            <!-- VNC 沙箱模式 -->
+                            <div v-else style="width: 100%; height: 100%;">
+                                <iframe 
+                                    v-if="sandboxVncUrl"
+                                    :src="sandboxVncUrl" 
+                                    class="sandbox-iframe"
+                                    title="VNC Sandbox"
+                                    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
+                                ></iframe>
+                                <div v-else class="sandbox-loading">
+                                    <el-icon :size="50" class="is-loading" style="color: #6366f1;"><Loading /></el-icon>
+                                    <p style="margin-top: 20px; color: #666; font-size: 16px;">正在启动 VNC 沙箱...</p>
+                                    <p style="margin-top: 8px; color: #999; font-size: 14px;">首次启动约需 10-15 秒</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1204,6 +1235,8 @@
                 // ========== VNC 沙箱浏览器相关 ==========
                 const sandboxVncUrl = ref(null);
                 const showSandboxPanel = ref(false);
+                const currentWebUrl = ref(null);  // 当前访问的网页 URL
+                const sandboxMode = ref('web');    // 'web' 或 'vnc'
                 let sandboxPollInterval = null;
                 
                 // 轮询查询沙箱状态
@@ -1253,6 +1286,26 @@
                             addDebugInfo('⏱ 沙箱轮询超时，停止轮询');
                         }
                     }, 60000);
+                };
+                
+                // 提取并显示网页 URL
+                const extractAndShowWebUrl = (message) => {
+                    // 匹配日志中的 URL（例如："📄 正在访问: https://..."）
+                    const urlMatch = message.match(/(?:正在访问|访问网页)[:：]\s*(https?:\/\/[^\s]+)/i);
+                    if (urlMatch && urlMatch[1]) {
+                        const url = urlMatch[1];
+                        currentWebUrl.value = url;
+                        showSandboxPanel.value = true;
+                        sandboxMode.value = 'web';  // 默认使用网页预览模式
+                        addDebugInfo(`📄 检测到网页访问: ${url}`);
+                        ElMessage.success('正在加载网页预览');
+                    }
+                };
+                
+                // 切换沙箱模式
+                const toggleSandboxMode = () => {
+                    sandboxMode.value = sandboxMode.value === 'web' ? 'vnc' : 'web';
+                    ElMessage.info(sandboxMode.value === 'web' ? '切换到网页预览模式' : '切换到VNC沙箱模式');
                 };
 
                 // WebSocket心跳检测
@@ -1516,6 +1569,12 @@
                                 const log = JSON.parse(message.body);
                                 log.expanded = false; // 默认折叠状态
                                 assistantMessage.streamingData.logs.push(log);
+                                
+                                // 提取网页 URL 并显示
+                                if (log.message) {
+                                    extractAndShowWebUrl(log.message);
+                                }
+                                
                                 nextTick(scrollToBottom);
                                 addDebugInfo(`日志: ${log.level}`);
                             } catch (e) {
@@ -1674,9 +1733,12 @@
                     formatDuration,
                     toggleLogCollapse,
                     toggleLogExpand,
-                    // VNC 沙箱浏览器
+                    // 沙箱浏览器（双模式）
                     sandboxVncUrl,
                     showSandboxPanel,
+                    currentWebUrl,
+                    sandboxMode,
+                    toggleSandboxMode,
                 };
             }
         }).use(ElementPlus).mount('#app');
