@@ -112,11 +112,17 @@ public class BrowserTool {
     @Tool("Search web content")
     public String searchWeb(@P("Search keywords") String query) {
         try {
-            log.info(TO_FRONTEND, "搜索关键词: {}", query);
+            log.info(TO_FRONTEND, "🔍 正在搜索: {}", query);
+            
+            // 确保沙箱已创建（首次调用时触发）
+            ensureSandboxCreated();
             
             // 构建搜索URL
             String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
             String searchUrl = SEARCH_ENGINE_URL + encodedQuery;
+            
+            // 通知前端当前搜索的 URL（用于网页预览）
+            log.info(TO_FRONTEND, "📄 搜索页面: {}", searchUrl);
             
             // 建立搜索连接
             HttpURLConnection connection = createSearchConnection(searchUrl);

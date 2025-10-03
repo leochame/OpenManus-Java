@@ -1120,12 +1120,30 @@
                     <div class="sandbox-panel" v-if="showSandboxPanel">
                         <div class="sandbox-header">
                             <span class="sandbox-title">
-                                <span v-if="sandboxMode === 'web'">🌐</span>
+                                <span v-if="sandboxMode === 'web'">
+                                    <span v-if="currentWebUrl && currentWebUrl.includes('duckduckgo.com')">🔍</span>
+                                    <span v-else>🌐</span>
+                                </span>
                                 <span v-else>🖥️</span>
-                                <span v-if="sandboxMode === 'web'">网页预览</span>
+                                <span v-if="sandboxMode === 'web'">
+                                    <span v-if="currentWebUrl && currentWebUrl.includes('duckduckgo.com')">搜索结果</span>
+                                    <span v-else>网页预览</span>
+                                </span>
                                 <span v-else>VNC 沙箱</span>
+                                <span v-if="currentWebUrl && sandboxMode === 'web'" 
+                                      style="font-size: 12px; font-weight: normal; margin-left: 8px; opacity: 0.8; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{ currentWebUrl }}
+                                </span>
                             </span>
                             <div style="display: flex; gap: 8px;">
+                                <el-button 
+                                    size="small" 
+                                    @click="window.open(currentWebUrl, '_blank')"
+                                    v-if="sandboxMode === 'web' && currentWebUrl"
+                                    title="在新标签页打开"
+                                >
+                                    <el-icon><Top /></el-icon>
+                                </el-button>
                                 <el-button 
                                     size="small" 
                                     type="primary" 
@@ -1290,15 +1308,40 @@
                 
                 // 提取并显示网页 URL
                 const extractAndShowWebUrl = (message) => {
-                    // 匹配日志中的 URL（例如："📄 正在访问: https://..."）
-                    const urlMatch = message.match(/(?:正在访问|访问网页)[:：]\s*(https?:\/\/[^\s]+)/i);
+                    // 匹配日志中的 URL（支持多种格式）
+                    // 1. "📄 正在访问: https://..."
+                    // 2. "📄 搜索页面: https://..."
+                    // 3. "🔍 正在搜索: xxx" (提取搜索关键词，构建搜索URL)
+                    
+                    // 优先匹配直接的 URL
+                    let urlMatch = message.match(/(?:正在访问|访问网页|搜索页面)[:：]\s*(https?:\/\/[^\s]+)/i);
                     if (urlMatch && urlMatch[1]) {
                         const url = urlMatch[1];
                         currentWebUrl.value = url;
                         showSandboxPanel.value = true;
-                        sandboxMode.value = 'web';  // 默认使用网页预览模式
-                        addDebugInfo(`📄 检测到网页访问: ${url}`);
-                        ElMessage.success('正在加载网页预览');
+                        sandboxMode.value = 'web';
+                        
+                        // 判断是搜索还是普通访问
+                        if (message.includes('搜索页面') || message.includes('正在搜索')) {
+                            addDebugInfo(`🔍 检测到搜索: ${url}`);
+                            ElMessage.success('正在加载搜索结果页面');
+                        } else {
+                            addDebugInfo(`📄 检测到网页访问: ${url}`);
+                            ElMessage.success('正在加载网页预览');
+                        }
+                    }
+                    // 如果是搜索关键词（没有直接URL），构建搜索URL
+                    else {
+                        const searchMatch = message.match(/(?:🔍\s*正在搜索|搜索关键词)[:：]\s*(.+)/i);
+                        if (searchMatch && searchMatch[1]) {
+                            const query = searchMatch[1].trim();
+                            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+                            currentWebUrl.value = searchUrl;
+                            showSandboxPanel.value = true;
+                            sandboxMode.value = 'web';
+                            addDebugInfo(`🔍 检测到搜索关键词: ${query}`);
+                            ElMessage.success(`正在搜索: ${query}`);
+                        }
                     }
                 };
                 
