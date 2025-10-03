@@ -6,7 +6,6 @@ import com.openmanus.agent.impl.executor.CodeAgent;
 import com.openmanus.agent.impl.executor.FileAgent;
 import com.openmanus.agent.impl.reflection.ReflectionAgent;
 import com.openmanus.agent.impl.thinker.ThinkingAgent;
-import com.openmanus.agent.tool.AgentToolCatalog;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import org.bsc.langgraph4j.CompiledGraph;
@@ -29,8 +28,7 @@ public class ThinkDoReflectWorkflow {
     private final CompiledGraph<AgentExecutor.State> handoffExecutor;
     
     public ThinkDoReflectWorkflow(
-            ChatModel chatModel, 
-            AgentToolCatalog agentToolCatalog,
+            ChatModel chatModel,
             ThinkingAgent thinkingAgent,
             SearchAgent searchAgent,
             CodeAgent codeAgent,

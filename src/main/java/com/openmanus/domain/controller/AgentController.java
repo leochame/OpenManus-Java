@@ -1,7 +1,9 @@
 package com.openmanus.domain.controller;
+import com.openmanus.domain.model.SessionSandboxInfo;
 import com.openmanus.domain.model.WorkflowRequest;
 import com.openmanus.domain.model.WorkflowResponse;
 import com.openmanus.domain.service.AgentService;
+import com.openmanus.domain.service.SessionSandboxManager;
 import com.openmanus.domain.service.ThinkDoReflectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,11 +29,16 @@ public class AgentController {
 
     private final AgentService agentService;
     private final ThinkDoReflectService thinkDoReflectService;
+    private final SessionSandboxManager sessionSandboxManager;
     
     @Autowired
-    public AgentController(AgentService agentService, ThinkDoReflectService thinkDoReflectService) {
+    public AgentController(
+            AgentService agentService, 
+            ThinkDoReflectService thinkDoReflectService,
+            SessionSandboxManager sessionSandboxManager) {
         this.agentService = agentService;
         this.thinkDoReflectService = thinkDoReflectService;
+        this.sessionSandboxManager = sessionSandboxManager;
     }
     /**
      * 快思考模式 - 处理简单明确的任务，快速响应
@@ -96,5 +104,33 @@ public class AgentController {
         }
 
         return ResponseEntity.ok(serviceResult);
+    }
+    
+    /**
+     * 查询会话信息（包括沙箱状态）
+     * 
+     * @param sessionId 会话 ID
+     * @return 会话信息，包含沙箱 VNC URL（如果已创建）
+     */
+    @GetMapping("/session/{sessionId}")
+    @Operation(
+        summary = "Get Session Info",
+        description = "Returns session information including VNC sandbox URL if available. " +
+                      "Frontend can use this to poll for sandbox status and display the browser workspace."
+    )
+    public ResponseEntity<Map<String, Object>> getSessionInfo(@PathVariable String sessionId) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("sessionId", sessionId);
+        
+        // 查询沙箱信息
+        sessionSandboxManager.getSandboxInfo(sessionId).ifPresent(sandboxInfo -> {
+            response.put("sandboxVncUrl", sandboxInfo.getVncUrl());
+            response.put("sandboxContainerId", sandboxInfo.getContainerId());
+            response.put("sandboxStatus", sandboxInfo.getStatus().toString());
+            response.put("sandboxCreatedAt", sandboxInfo.getCreatedAt());
+            response.put("sandboxAvailable", sandboxInfo.isAvailable());
+        });
+        
+        return ResponseEntity.ok(response);
     }
 } 

@@ -1,8 +1,12 @@
 package com.openmanus.agent.tool;
 
+import com.openmanus.domain.model.SessionSandboxInfo;
+import com.openmanus.domain.service.SessionSandboxManager;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -21,12 +25,20 @@ import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
  * 提供网页访问和搜索能力：
  * 1. 访问网页并获取内容
  * 2. 搜索网络信息（基于DuckDuckGo）
+ * 3. 按需创建 VNC 沙箱浏览器（首次调用时）
  * 
  * 设计模式：策略模式 - 不同的搜索引擎可以作为不同策略
  */
 @Component
 @Slf4j
 public class BrowserTool {
+    
+    private final SessionSandboxManager sessionSandboxManager;
+    
+    @Autowired
+    public BrowserTool(SessionSandboxManager sessionSandboxManager) {
+        this.sessionSandboxManager = sessionSandboxManager;
+    }
     
     // 网络配置常量
     private static final int DEFAULT_TIMEOUT_SECONDS = 30;
@@ -54,10 +66,14 @@ public class BrowserTool {
     
     /**
      * 访问网页并获取内容
+     * 首次调用时会自动创建 VNC 沙箱浏览器
      */
     @Tool("Visit web page and get content")
     public String browseWeb(@P("Web page URL") String url) {
         try {
+            // 确保沙箱已创建（首次调用时触发）
+            ensureSandboxCreated();
+            
             // 标准化URL格式
             url = normalizeUrl(url);
             log.info("访问网页: {}", url);
@@ -201,6 +217,38 @@ public class BrowserTool {
         }
         
         return result;
+    }
+    
+    /**
+     * 确保当前会话的沙箱已创建
+     * 从 MDC 中获取 sessionId，如果沙箱不存在则创建
+     */
+    private void ensureSandboxCreated() {
+        String sessionId = MDC.get("sessionId");
+        
+        if (sessionId == null || sessionId.isEmpty()) {
+            log.warn("MDC 中未找到 sessionId，跳过沙箱创建");
+            return;
+        }
+        
+        try {
+            // 检查是否已存在沙箱
+            SessionSandboxInfo sandboxInfo = sessionSandboxManager.getSandboxInfo(sessionId)
+                .orElse(null);
+            
+            if (sandboxInfo == null || !sandboxInfo.isAvailable()) {
+                // 不存在或不可用，创建新沙箱
+                log.info(TO_FRONTEND, "🖥️ 正在为您启动可视化浏览器工作台...");
+                sandboxInfo = sessionSandboxManager.getOrCreateSandbox(sessionId);
+                log.info(TO_FRONTEND, "✅ 浏览器工作台已就绪，您可以在右侧面板查看实时操作");
+                log.debug("沙箱已创建: sessionId={}, vncUrl={}", sessionId, sandboxInfo.getVncUrl());
+            } else {
+                log.debug("复用现有沙箱: sessionId={}", sessionId);
+            }
+        } catch (Exception e) {
+            log.error("创建沙箱时出错: {}", e.getMessage(), e);
+            // 不抛出异常，允许工具继续执行（降级为无沙箱模式）
+        }
     }
     
     /**
