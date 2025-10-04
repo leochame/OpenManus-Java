@@ -39,10 +39,12 @@ OpenManusJava 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考�
 - **网络访问能力**: 智能检索信息
 
 #### 🎨 用户界面
-- **现代化Web界面**: 响应式设计，简洁易用
-- **模式选择器**: 可视化选择思考模式
-- **实时思考指示**: 直观展示处理进度
-- **调试面板**: 快速排查问题
+- **现代化三栏工作台**:
+  - **左**: 智能对话台，用于核心人机交互。
+  - **中**: 多功能工具面板，展示结构化搜索结果、工具输出和文件。
+  - **右**: 浏览器工作区，具备多标签页、地址栏导航和双模式（网页/VNC）支持。
+- **实时思考过程**: 可视化展示 AI 的思考步骤和日志。
+- **响应式设计**: 适配桌面、平板和移动设备。
 
 ## 🏗️ 架构设计
 
@@ -53,16 +55,17 @@ graph TD
     User[用户] --> UI[Web界面]
     UI --> Controller[AgentController]
     
-    Controller --> AM{自动模式选择}
-    AM -->|简单任务| FW[FastThinkWorkflow<br/>快速响应]
-    AM -->|复杂任务| TDR[ThinkDoReflectWorkflow<br/>深度思考]
+    Controller --> Service[AgentService]
     
-    FW --> Result1[直接结果]
+    subgraph "工作流"
+        Service -->|复杂任务| TDR[ThinkDoReflectWorkflow<br/>深度思考]
+        Service -->|简单任务| FT[FastThinkWorkflow<br/>快速响应]
+    end
     
     TDR --> TA[ThinkingAgent<br/>分析规划]
     TA --> EA[ExecutionAgent<br/>执行任务]
     EA --> RA[ReflectionAgent<br/>结果评估]
-    RA -->|任务完成| Result2[最终结果]
+    RA -->|任务完成| FinalResult[最终结果]
     RA -->|需要继续| TA
     
     subgraph "工具层"
@@ -75,8 +78,8 @@ graph TD
     EA --> FileTool
     EA --> SearchTool
     
-    Result1 --> User
-    Result2 --> User
+    FT --> FinalResult
+    FinalResult --> WebSocket --> UI
 ```
 
 ### 技术栈
@@ -84,8 +87,9 @@ graph TD
 | **组件** | **技术选型** | **用途** |
 |----------|-------------|---------|
 | **后端框架** | Spring Boot 3.2.0 | 应用核心框架 |
-| **AI集成** | LangChain4j 1.1.0 | LLM对接与工具集成 |
-| **前端** | Vue.js 3 + Element Plus | 用户界面 |
+| **AI集成** | LangChain4j 1.1.0 | LLM对接与多智能体协作 |
+| **前端** | Vue.js 3 + Element Plus | 现代化、响应式用户界面 |
+| **实时通信** | WebSocket + STOMP | 前后端实时消息与日志流 |
 | **API** | RESTful API | 服务接口 |
 | **文档** | Markdown | 项目文档 |
 
@@ -100,56 +104,43 @@ graph TD
 ### 安装步骤
 
 1. **克隆项目**
-```bash
-git clone https://github.com/OpenManus/OpenManus-Java.git
-cd OpenManus-Java
-```
+   ```bash
+   git clone https://github.com/OpenManus/OpenManus-Java.git
+   cd OpenManus-Java
+   ```
 
 2. **配置环境**
-创建`application.yml`文件并配置LLM服务:
-```yaml
-openmanus:
-  llm:
-    provider: dashscope  # 阿里云百炼
-    api-key: ${YOUR_API_KEY}
-    model-name: qwen-max  # 或其他支持的模型
-```
+   将 `src/main/resources/application-example.yml` 复制为 `src/main/resources/application.yaml`，并填入你的 LLM API Key:
+   ```yaml
+   openmanus:
+     llm:
+       default-llm:
+         # 填入你的 API Key
+         api-key: "sk-..."
+   ```
 
 3. **启动应用**
-```bash
-./mvnw spring-boot:run
-```
+   ```bash
+   ./mvnw spring-boot:run
+   ```
 
 4. **访问服务**
-浏览器访问: http://localhost:8089
+   浏览器访问: http://localhost:8080
 
 ## 📊 使用方式
 
-### 思考模式选择
+### 统一 API 入口
 
-- **快思考模式**: 直接响应，适合简单查询和任务
-- **慢思考模式**: 深度思考，适合复杂问题解决和规划
-- **自动模式**: 系统根据任务复杂度自动选择最佳模式
-
-### API使用
+所有交互都通过统一的流式 API `think-do-reflect-stream` 进行，该 API 会自动处理并返回实时进度。
 
 ```bash
-# 快思考模式
-curl -X POST http://localhost:8089/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "今天的天气如何？"}'
-
-# 慢思考模式  
-curl -X POST http://localhost:8089/api/agent/think-do-reflect \
+# 示例请求
+curl -X POST http://localhost:8080/api/agent/think-do-reflect-stream \
   -H "Content-Type: application/json" \
   -d '{"input": "分析一下春节期间旅游行业的发展趋势"}'
-  
-# 自动模式
-curl -X POST http://localhost:8089/api/agent/auto \
-  -H "Content-Type: application/json" \
-  -d '{"input": "帮我写一个Java函数计算斐波那契数列"}'
 ```
 
+---
 
 ## 📬 联系我
 

@@ -39,10 +39,12 @@ OpenManusJava is an intelligent thinking system developed based on Spring Boot a
 - **Web Access**: Intelligently retrieves information.
 
 #### 🎨 User Interface
-- **Modern Web Interface**: Responsive design, clean and easy to use.
-- **Mode Selector**: Visually select the thinking mode.
-- **Real-time Thinking Indicator**: Intuitively displays the processing progress.
-- **Debug Panel**: Quickly troubleshoot issues.
+- **Modern 3-Column Workspace**:
+  - **Left**: An intelligent chat panel for core human-computer interaction.
+  - **Middle**: A versatile tool panel displaying structured search results, tool outputs, and files.
+  - **Right**: A browser workspace with multi-tab support, address bar navigation, and dual-mode (Web/VNC) capabilities.
+- **Real-time Thinking Process**: Visualizes the AI's thinking steps and logs.
+- **Responsive Design**: Adapts to desktop, tablet, and mobile devices.
 
 ## 🏗️ Architecture
 
@@ -53,16 +55,17 @@ graph TD
     User --> UI[Web Interface]
     UI --> Controller[AgentController]
     
-    Controller --> AM{Automatic Mode Selection}
-    AM -->|Simple Task| FW[FastThinkWorkflow<br/>Quick Response]
-    AM -->|Complex Task| TDR[ThinkDoReflectWorkflow<br/>Deep Thinking]
+    Controller --> Service[AgentService]
     
-    FW --> Result1[Direct Result]
+    subgraph "Workflow"
+        Service -->|Complex Task| TDR[ThinkDoReflectWorkflow<br/>Deep Thinking]
+        Service -->|Simple Task| FT[FastThinkWorkflow<br/>Quick Response]
+    end
     
     TDR --> TA[ThinkingAgent<br/>Analyze & Plan]
     TA --> EA[ExecutionAgent<br/>Execute Task]
     EA --> RA[ReflectionAgent<br/>Evaluate Result]
-    RA -->|Task Complete| Result2[Final Result]
+    RA -->|Task Complete| FinalResult[Final Result]
     RA -->|Needs More Work| TA
     
     subgraph "Tool Layer"
@@ -75,8 +78,8 @@ graph TD
     EA --> FileTool
     EA --> SearchTool
     
-    Result1 --> User
-    Result2 --> User
+    FT --> FinalResult
+    FinalResult --> WebSocket --> UI
 ```
 
 ### Technology Stack
@@ -84,8 +87,9 @@ graph TD
 | **Component** | **Technology** | **Purpose** |
 |----------|-------------|---------|
 | **Backend Framework** | Spring Boot 3.2.0 | Core application framework |
-| **AI Integration** | LangChain4j 1.1.0 | LLM integration and tool binding |
-| **Frontend** | Vue.js 3 + Element Plus | User interface |
+| **AI Integration** | LangChain4j 1.1.0 | LLM integration and multi-agent collaboration |
+| **Frontend** | Vue.js 3 + Element Plus | Modern, responsive user interface |
+| **Real-time Comms** | WebSocket + STOMP | Real-time messaging and log streaming |
 | **API** | RESTful API | Service interface |
 | **Documentation** | Markdown | Project documentation |
 
@@ -100,56 +104,41 @@ graph TD
 ### Installation
 
 1. **Clone the project**
-```bash
-git clone https://github.com/OpenManus/OpenManus-Java.git
-cd OpenManus-Java
-```
+   ```bash
+   git clone https://github.com/OpenManus/OpenManus-Java.git
+   cd OpenManus-Java
+   ```
 
 2. **Configure the environment**
-Create an `application.yml` file and configure the LLM service:
-```yaml
-openmanus:
-  llm:
-    provider: dashscope  # Alibaba Cloud Bailian
-    api-key: ${YOUR_API_KEY}
-    model-name: qwen-max  # or other supported models
-```
+   Copy `src/main/resources/application-example.yml` to `src/main/resources/application.yaml` and fill in your LLM API Key:
+   ```yaml
+   openmanus:
+     llm:
+       default-llm:
+         # Fill in your API Key
+         api-key: "sk-..."
+   ```
 
 3. **Start the application**
-```bash
-./mvnw spring-boot:run
-```
+   ```bash
+   ./mvnw spring-boot:run
+   ```
 
 4. **Access the service**
-Open your browser and go to: http://localhost:8089
+   Open your browser and go to: http://localhost:8080
 
 ## 📊 Usage
 
-### Thinking Mode Selection
+### Unified API Endpoint
 
-- **Fast Thinking Mode**: Direct response, suitable for simple queries and tasks.
-- **Slow Thinking Mode**: Deep thinking, suitable for complex problem solving and planning.
-- **Automatic Mode**: The system automatically selects the best mode based on task complexity.
-
-### API Usage
+All interactions are handled through a unified streaming API, `think-do-reflect-stream`, which automatically processes and returns real-time progress.
 
 ```bash
-# Fast Thinking Mode
-curl -X POST http://localhost:8089/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "What is the weather like today?"}'
-
-# Slow Thinking Mode
-curl -X POST http://localhost:8089/api/agent/think-do-reflect \
+# Example Request
+curl -X POST http://localhost:8080/api/agent/think-do-reflect-stream \
   -H "Content-Type: application/json" \
   -d '{"input": "Analyze the development trend of the tourism industry during the Spring Festival."}'
-  
-# Automatic Mode
-curl -X POST http://localhost:8089/api/agent/auto \
-  -H "Content-Type: application/json" \
-  -d '{"input": "Write a Java function to calculate the Fibonacci sequence."}'
 ```
-
 
 ## 📬 Contact Me
 
