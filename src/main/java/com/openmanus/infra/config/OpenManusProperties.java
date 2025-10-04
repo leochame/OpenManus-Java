@@ -153,7 +153,7 @@ public class OpenManusProperties {
     @Data
     public static class RunflowConfig {
         private boolean enabled = false;
-        private int maxSteps = 20;
-        private int timeout = 300;
+        private int maxSteps = 50;      // 增加到 50 步（原：20 步）
+        private int timeout = 600;      // 增加到 600 秒（原：300 秒）
     }
 }

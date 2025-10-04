@@ -25,7 +25,7 @@ import java.time.Duration;
 @Configuration
 public class LangChain4jConfig {
 
-    private static final int MAX_MEMORY_MESSAGES = 50;
+    private static final int MAX_MEMORY_MESSAGES = 100;  // 增加到 100 条（原：50 条）
     
     private final OpenManusProperties properties;
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenManus - 深度思考系统</title>
+    <title>OpenManus - AI 智能工作台</title>
     
     <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -27,26 +27,79 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
     <style>
+        /* ==================== 设计系统 ==================== */
         :root {
+            /* 主色调 */
             --primary-color: #6366f1;
             --primary-light: #818cf8;
             --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            
+            /* 功能色 */
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
-            --info-color: #64748b;
-            --bg-color: #f8fafc;
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --text-color: #1e293b;
-            --text-secondary: #475569;
-            --border-color: #e2e8f0;
-            --border-radius: 16px;
+            --info-color: #3b82f6;
+            
+            /* 中性色 */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* 背景色 */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-chat: #ffffff;
+            --bg-tool: #fafbfc;
+            --bg-browser: #f5f5f5;
+            
+            /* 文本色 */
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            
+            /* 边框 */
+            --border-color: #e5e7eb;
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            
+            /* 阴影 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            
+            /* 间距 */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+            
+            /* 字体 */
+            --font-sm: 13px;
+            --font-base: 14px;
+            --font-lg: 16px;
+            --font-xl: 18px;
+            --font-2xl: 24px;
+            
+            /* 过渡 */
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
+        /* ==================== 全局样式 ==================== */
         * {
             margin: 0;
             padding: 0;
@@ -55,1404 +108,1149 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
-            overflow-x: hidden;
+            font-size: var(--font-base);
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            overflow: hidden;
             line-height: 1.6;
         }
         
-        /* 背景装饰 */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            right: -50%;
-            width: 120%;
-            height: 120%;
-            background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-            animation: floatBackground 20s ease-in-out infinite;
-        }
-        
-        @keyframes floatBackground {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-20px, -20px) rotate(5deg); }
-        }
-        
+        /* ==================== 主容器布局 ==================== */
         .app-container {
-            width: 100%;
-            max-width: 100%;  /* 移除宽度限制，使用全屏 */
-            margin: 0;
-            padding: 32px;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
-        /* 头部样式 */
-        .header {
+        /* ==================== 顶部导航栏 ==================== */
+        .top-nav {
+            height: 60px;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
-            padding: 24px 32px;
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
+            justify-content: space-between;
+            padding: 0 var(--space-6);
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-6);
         }
         
         .logo {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: var(--space-3);
+            font-weight: 700;
+            font-size: var(--font-xl);
+            color: var(--primary-color);
+            cursor: pointer;
+            user-select: none;
         }
         
         .logo-icon {
-            font-size: 48px;
-            filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
+            font-size: 32px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .nav-tab {
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: var(--font-base);
+            color: var(--text-secondary);
+            user-select: none;
+        }
+        
+        .nav-tab:hover {
+            background: var(--gray-100);
+            color: var(--text-primary);
+        }
+        
+        .nav-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        /* ==================== 主工作区三栏布局 ==================== */
+        .workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* 左侧：对话台 */
+        .chat-panel {
+            width: 380px;
+            min-width: 300px;
+            max-width: 600px;
+            background: var(--bg-chat);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+        
+        /* 中间：工具面板 */
+        .tool-panel {
+            width: 340px;
+            min-width: 280px;
+            max-width: 500px;
+            background: var(--bg-tool);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+        
+        .tool-panel.collapsed {
+            width: 0;
+            min-width: 0;
+            overflow: hidden;
+        }
+        
+        /* 右侧：浏览器工作区 */
+        .browser-panel {
+            flex: 1;
+            min-width: 400px;
+            background: var(--bg-browser);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 可拖拽分隔条 */
+        .resize-handle {
+            width: 4px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .resize-handle:hover {
+            background: var(--primary-color);
+        }
+        
+        .resize-handle:active {
+            background: var(--primary-dark);
+        }
+        
+        /* ==================== 面板头部 ==================== */
+        .panel-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-4);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+        
+        .panel-title {
+            font-weight: 600;
+            font-size: var(--font-lg);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .panel-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        /* ==================== 对话区域 ==================== */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-4);
+            background: linear-gradient(to bottom, var(--gray-50) 0%, white 100%);
+        }
+        
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+        
+        /* 欢迎界面 */
+        .welcome-screen {
+            text-align: center;
+            padding: var(--space-10) var(--space-4);
+            color: var(--text-secondary);
+        }
+        
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: var(--space-6);
             animation: pulse 2s ease-in-out infinite;
         }
         
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
         
-        .logo-content {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .logo-text {
-            font-size: 32px;
+        .welcome-title {
+            font-size: var(--font-2xl);
             font-weight: 700;
-            background: var(--bg-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
         }
         
-        .logo-subtitle {
-            font-size: 14px;
+        .welcome-subtitle {
+            font-size: var(--font-lg);
             color: var(--text-secondary);
-            font-weight: 500;
         }
         
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        /* 主要内容区域 */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            overflow: hidden;
-            min-height: 0;  /* 允许flex子元素正确收缩 */
-        }
-        
-        /* 聊天容器 */
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-lg);
-            flex: 1;
-            overflow: hidden;
-            min-height: 0;  /* 移除固定高度，让其自适应 */
-            height: 100%;
-        }
-        
-        /* 消息容器 */
-        .messages-container {
-            flex: 1;
-            padding: 32px;
-            overflow-y: auto;
-            background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
-        }
-        
-        .messages-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .messages-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        
-        .messages-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        
-        .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        /* 消息样式 */
+        /* 消息气泡 */
         .message {
-            margin-bottom: 32px;
-            display: flex;
-            flex-direction: column;
-            animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: var(--space-6);
+            animation: fadeIn 0.3s ease;
         }
         
-        @keyframes messageSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .message-header {
             display: flex;
             align-items: center;
-            margin-bottom: 16px;
-            gap: 12px;
+            gap: var(--space-2);
+            margin-bottom: var(--space-2);
         }
         
         .message-avatar {
-            width: 48px;
-            height: 48px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            box-shadow: var(--shadow-md);
-            transition: transform 0.3s;
-        }
-        
-        .message-avatar:hover {
-            transform: scale(1.1);
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: var(--shadow);
         }
         
         .user-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .assistant-avatar {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            animation: rotate 3s linear infinite;
-        }
-        
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            background: linear-gradient(135deg, #667eea, #764ba2);
         }
         
         .message-role {
             font-weight: 600;
-            font-size: 16px;
-            color: var(--text-color);
+            font-size: var(--font-sm);
+            color: var(--text-primary);
         }
         
-        .thinking-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            color: white;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
-        }
-        
-        .message-content {
-            padding: 24px 28px;
-            border-radius: 20px;
-            max-width: 88%;
-            position: relative;
-            transition: all 0.3s;
-        }
-        
-        .user-message .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            align-self: flex-end;
-            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        .message-time {
+            font-size: var(--font-sm);
+            color: var(--text-tertiary);
             margin-left: auto;
         }
         
-        .user-message .markdown-content {
+        .message-content {
+            padding: var(--space-4);
+            border-radius: var(--border-radius);
+            background: white;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .user-message .message-content {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+        }
+        
+        /* 输入区域 */
+        .input-area {
+            border-top: 1px solid var(--border-color);
+            padding: var(--space-4);
+            background: var(--bg-primary);
+        }
+        
+        /* ==================== 工具面板 ==================== */
+        .tool-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+        
+        .tool-tab {
+            flex: 1;
+            padding: var(--space-3) var(--space-2);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            user-select: none;
+        }
+        
+        .tool-tab:hover {
+            background: var(--gray-50);
+            color: var(--text-primary);
+        }
+        
+        .tool-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tool-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-4);
+        }
+        
+        /* 搜索结果项 */
+        .search-results {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+        
+        .search-result-item {
+            padding: var(--space-4);
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .search-result-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: var(--space-2);
+            font-size: var(--font-base);
+        }
+        
+        .result-url {
+            font-size: var(--font-sm);
+            color: var(--success-color);
+            margin-bottom: var(--space-2);
+            word-break: break-all;
+        }
+        
+        .result-snippet {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .result-actions {
+            margin-top: var(--space-3);
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        /* 工具输出 */
+        .tool-output {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
+        }
+        
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .output-type {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: var(--font-sm);
+        }
+        
+        .output-time {
+            font-size: var(--font-sm);
+            color: var(--text-tertiary);
+        }
+        
+        .output-content {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        /* ==================== 浏览器工作区 ==================== */
+        /* 标签栏 */
+        .browser-tabs {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-2) var(--space-3);
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+        
+        .browser-tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .browser-tabs::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 2px;
+        }
+        
+        .browser-tab {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            background: var(--gray-200);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: var(--font-sm);
+            white-space: nowrap;
+            user-select: none;
+            min-width: 120px;
+            max-width: 200px;
+        }
+        
+        .browser-tab:hover {
+            background: var(--gray-300);
+        }
+        
+        .browser-tab.active {
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .tab-icon {
+            font-size: 16px;
+        }
+        
+        .tab-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .tab-close {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            transition: var(--transition);
+        }
+        
+        .tab-close:hover {
+            color: var(--danger-color);
+        }
+        
+        .new-tab-btn {
+            padding: var(--space-2) var(--space-3);
+            background: transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .new-tab-btn:hover {
+            background: var(--gray-200);
+            color: var(--primary-color);
+        }
+        
+        /* 地址栏 */
+        .address-bar {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .nav-controls {
+            display: flex;
+            gap: var(--space-1);
+        }
+        
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            background: transparent;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: var(--gray-100);
+            color: var(--primary-color);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .url-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--gray-50);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 0 var(--space-3);
+            transition: var(--transition);
+        }
+        
+        .url-input-wrapper:focus-within {
+            background: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .url-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: var(--space-2) 0;
+            font-size: var(--font-base);
+            color: var(--text-primary);
+        }
+        
+        .url-icon {
+            color: var(--text-tertiary);
+            margin-right: var(--space-2);
+        }
+        
+        .mode-toggle {
+            display: flex;
+            gap: var(--space-1);
+            background: var(--gray-100);
+            border-radius: var(--border-radius);
+            padding: var(--space-1);
+        }
+        
+        .mode-btn {
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            user-select: none;
+        }
+        
+        .mode-btn:hover {
+            background: var(--gray-200);
+        }
+        
+        .mode-btn.active {
+            background: var(--primary-color);
             color: white;
         }
         
-        .user-message .markdown-content * {
-            color: white !important;
-        }
-        
-        .assistant-message .message-content {
+        /* 内容区域 */
+        .browser-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
             background: white;
-            border: 2px solid #f1f5f9;
-            box-shadow: var(--shadow-md);
         }
         
-        /* 输入容器 */
-        .input-container {
-            padding: 24px 32px;
-            display: flex;
-            gap: 16px;
-            border-top: 2px solid #f1f5f9;
+        .browser-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
             background: white;
-            align-items: flex-end;
         }
         
-        /* 思考指示器 */
-        .thinking-indicator {
+        .browser-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        /* ==================== 思考过程日志 ==================== */
+        .thinking-logs {
+            margin-top: var(--space-4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: white;
+        }
+        
+        .logs-header {
+            padding: var(--space-3) var(--space-4);
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 12px;
-            color: var(--info-color);
-            font-size: 15px;
-            margin-top: 16px;
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-radius: 16px;
-            width: fit-content;
-            box-shadow: var(--shadow);
+            justify-content: space-between;
+            user-select: none;
         }
         
-        .thinking-dots {
-            display: flex;
-            gap: 6px;
+        .logs-header:hover {
+            background: var(--gray-100);
         }
         
-        .thinking-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            animation: bounce 1.4s infinite ease-in-out;
+        .logs-title {
+            font-weight: 600;
+            font-size: var(--font-sm);
+            color: var(--text-primary);
         }
         
-        .thinking-dot:nth-child(2) {
-            animation-delay: 0.2s;
+        .logs-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: var(--space-3);
         }
         
-        .thinking-dot:nth-child(3) {
-            animation-delay: 0.4s;
+        .logs-content.collapsed {
+            display: none;
         }
         
-        @keyframes bounce {
-            0%, 80%, 100% {
-                transform: scale(0.8);
-                opacity: 0.5;
-            }
-            40% {
-                transform: scale(1.3);
-                opacity: 1;
-            }
+        .log-entry {
+            padding: var(--space-2) var(--space-3);
+            margin-bottom: var(--space-2);
+            border-left: 3px solid var(--gray-300);
+            background: var(--gray-50);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            font-size: var(--font-sm);
         }
         
-        /* Markdown 内容样式 */
+        .log-entry.info { border-left-color: var(--info-color); }
+        .log-entry.success { border-left-color: var(--success-color); }
+        .log-entry.warning { border-left-color: var(--warning-color); }
+        .log-entry.error { border-left-color: var(--danger-color); }
+        
+        .log-time {
+            color: var(--text-tertiary);
+            font-size: var(--font-sm);
+        }
+        
+        .log-message {
+            color: var(--text-secondary);
+            margin-top: var(--space-1);
+        }
+        
+        /* ==================== Markdown 样式 ==================== */
         .markdown-content {
             line-height: 1.8;
-            color: var(--text-color);
-            font-size: 15px;
             word-wrap: break-word;
         }
         
         .markdown-content h1,
         .markdown-content h2,
         .markdown-content h3 {
-            margin-top: 24px;
-            margin-bottom: 16px;
+            margin-top: var(--space-4);
+            margin-bottom: var(--space-2);
             font-weight: 600;
             line-height: 1.3;
         }
         
-        .markdown-content h1 { font-size: 2em; }
+        .markdown-content h1 { font-size: 1.8em; }
         .markdown-content h2 { font-size: 1.5em; }
         .markdown-content h3 { font-size: 1.25em; }
         
         .markdown-content p {
-            margin-bottom: 16px;
+            margin-bottom: var(--space-3);
         }
         
         .markdown-content ul,
         .markdown-content ol {
-            margin-bottom: 16px;
-            padding-left: 2em;
+            margin-bottom: var(--space-3);
+            padding-left: 1.5em;
         }
         
         .markdown-content li {
-            margin-bottom: 8px;
-        }
-        
-        .markdown-content blockquote {
-            margin: 16px 0;
-            padding: 16px 24px;
-            background: #f8fafc;
-            border-left: 4px solid var(--primary-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
+            margin-bottom: var(--space-1);
         }
         
         .markdown-content pre {
             background: #282c34;
-            border-radius: 12px;
-            padding: 0;
-            overflow: hidden;
-            margin: 16px 0;
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .markdown-content pre code {
-            display: block;
-            padding: 20px 24px;
+            border-radius: var(--border-radius);
+            padding: var(--space-4);
             overflow-x: auto;
-            background: transparent;
-            color: #abb2bf;
-            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            margin: var(--space-3) 0;
         }
         
         .markdown-content code {
-            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-family: 'Monaco', 'Consolas', monospace;
             font-size: 0.9em;
             background: rgba(99, 102, 241, 0.1);
-            padding: 3px 8px;
-            border-radius: 6px;
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-        
-        /* 流式日志容器 */
-        .stream-container {
-            border: 2px solid #e0e7ff;
-            border-radius: var(--border-radius);
-            padding: 16px;
-            margin-top: 20px;
-            background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
-        }
-        
-        .log-container {
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            background: white;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-        
-        .log-header {
-            padding: 16px 20px;
-            border-bottom: 2px solid #f1f5f9;
-            font-weight: 600;
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: linear-gradient(135deg, #fafafa 0%, #f8fafc 100%);
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            user-select: none;
-        }
-        
-        .log-header:hover {
-            background: linear-gradient(135deg, #f5f5f5 0%, #f0f2f5 100%);
-        }
-        
-        .log-header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .log-header-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        
-        .collapse-icon {
-            transition: transform 0.3s;
-            font-size: 18px;
-            color: var(--primary-color);
-        }
-        
-        .collapse-icon.collapsed {
-            transform: rotate(-90deg);
-        }
-        
-        .log-content {
-            padding: 16px;
-            max-height: 500px;
-            overflow-y: auto;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .log-content.collapsed {
-            max-height: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        
-        .log-content::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .log-content::-webkit-scrollbar-track {
-            background: #f8fafc;
-        }
-        
-        .log-content::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        
-        .log-entry {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-            padding: 10px 12px;
-            border-left: 3px solid #e2e8f0;
-            background: #fafbfc;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        
-        .log-entry:hover {
-            background: #f8fafc;
-            border-left-color: var(--primary-color);
-            transform: translateX(2px);
-        }
-        
-        .log-entry:last-child {
-            margin-bottom: 0;
-        }
-        
-        .log-time {
-            color: #94a3b8;
-            font-size: 12px;
-            white-space: nowrap;
-            font-weight: 500;
-            min-width: 70px;
-        }
-        
-        .log-level {
-            font-weight: 600;
-            font-size: 11px;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            text-align: center;
-            min-width: 55px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .log-info .log-level { 
-            background: #dbeafe;
-            color: #0284c7;
-        }
-        
-        .log-debug .log-level { 
-            background: #f1f5f9;
-            color: #64748b;
-        }
-        
-        .log-warn .log-level { 
-            background: #fef3c7;
-            color: #d97706;
-        }
-        
-        .log-error .log-level { 
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        
-        .log-message {
-            flex: 1;
-            word-break: break-word;
-            font-size: 13px;
-            line-height: 1.5;
-            color: var(--text-color);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            padding-right: 20px;
-        }
-        
-        .log-message::after {
-            content: '⋯';
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            color: var(--primary-color);
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .log-message:hover::after {
-            opacity: 0.7;
-        }
-        
-        .log-message:hover {
             color: var(--primary-color);
         }
         
-        .log-message.expanded {
-            -webkit-line-clamp: unset;
-            display: block;
-        }
-        
-        .log-message.expanded::after {
-            content: '︿';
-            opacity: 0.5;
-        }
-        
-        /* 简化日志中的markdown样式 */
-        .log-message.markdown-content h1,
-        .log-message.markdown-content h2,
-        .log-message.markdown-content h3 {
-            font-size: 1em;
-            margin: 0;
-            font-weight: 600;
-        }
-        
-        .log-message.markdown-content p {
-            margin: 0;
-            display: inline;
-        }
-        
-        .log-message.markdown-content code {
-            font-size: 0.9em;
-            padding: 1px 4px;
-        }
-        
-        .log-message.markdown-content pre {
-            display: none; /* 在折叠状态下隐藏代码块 */
-        }
-        
-        .log-message.expanded pre {
-            display: block;
-            margin: 8px 0;
-            font-size: 0.85em;
-        }
-        
-        .log-empty {
-            text-align: center;
-            color: #94a3b8;
-            padding: 40px;
-            font-style: italic;
-            font-size: 15px;
-        }
-        
-        .log-summary {
-            padding: 12px 16px;
-            background: #f0f9ff;
-            border-radius: 8px;
-            margin: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        
-        .log-summary-left {
-            display: flex;
-            gap: 16px;
-        }
-        
-        .log-summary-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .log-summary-number {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        
-        /* 结果容器 */
-        .result-container {
-            margin-top: 24px;
-            border: 2px solid #e0e7ff;
-            border-radius: var(--border-radius);
-            background: white;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .result-header {
-            padding: 20px 28px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .result-title {
-            font-weight: 600;
-            font-size: 17px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .result-meta {
-            font-size: 14px;
-            display: flex;
-            gap: 20px;
-            opacity: 0.95;
-        }
-        
-        .result-body {
-            padding: 28px;
-            color: var(--text-color);
-            background: #fafbfc;
-        }
-        
-        /* 页脚 */
-        .footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 14px;
-            color: var(--info-color);
-            padding: 24px 0;
-        }
-        
-        /* 调试面板 */
-        .debug-panel {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 400px;
-            max-height: 300px;
-            padding: 20px;
-            background: white;
-            border-radius: var(--border-radius);
-            border: 2px solid var(--border-color);
-            box-shadow: var(--shadow-xl);
-            font-family: monospace;
-            font-size: 12px;
-            display: none;
-            z-index: 1000;
-        }
-        
-        .debug-panel.show {
-            display: block;
-        }
-        
-        .debug-title {
-            font-weight: bold;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-color);
-            font-size: 14px;
-        }
-        
-        .debug-content {
-            max-height: 200px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 11px;
-        }
-        
-        .debug-toggle {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 999;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .app-container {
-                padding: 16px;
-            }
-            
-            .header {
-                padding: 16px 20px;
-                margin-bottom: 24px;
-            }
-            
-            .logo-text {
-                font-size: 24px;
-            }
-            
-            .logo-icon {
-                font-size: 36px;
-            }
-            
-            .message-content {
-                max-width: 95%;
-                padding: 16px 20px;
-            }
-            
-            .messages-container {
-                padding: 20px;
-            }
-            
-            .input-container {
-                padding: 16px 20px;
-            }
-            
-            .debug-panel {
-                width: calc(100% - 48px);
-            }
-        }
-        
-        /* 代码复制按钮 */
-        .code-block-wrapper {
-            position: relative;
-        }
-        
-        .copy-code-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+        .markdown-content pre code {
+            background: transparent;
+            padding: 0;
             color: #abb2bf;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-            opacity: 0;
-            font-weight: 500;
         }
         
-        .code-block-wrapper:hover .copy-code-btn {
-            opacity: 1;
-        }
-        
-        .copy-code-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-        
-        .copy-code-btn.copied {
-            background: var(--success-color);
-            color: white;
-            border-color: var(--success-color);
-        }
-        
-        /* ========== VNC 沙箱浏览器面板样式 ========== */
-        
-        /* 主布局 - 支持左右分栏 */
-        .main-layout {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            min-height: 0;  /* 允许flex收缩 */
-            align-items: stretch;
-        }
-        
-        .chat-panel {
-            flex: 1 1 55%;  /* 占据剩余空间，最小55% */
-            min-width: 500px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* 沙箱面板 */
-        .sandbox-panel {
-            flex: 0 0 45%;  /* 固定45%宽度 */
-            max-width: 800px;  /* 最大宽度限制 */
-            min-width: 500px;
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            animation: slideInRight 0.4s ease-out, pulse-attention 1s ease-in-out 0.4s;
-        }
-        
-        /* 面板出现时的脉冲动画 */
-        @keyframes pulse-attention {
-            0%, 100% {
-                box-shadow: var(--shadow-lg);
-            }
-            50% {
-                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3), var(--shadow-lg);
-            }
-        }
-        
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .sandbox-header {
-            padding: 16px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .sandbox-title {
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .sandbox-body {
-            flex: 1;
-            position: relative;
-            background: #f0f0f0;
-            min-height: 0;  /* 允许flex收缩 */
-            overflow: hidden;
-        }
-        
-        .sandbox-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #282c34;
-        }
-        
-        .sandbox-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-        
-        /* 响应式布局 */
+        /* ==================== 响应式设计 ==================== */
         @media (max-width: 1400px) {
-            .main-layout {
+            .chat-panel {
+                width: 320px;
+            }
+            
+            .tool-panel {
+                width: 300px;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .workspace {
                 flex-direction: column;
-                gap: 16px;
             }
             
             .chat-panel {
-                flex: 1 1 auto;
-                min-width: 0;
                 width: 100%;
+                max-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                flex: 0 0 40%;
             }
             
-            .sandbox-panel {
-                flex: 0 0 auto;
+            .tool-panel {
                 width: 100%;
-                height: 500px;
-                min-width: 0;
                 max-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                flex: 0 0 30%;
+            }
+            
+            .browser-panel {
+                min-width: 0;
+                flex: 1;
+            }
+            
+            .resize-handle {
+                display: none;
             }
         }
         
-        @media (max-width: 768px) {
-            .app-container {
-                padding: 16px;
-            }
-            
-            .sandbox-panel {
-                height: 400px;
-            }
+        /* ==================== 工具类 ==================== */
+        .hidden {
+            display: none !important;
+        }
+        
+        .loading-spinner {
+            border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: var(--space-10) var(--space-4);
+            color: var(--text-tertiary);
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+        
+        .empty-text {
+            font-size: var(--font-base);
         }
     </style>
-
 </head>
 <body>
     <div id="app">
         <div class="app-container">
-            <!-- 页面头部 -->
-            <div class="header">
-                <div class="logo">
-                    <div class="logo-icon">🧠</div>
-                    <div class="logo-content">
-                        <div class="logo-text">OpenManus</div>
-                        <div class="logo-subtitle">深度思考·智能对话</div>
+            <!-- 顶部导航栏 -->
+            <div class="top-nav">
+                <div class="nav-left">
+                    <div class="logo">
+                        <span class="logo-icon">🧠</span>
+                        <span>OpenManus</span>
+                    </div>
+                    <div class="nav-tabs">
+                        <div class="nav-tab active">工作台</div>
+                        <div class="nav-tab">历史</div>
+                        <div class="nav-tab">设置</div>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <el-button type="primary" @click="startNewConversation" size="large">
-                        <el-icon style="margin-right: 6px;"><Plus /></el-icon>
+                <div class="nav-right">
+                    <el-button type="primary" size="default" @click="startNewConversation">
+                        <el-icon><Plus /></el-icon>
                         新对话
                     </el-button>
                 </div>
             </div>
             
-            <!-- 主要内容 -->
-            <div class="main-content">
-                <div class="main-layout">
-                    <!-- 左侧：聊天面板 -->
-                    <div class="chat-panel">
-                        <div class="chat-container">
-                            <div class="messages-container" ref="messagesContainer">
-                        <!-- 欢迎消息 -->
-                        <div v-if="messages.length === 0" style="text-align: center; padding: 80px 20px;">
-                            <div style="font-size: 64px; margin-bottom: 24px;">🤔</div>
-                            <h2 style="color: var(--text-color); margin-bottom: 12px; font-size: 28px;">开始深度思考</h2>
-                            <p style="color: var(--text-secondary); font-size: 16px;">输入您的问题，我将进行深度分析、规划、执行和反思</p>
+            <!-- 主工作区 - 三栏布局 -->
+            <div class="workspace">
+                <!-- 左侧：对话台 -->
+                <div class="chat-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <el-icon><ChatDotRound /></el-icon>
+                            对话
+                        </div>
+                    </div>
+                    
+                    <div class="messages-container" ref="messagesContainer">
+                        <!-- 欢迎界面 -->
+                        <div v-if="messages.length === 0" class="welcome-screen">
+                            <div class="welcome-icon">🤖</div>
+                            <div class="welcome-title">OpenManus AI</div>
+                            <div class="welcome-subtitle">智能工作台，让AI成为你的得力助手</div>
                         </div>
                         
                         <!-- 消息列表 -->
-                        <div 
-                            v-for="(message, index) in messages" 
-                            :key="index" 
-                            :class="['message', message.role === 'user' ? 'user-message' : 'assistant-message']"
-                        >
-                            <!-- 消息头部 -->
+                        <div v-for="(message, index) in messages" :key="index" :class="['message', message.role + '-message']">
                             <div class="message-header">
-                                <div :class="['message-avatar', message.role === 'user' ? 'user-avatar' : 'assistant-avatar']">
+                                <div :class="['message-avatar', message.role === 'user' ? 'user-avatar' : '']">
                                     {{ message.role === 'user' ? '👤' : '🤖' }}
                                 </div>
-                                <div class="message-role">
-                                    {{ message.role === 'user' ? '用户' : 'OpenManus' }}
-                                    <span v-if="message.role === 'assistant'" class="thinking-badge">
-                                        🔍 深度思考中
-                                    </span>
-                                </div>
+                                <span class="message-role">{{ message.role === 'user' ? '我' : 'OpenManus' }}</span>
+                                <span class="message-time">{{ message.time }}</span>
                             </div>
-                            
-                            <!-- 消息内容 -->
                             <div class="message-content">
-                                <!-- 只在没有完整结果时显示内容，避免重复显示 -->
-                                <div v-if="!(message.role === 'assistant' && message.isComplete && message.resultData)" 
-                                     class="markdown-content" 
-                                     v-html="renderMarkdown(message.content)"></div>
+                                <div class="markdown-content" v-html="renderMarkdown(message.content)"></div>
                                 
-                                <!-- 最终结果展示 -->
-                                <div v-if="message.role === 'assistant' && message.isComplete && message.resultData" 
-                                     class="result-container">
-                                    <div class="result-header">
-                                        <div class="result-title">
-                                            <span>✨</span>
-                                            <span>执行结果</span>
-                                        </div>
-                                        <div class="result-meta">
-                                            <span>⏱ {{ formatDuration(message.resultData.executionTime) }}</span>
-                                            <span>
-                                                <el-tag size="small" :type="message.resultData.status === 'SUCCESS' ? 'success' : 'danger'">
-                                                    {{ message.resultData.status }}
-                                                </el-tag>
-                                            </span>
-                                        </div>
+                                <!-- 思考过程日志 -->
+                                <div v-if="message.logs && message.logs.length > 0" class="thinking-logs">
+                                    <div class="logs-header" @click="message.logsCollapsed = !message.logsCollapsed">
+                                        <span class="logs-title">🧠 思考过程 ({{ message.logs.length }})</span>
+                                        <el-icon>
+                                            <CaretRight v-if="message.logsCollapsed" />
+                                            <CaretBottom v-else />
+                                        </el-icon>
                                     </div>
-                                    <div class="result-body markdown-content" v-html="renderMarkdown(message.resultData.result)"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- 流式日志 -->
-                            <div v-if="message.role === 'assistant' && message.streamingData" class="stream-container">
-                                <div class="log-container">
-                                    <div class="log-header" @click="toggleLogCollapse(message.id)">
-                                        <div class="log-header-left">
-                                            <span>🧠</span>
-                                            <span>思考过程 ({{ message.streamingData.logs.length }} 步)</span>
-                                        </div>
-                                        <div class="log-header-right">
-                                            <span v-if="message.isCollapsed">点击展开</span>
-                                            <span v-else>点击收起</span>
-                                            <el-icon :class="['collapse-icon', message.isCollapsed ? 'collapsed' : '']">
-                                                <CaretRight />
-                                            </el-icon>
-                                        </div>
-                                    </div>
-                                    <div class="log-content" :class="{ collapsed: message.isCollapsed }">
-                                        <div v-for="(log, logIndex) in message.streamingData.logs" :key="logIndex" 
-                                             class="log-entry" :class="`log-${log.level.toLowerCase()}`">
-                                            <span class="log-time">{{ log.timestamp }}</span>
-                                            <span class="log-level">{{ log.level }}</span>
-                                            <div 
-                                                class="log-message markdown-content" 
-                                                :class="{ expanded: log.expanded }"
-                                                @click.stop="toggleLogExpand(log)"
-                                                v-html="renderMarkdown(log.message)"
-                                            ></div>
-                                        </div>
-                                        <div v-if="message.streamingData.logs.length === 0" class="log-empty">
-                                            等待思考过程...
+                                    <div class="logs-content" :class="{ collapsed: message.logsCollapsed }">
+                                        <div v-for="(log, logIndex) in message.logs" :key="logIndex" 
+                                             :class="['log-entry', log.level.toLowerCase()]">
+                                            <div class="log-time">{{ log.timestamp }}</div>
+                                            <div class="log-message">{{ log.message }}</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                
-                        <!-- 思考指示器 -->
-                        <div v-if="loading" class="thinking-indicator">
-                            <div class="thinking-dots">
-                                <div class="thinking-dot"></div>
-                                <div class="thinking-dot"></div>
-                                <div class="thinking-dot"></div>
+                        
+                        <!-- 加载指示器 -->
+                        <div v-if="loading" class="message">
+                            <div class="message-header">
+                                <div class="message-avatar">🤖</div>
+                                <span class="message-role">OpenManus</span>
                             </div>
-                            <div>🧠 正在深度思考中...</div>
+                            <div class="message-content">
+                                <div class="loading-spinner"></div>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- 输入区域 -->
-                    <div class="input-container">
+                    <div class="input-area">
                         <el-input
                             v-model="inputMessage"
-                            placeholder="输入您的问题，我将进行深度思考..."
-                            :disabled="loading"
-                            @keyup.enter.prevent="() => sendMessage()"
                             type="textarea"
-                            :autosize="{ minRows: 2, maxRows: 6 }"
-                            size="large"
+                            :rows="3"
+                            placeholder="输入消息，Ctrl+Enter 发送..."
+                            :disabled="loading"
+                            @keydown.ctrl.enter="sendMessage"
                         ></el-input>
-                        <el-button 
-                            type="primary" 
-                            :loading="loading" 
-                            @click="sendMessage"
-                            size="large"
-                        >
-                            <span v-if="!loading">发送</span>
-                            <span v-else>思考中</span>
-                        </el-button>
+                        <div style="margin-top: var(--space-2); display: flex; justify-content: flex-end; gap: var(--space-2);">
+                            <el-button @click="inputMessage = ''" :disabled="loading">清空</el-button>
+                            <el-button type="primary" @click="sendMessage" :loading="loading">
+                                发送
+                            </el-button>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- 分隔条 -->
+                <div class="resize-handle" data-panel="chat"></div>
+                
+                <!-- 中间：工具面板 -->
+                <div class="tool-panel" :class="{ collapsed: !showToolPanel }">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <el-icon><Tools /></el-icon>
+                            工具面板
+                        </div>
+                        <div class="panel-actions">
+                            <el-button size="small" text @click="showToolPanel = false">
+                                <el-icon><Close /></el-icon>
+                            </el-button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-tabs">
+                        <div :class="['tool-tab', activeToolTab === 'search' ? 'active' : '']" 
+                             @click="activeToolTab = 'search'">
+                            🔍 搜索
+                        </div>
+                        <div :class="['tool-tab', activeToolTab === 'output' ? 'active' : '']" 
+                             @click="activeToolTab = 'output'">
+                            📄 输出
+                        </div>
+                        <div :class="['tool-tab', activeToolTab === 'files' ? 'active' : '']" 
+                             @click="activeToolTab = 'files'">
+                            📁 文件
+                        </div>
+                    </div>
+                    
+                    <div class="tool-content">
+                        <!-- 搜索结果 -->
+                        <div v-if="activeToolTab === 'search'">
+                            <div v-if="searchResults.length === 0" class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <div class="empty-text">暂无搜索结果</div>
+                            </div>
+                            <div v-else class="search-results">
+                                <div v-for="(result, index) in searchResults" :key="index" 
+                                     class="search-result-item"
+                                     @click="openInBrowser(result.url)">
+                                    <div class="result-title">{{ result.title }}</div>
+                                    <div class="result-url">{{ result.url }}</div>
+                                    <div class="result-snippet">{{ result.snippet }}</div>
+                                    <div class="result-actions">
+                                        <el-button size="small" type="primary" @click.stop="openInBrowser(result.url)">
+                                            查看详情
+                                        </el-button>
+                                        <el-button size="small" @click.stop="summarizeResult(result)">
+                                            AI总结
+                                        </el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 工具输出 -->
+                        <div v-if="activeToolTab === 'output'">
+                            <div v-if="toolOutputs.length === 0" class="empty-state">
+                                <div class="empty-icon">📄</div>
+                                <div class="empty-text">暂无工具输出</div>
+                            </div>
+                            <div v-else>
+                                <div v-for="(output, index) in toolOutputs" :key="index" class="tool-output">
+                                    <div class="output-header">
+                                        <span class="output-type">{{ output.type }}</span>
+                                        <span class="output-time">{{ output.time }}</span>
+                                    </div>
+                                    <div class="output-content markdown-content" v-html="renderMarkdown(output.content)"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 文件浏览 -->
+                        <div v-if="activeToolTab === 'files'">
+                            <div class="empty-state">
+                                <div class="empty-icon">📁</div>
+                                <div class="empty-text">文件浏览功能开发中...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分隔条 -->
+                <div class="resize-handle" data-panel="tool" v-if="showToolPanel"></div>
+                
+                <!-- 右侧：浏览器工作区 -->
+                <div class="browser-panel">
+                    <!-- 标签栏 -->
+                    <div class="browser-tabs">
+                        <div v-for="(tab, index) in browserTabs" :key="tab.id"
+                             :class="['browser-tab', activeBrowserTab === tab.id ? 'active' : '']"
+                             @click="switchBrowserTab(tab.id)">
+                            <span class="tab-icon">{{ tab.icon }}</span>
+                            <span class="tab-title">{{ tab.title }}</span>
+                            <span class="tab-close" @click.stop="closeBrowserTab(tab.id)" v-if="browserTabs.length > 1">✕</span>
+                        </div>
+                        <div class="new-tab-btn" @click="createBrowserTab" title="新建标签页">
+                            <el-icon><Plus /></el-icon>
+                        </div>
+                    </div>
+                    
+                    <!-- 地址栏 -->
+                    <div class="address-bar">
+                        <div class="nav-controls">
+                            <div class="nav-btn" @click="goBack" :disabled="!canGoBack" title="后退">
+                                <el-icon><ArrowLeft /></el-icon>
+                            </div>
+                            <div class="nav-btn" @click="goForward" :disabled="!canGoForward" title="前进">
+                                <el-icon><ArrowRight /></el-icon>
+                            </div>
+                            <div class="nav-btn" @click="refreshPage" title="刷新">
+                                <el-icon><Refresh /></el-icon>
+                            </div>
+                        </div>
+                        
+                        <div class="url-input-wrapper">
+                            <el-icon class="url-icon"><Link /></el-icon>
+                            <input 
+                                class="url-input" 
+                                v-model="currentUrl" 
+                                placeholder="输入网址或搜索..."
+                                @keyup.enter="navigateToUrl"
+                            />
+                        </div>
+                        
+                        <div class="mode-toggle">
+                            <div :class="['mode-btn', browserMode === 'web' ? 'active' : '']" 
+                                 @click="browserMode = 'web'">
+                                网页
+                            </div>
+                            <div :class="['mode-btn', browserMode === 'vnc' ? 'active' : '']" 
+                                 @click="browserMode = 'vnc'"
+                                 v-if="sandboxVncUrl">
+                                VNC
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 右侧：沙箱浏览器面板（双模式）-->
-                    <div class="sandbox-panel" v-if="showSandboxPanel">
-                        <div class="sandbox-header">
-                            <span class="sandbox-title">
-                                <span v-if="sandboxMode === 'web'">
-                                    <span v-if="currentWebUrl && (currentWebUrl.includes('bing.com/search') || currentWebUrl.includes('duckduckgo.com'))">🔍</span>
-                                    <span v-else>🌐</span>
-                                </span>
-                                <span v-else>🖥️</span>
-                                <span v-if="sandboxMode === 'web'">
-                                    <span v-if="currentWebUrl && (currentWebUrl.includes('bing.com/search') || currentWebUrl.includes('duckduckgo.com'))">搜索结果</span>
-                                    <span v-else>网页预览</span>
-                                </span>
-                                <span v-else>VNC 沙箱</span>
-                                <span v-if="currentWebUrl && sandboxMode === 'web'" 
-                                      style="font-size: 12px; font-weight: normal; margin-left: 8px; opacity: 0.8; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    {{ currentWebUrl }}
-                                </span>
-                            </span>
-                            <div style="display: flex; gap: 8px;">
-                                <el-button 
-                                    size="small" 
-                                    @click="window.open(currentWebUrl, '_blank')"
-                                    v-if="sandboxMode === 'web' && currentWebUrl"
-                                    title="在新标签页打开"
-                                >
-                                    <el-icon><Top /></el-icon>
-                                </el-button>
-                                <el-button 
-                                    size="small" 
-                                    type="primary" 
-                                    @click="toggleSandboxMode"
-                                    v-if="sandboxVncUrl"
-                                >
-                                    <span v-if="sandboxMode === 'web'">切换到VNC</span>
-                                    <span v-else>切换到网页</span>
-                                </el-button>
-                                <el-button size="small" type="info" @click="showSandboxPanel = false">
-                                    关闭
-                                </el-button>
+                    <!-- 浏览器内容区 -->
+                    <div class="browser-content">
+                        <!-- 网页模式 -->
+                        <div v-if="browserMode === 'web'" style="width: 100%; height: 100%;">
+                            <iframe 
+                                v-if="currentUrl"
+                                :src="currentUrl" 
+                                class="browser-iframe"
+                                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                            ></iframe>
+                            <div v-else class="empty-state">
+                                <div class="empty-icon">🌐</div>
+                                <div class="empty-text">输入网址开始浏览</div>
                             </div>
                         </div>
-                        <div class="sandbox-body">
-                            <!-- 网页预览模式 -->
-                            <div v-if="sandboxMode === 'web'" style="width: 100%; height: 100%;">
-                                <iframe 
-                                    v-if="currentWebUrl"
-                                    :src="currentWebUrl" 
-                                    class="sandbox-iframe"
-                                    title="Web Preview"
-                                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                                ></iframe>
-                                <div v-else class="sandbox-loading">
-                                    <el-icon :size="50" class="is-loading" style="color: #6366f1;"><Loading /></el-icon>
-                                    <p style="margin-top: 20px; color: #666; font-size: 16px;">等待网页加载...</p>
-                                </div>
-                            </div>
-                            
-                            <!-- VNC 沙箱模式 -->
-                            <div v-else style="width: 100%; height: 100%;">
-                                <iframe 
-                                    v-if="sandboxVncUrl"
-                                    :src="sandboxVncUrl" 
-                                    class="sandbox-iframe"
-                                    title="VNC Sandbox"
-                                    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
-                                ></iframe>
-                                <div v-else class="sandbox-loading">
-                                    <el-icon :size="50" class="is-loading" style="color: #6366f1;"><Loading /></el-icon>
-                                    <p style="margin-top: 20px; color: #666; font-size: 16px;">正在启动 VNC 沙箱...</p>
-                                    <p style="margin-top: 8px; color: #999; font-size: 14px;">首次启动约需 10-15 秒</p>
-                                </div>
+                        
+                        <!-- VNC 模式 -->
+                        <div v-else style="width: 100%; height: 100%;">
+                            <iframe 
+                                v-if="sandboxVncUrl"
+                                :src="sandboxVncUrl" 
+                                class="browser-iframe"
+                                sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
+                            ></iframe>
+                            <div v-else class="browser-loading">
+                                <div class="loading-spinner"></div>
+                                <p style="margin-top: var(--space-4);">VNC 沙箱启动中...</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 页脚 -->
-            <div class="footer">
-                OpenManus © {{ new Date().getFullYear() }} - 深度思考系统 | 让AI像人类一样思考
-            </div>
-
-            <!-- 调试面板 -->
-            <div class="debug-panel" :class="{ show: showDebug }">
-                <div class="debug-title">
-                    <span>🔧 调试信息</span>
-                    <div>
-                        <el-button size="small" @click="checkServerStatus" style="margin-right: 8px;">检查</el-button>
-                        <el-button size="small" @click="retryLastMessage" style="margin-right: 8px;">重试</el-button>
-                        <el-button size="small" @click="clearDebugInfo">清除</el-button>
-                    </div>
-                </div>
-                <div class="debug-content">{{ debugInfo }}</div>
-            </div>
-
-            <!-- 调试开关 -->
-            <div class="debug-toggle">
-                <el-button 
-                    type="info" 
-                    circle
-                    @click="toggleDebug"
-                    :title="showDebug ? '隐藏调试' : '显示调试'"
-                >
-                    <el-icon><Tools /></el-icon>
-                </el-button>
             </div>
         </div>
     </div>
     
-    <!-- Vue.js 应用脚本 -->
+    <!-- Vue 应用脚本 -->
     <script>
-        const { createApp, ref, reactive, nextTick, onMounted, watch } = Vue;
-        const { ElMessage } = ElementPlus;
+        const { createApp, ref, reactive, nextTick, onMounted, computed } = Vue;
+        const { ElMessage, ElNotification } = ElementPlus;
         
         createApp({
             setup() {
+                // ==================== 状态管理 ====================
+                // 对话相关
                 const messages = ref([]);
                 const inputMessage = ref('');
                 const loading = ref(false);
                 const messagesContainer = ref(null);
-                const conversationId = ref(null);
-                const showDebug = ref(false);
-                const debugInfo = ref('');
-                const serverStatus = ref('checking');
-                const lastUserMessage = ref('');
-                let stompClient = null;
-
-                // WebSocket连接状态
-                let wsConnected = false;
-                let wsReconnectAttempts = 0;
-                const MAX_RECONNECT_ATTEMPTS = 3;
-                let wsHeartbeatInterval = null;
                 
-                // ========== VNC 沙箱浏览器相关 ==========
+                // 工具面板
+                const showToolPanel = ref(true);
+                const activeToolTab = ref('search');
+                const searchResults = ref([]);
+                const toolOutputs = ref([]);
+                
+                // 浏览器相关
+                const browserTabs = ref([{
+                    id: 'tab-1',
+                    title: '新标签页',
+                    icon: '🌐',
+                    url: ''
+                }]);
+                const activeBrowserTab = ref('tab-1');
+                const browserMode = ref('web');
+                const currentUrl = ref('');
                 const sandboxVncUrl = ref(null);
-                const showSandboxPanel = ref(false);
-                const currentWebUrl = ref(null);  // 当前访问的网页 URL
-                const sandboxMode = ref('web');    // 'web' 或 'vnc'
-                let sandboxPollInterval = null;
+                const canGoBack = ref(false);
+                const canGoForward = ref(false);
                 
-                // 轮询查询沙箱状态
-                const pollSessionInfo = async (sessionId) => {
-                    try {
-                        const response = await fetch(`/api/agent/session/${sessionId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            
-                            if (data.sandboxVncUrl && data.sandboxAvailable) {
-                                sandboxVncUrl.value = data.sandboxVncUrl;
-                                showSandboxPanel.value = true;
-                                
-                                // 停止轮询
-                                if (sandboxPollInterval) {
-                                    clearInterval(sandboxPollInterval);
-                                    sandboxPollInterval = null;
-                                }
-                                
-                                ElMessage.success('✅ 浏览器工作台已就绪');
-                                addDebugInfo(`✅ 沙箱创建成功: ${data.sandboxVncUrl}`);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('查询会话信息失败:', error);
-                        addDebugInfo(`❌ 查询沙箱失败: ${error.message}`);
-                    }
-                };
+                // WebSocket
+                let stompClient = null;
+                let wsConnected = false;
                 
-                // 启动沙箱轮询
-                const startSandboxPolling = (sessionId) => {
-                    addDebugInfo(`🔄 开始轮询沙箱状态: ${sessionId}`);
-                    
-                    // 立即查询一次
-                    pollSessionInfo(sessionId);
-                    
-                    // 每 3 秒轮询一次
-                    sandboxPollInterval = setInterval(() => {
-                        pollSessionInfo(sessionId);
-                    }, 3000);
-                    
-                    // 最多轮询 20 次（1 分钟），之后停止
-                    setTimeout(() => {
-                        if (sandboxPollInterval) {
-                            clearInterval(sandboxPollInterval);
-                            sandboxPollInterval = null;
-                            addDebugInfo('⏱ 沙箱轮询超时，停止轮询');
-                        }
-                    }, 60000);
-                };
-                
-                // 提取并显示网页 URL（右侧面板）
-                const extractAndShowWebUrl = (message) => {
-                    // 匹配日志中的 URL（支持多种格式）
-                    // 1. "📄 正在访问: https://..."
-                    // 2. "📄 搜索页面: https://..."
-                    // 3. "🔍 正在搜索: xxx" (提取搜索关键词，构建搜索URL)
-                    
-                    // 优先匹配直接的 URL
-                    let urlMatch = message.match(/(?:正在访问|访问网页|搜索页面)[:：]\s*(https?:\/\/[^\s]+)/i);
-                    if (urlMatch && urlMatch[1]) {
-                        const url = urlMatch[1];
-                        currentWebUrl.value = url;
-                        showSandboxPanel.value = true;
-                        sandboxMode.value = 'web';  // 强制使用网页预览模式
-                        
-                        // 判断是搜索还是普通访问
-                        if (message.includes('搜索页面') || message.includes('正在搜索')) {
-                            addDebugInfo(`🔍 检测到搜索，右侧展示: ${url}`);
-                            ElMessage({
-                                message: '🔍 搜索结果已在右侧展示',
-                                type: 'success',
-                                duration: 2000
-                            });
-                        } else {
-                            addDebugInfo(`📄 检测到网页访问，右侧展示: ${url}`);
-                            ElMessage({
-                                message: '📄 网页已在右侧展示',
-                                type: 'success',
-                                duration: 2000
-                            });
-                        }
-                    }
-                    // 如果是搜索关键词（没有直接URL），构建搜索URL
-                    else {
-                        const searchMatch = message.match(/(?:🔍\s*正在搜索|搜索关键词)[:：]\s*(.+)/i);
-                        if (searchMatch && searchMatch[1]) {
-                            const query = searchMatch[1].trim();
-                            // 使用 Bing 搜索（支持 iframe 嵌入）
-                            const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
-                            currentWebUrl.value = searchUrl;
-                            showSandboxPanel.value = true;
-                            sandboxMode.value = 'web';  // 强制使用网页预览模式
-                            addDebugInfo(`🔍 检测到搜索关键词，右侧展示 Bing 搜索: ${query}`);
-                            ElMessage({
-                                message: `🔍 正在右侧展示搜索: ${query}`,
-                                type: 'success',
-                                duration: 3000
-                            });
-                        }
-                    }
-                };
-                
-                // 切换沙箱模式
-                const toggleSandboxMode = () => {
-                    sandboxMode.value = sandboxMode.value === 'web' ? 'vnc' : 'web';
-                    ElMessage.info(sandboxMode.value === 'web' ? '切换到网页预览模式' : '切换到VNC沙箱模式');
-                };
-
-                // WebSocket心跳检测
-                const startHeartbeat = () => {
-                    if (wsHeartbeatInterval) {
-                        clearInterval(wsHeartbeatInterval);
-                    }
-                    
-                    wsHeartbeatInterval = setInterval(() => {
-                        if (stompClient && wsConnected) {
-                            try {
-                                stompClient.send("/app/heartbeat", {}, JSON.stringify({ timestamp: new Date().getTime() }));
-                                addDebugInfo("发送WebSocket心跳...");
-                            } catch (e) {
-                                addDebugInfo(`发送心跳失败: ${e.message}`);
-                                wsConnected = false;
-                            }
-                        }
-                    }, 15000);
-                    
-                    addDebugInfo("启动WebSocket心跳监测");
-                };
-
-                const stopHeartbeat = () => {
-                    if (wsHeartbeatInterval) {
-                        clearInterval(wsHeartbeatInterval);
-                        wsHeartbeatInterval = null;
-                        addDebugInfo("停止WebSocket心跳监测");
-                    }
-                };
-                
-                // 检查服务器状态
-                const checkServerStatus = async () => {
-                    try {
-                        addDebugInfo('检查服务器状态...');
-                        const response = await fetch('/api/agent/think-do-reflect', {
-                            method: 'OPTIONS'
-                        });
-                        
-                        if (response.ok) {
-                            serverStatus.value = 'online';
-                            addDebugInfo('服务器状态: 在线');
-                            ElMessage.success('服务器连接正常');
-                        } else {
-                            serverStatus.value = 'error';
-                            addDebugInfo(`服务器状态检查失败: ${response.status}`);
-                        }
-                    } catch (err) {
-                        serverStatus.value = 'offline';
-                        addDebugInfo(`服务器状态: 离线 (${err.message})`);
-                        ElMessage.error('无法连接到服务器');
-                    }
-                };
-                
-                onMounted(() => {
-                    checkServerStatus();
-                });
-                
-                // 配置marked
+                // ==================== Markdown 渲染 ====================
                 marked.setOptions({
                     breaks: true,
                     gfm: true,
@@ -1463,12 +1261,10 @@
                     smartypants: false
                 });
                 
-                // 渲染Markdown
                 const renderMarkdown = (content) => {
                     if (!content) return '';
                     try {
                         const html = marked.parse(content);
-                        
                         setTimeout(() => {
                             document.querySelectorAll('.markdown-content pre code').forEach((block) => {
                                 if (!block.dataset.highlighted) {
@@ -1476,45 +1272,15 @@
                                     block.dataset.highlighted = 'yes';
                                 }
                             });
-                            
-                            document.querySelectorAll('.markdown-content pre').forEach((pre) => {
-                                if (!pre.parentElement.classList.contains('code-block-wrapper')) {
-                                    const wrapper = document.createElement('div');
-                                    wrapper.className = 'code-block-wrapper';
-                                    pre.parentNode.insertBefore(wrapper, pre);
-                                    wrapper.appendChild(pre);
-                                    
-                                    const copyBtn = document.createElement('button');
-                                    copyBtn.className = 'copy-code-btn';
-                                    copyBtn.textContent = '复制';
-                                    copyBtn.onclick = () => {
-                                        const code = pre.querySelector('code');
-                                        const text = code.textContent;
-                                        navigator.clipboard.writeText(text).then(() => {
-                                            copyBtn.textContent = '✓ 已复制!';
-                                            copyBtn.classList.add('copied');
-                                            setTimeout(() => {
-                                                copyBtn.textContent = '复制';
-                                                copyBtn.classList.remove('copied');
-                                            }, 2000);
-                                        }).catch(err => {
-                                            console.error('复制失败:', err);
-                                            ElMessage.error('复制失败');
-                                        });
-                                    };
-                                    wrapper.appendChild(copyBtn);
-                                }
-                            });
                         }, 100);
-                        
                         return html;
                     } catch (e) {
-                        console.error('Markdown渲染错误:', e);
-                        return '<pre>' + content + '</pre>';
+                        console.error('Markdown 渲染错误:', e);
+                        return content;
                     }
                 };
                 
-                // 滚动到底部
+                // ==================== 工具函数 ====================
                 const scrollToBottom = () => {
                     nextTick(() => {
                         if (messagesContainer.value) {
@@ -1523,150 +1289,96 @@
                     });
                 };
                 
-                // 开始新对话
-                const startNewConversation = () => {
-                    messages.value = [];
-                    conversationId.value = null;
-                    ElMessage.success('已开始新对话');
+                const formatTime = () => {
+                    const now = new Date();
+                    return now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
                 };
                 
-                // 切换调试面板
-                const toggleDebug = () => {
-                    showDebug.value = !showDebug.value;
-                };
-                
-                // 清除调试信息
-                const clearDebugInfo = () => {
-                    debugInfo.value = '';
-                };
-                
-                // 添加调试信息
-                const addDebugInfo = (info) => {
-                    const timestamp = new Date().toLocaleTimeString();
-                    debugInfo.value += `[${timestamp}] ${info}\n`;
-                };
-                
-                // 发送消息
-                const sendMessage = async (retryMessage = null) => {
-                    const messageToSend = (typeof retryMessage === 'string') ? retryMessage : inputMessage.value.trim();
+                // ==================== 对话功能 ====================
+                const sendMessage = async () => {
+                    const messageText = inputMessage.value.trim();
+                    if (!messageText || loading.value) return;
                     
-                    if (!messageToSend || loading.value) return;
-                    
+                    // 添加用户消息
                     messages.value.push({
                         role: 'user',
-                        content: messageToSend
+                        content: messageText,
+                        time: formatTime()
                     });
-                    lastUserMessage.value = messageToSend;
+                    
                     inputMessage.value = '';
-                    
-                    await nextTick();
                     scrollToBottom();
-                    
                     loading.value = true;
                     
-                    // 使用慢思考模式
-                    await executeStreamWorkflow(messageToSend);
-                };
-
-                // 执行流式工作流
-                const executeStreamWorkflow = async (input) => {
-                    const assistantMessage = reactive({
-                        id: Date.now() + Math.random(), // 添加唯一ID
-                        role: 'assistant',
-                        content: '🤔 正在进行深度思考...',
-                        streamingData: { logs: [], events: [] },
-                        isComplete: false,
-                        isCollapsed: false // 初始不折叠，让用户看到思考过程
-                    });
-                    messages.value.push(assistantMessage);
-                    
-                    const stopWatch = watch(
-                        () => assistantMessage.content,
-                        (newContent, oldContent) => {
-                            console.log('消息内容已更新:', {
-                                旧内容长度: oldContent?.length || 0,
-                                新内容长度: newContent?.length || 0
-                            });
-                        }
-                    );
-
                     try {
-                        if (typeof input !== 'string') {
-                            throw new Error(`输入必须是字符串，收到的类型是: ${typeof input}`);
-                        }
-                        
-                        const userInput = input.trim();
-                        addDebugInfo(`发送流式请求: ${userInput}`);
-                        
                         const response = await fetch('/api/agent/think-do-reflect-stream', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ input: userInput })
+                            body: JSON.stringify({ input: messageText })
                         });
-
-                        const responseText = await response.text();
-                        addDebugInfo(`收到响应: ${responseText.substring(0, 100)}...`);
-                            
-                        let data;
-                        try {
-                            data = JSON.parse(responseText);
-                        } catch (parseErr) {
-                            throw new Error(`解析响应失败: ${parseErr.message}`);
-                        }
-
+                        
+                        const data = await response.json();
+                        
                         if (!response.ok || !data.success) {
-                            throw new Error(data.error || data.message || `HTTP ${response.status}`);
+                            throw new Error(data.error || '请求失败');
                         }
-
-                        // ✨ 启动沙箱轮询
+                        
+                        // 启动沙箱轮询
                         if (data.sessionId) {
                             startSandboxPolling(data.sessionId);
                         }
-
-                        connectWebSocket(data.topic, assistantMessage);
-
-                    } catch (err) {
-                        console.error('发起流式工作流时出错:', err);
-                        assistantMessage.content = `发起工作流失败: ${err.message}`;
-                        assistantMessage.isError = true;
+                        
+                        // 连接 WebSocket
+                        connectWebSocket(data.topic);
+                        
+                    } catch (error) {
+                        console.error('发送消息失败:', error);
+                        ElMessage.error('发送消息失败: ' + error.message);
                         loading.value = false;
                     }
                 };
-
-                const connectWebSocket = (topic, assistantMessage) => {
+                
+                const startNewConversation = () => {
+                    messages.value = [];
+                    searchResults.value = [];
+                    toolOutputs.value = [];
+                    ElMessage.success('已开始新对话');
+                };
+                
+                // ==================== WebSocket 连接 ====================
+                const connectWebSocket = (topic) => {
                     const socket = new SockJS('/ws');
                     stompClient = Stomp.over(socket);
                     stompClient.debug = null;
-
-                    const connectHeaders = {
-                        'heart-beat': '10000,10000'
-                    };
                     
-                    wsReconnectAttempts = 0;
-                    addDebugInfo('建立WebSocket连接...');
-
-                    stompClient.connect(connectHeaders, (frame) => {
+                    stompClient.connect({}, () => {
                         wsConnected = true;
-                        wsReconnectAttempts = 0;
-                        addDebugInfo(`WebSocket连接成功`);
-                        startHeartbeat();
+                        
+                        // 创建助手消息对象
+                        const assistantMessage = reactive({
+                            role: 'assistant',
+                            content: '',
+                            time: formatTime(),
+                            logs: [],
+                            logsCollapsed: false
+                        });
+                        messages.value.push(assistantMessage);
                         
                         // 订阅日志
                         stompClient.subscribe(topic + '/logs', (message) => {
                             try {
                                 const log = JSON.parse(message.body);
-                                log.expanded = false; // 默认折叠状态
-                                assistantMessage.streamingData.logs.push(log);
+                                assistantMessage.logs.push(log);
                                 
-                                // 提取网页 URL 并显示
-                                if (log.message) {
-                                    extractAndShowWebUrl(log.message);
-                                }
+                                // 提取搜索结果
+                                extractSearchResults(log.message);
                                 
-                                nextTick(scrollToBottom);
-                                addDebugInfo(`日志: ${log.level}`);
+                                // 提取网页 URL
+                                extractWebUrl(log.message);
+                                
+                                scrollToBottom();
                             } catch (e) {
-                                console.error("解析日志失败:", e);
+                                console.error('解析日志失败:', e);
                             }
                         });
                         
@@ -1674,24 +1386,23 @@
                         stompClient.subscribe(topic, (message) => {
                             try {
                                 const event = JSON.parse(message.body);
-                                assistantMessage.streamingData.events.push(event);
-                                addDebugInfo(`事件: ${event.eventType}`);
-
-                                if (event.eventType === 'WORKFLOW_COMPLETE') {
-                                    addDebugInfo('工作流完成，等待结果...');
+                                
+                                if (event.eventType === 'TOOL_CALL_END') {
+                                    // 工具输出
+                                    if (event.output) {
+                                        toolOutputs.value.unshift({
+                                            type: event.agentName || '工具',
+                                            content: JSON.stringify(event.output, null, 2),
+                                            time: formatTime()
+                                        });
+                                    }
                                 } else if (event.eventType === 'ERROR') {
-                                    assistantMessage.content = `执行出错: ${event.output?.error || '未知错误'}`;
-                                    assistantMessage.isError = true;
+                                    assistantMessage.content = '执行出错: ' + (event.error || '未知错误');
                                     loading.value = false;
-                                    
-                                    setTimeout(() => {
-                                        disconnectWebSocket();
-                                    }, 2000);
+                                    disconnectWebSocket();
                                 }
-
-                                nextTick(scrollToBottom);
                             } catch (e) {
-                                console.error("解析事件失败:", e);
+                                console.error('解析事件失败:', e);
                             }
                         });
                         
@@ -1699,134 +1410,203 @@
                         stompClient.subscribe(topic + '/result', (message) => {
                             try {
                                 const resultData = JSON.parse(message.body);
-                                addDebugInfo(`收到最终结果: ${resultData.status}`);
-                                
-                                const finalResult = resultData.result || '任务已完成';
-                                assistantMessage.content = finalResult;
-                                assistantMessage.isComplete = true;
-                                assistantMessage.resultData = resultData;
-                                assistantMessage.isCollapsed = true; // 结果出来后自动折叠思考流程
+                                assistantMessage.content = resultData.result || '任务完成';
+                                assistantMessage.logsCollapsed = true;
                                 loading.value = false;
                                 
-                                nextTick(() => {
-                                    scrollToBottom();
-                                    setTimeout(scrollToBottom, 300);
-                                });
-                                
-                                setTimeout(() => {
-                                    disconnectWebSocket();
-                                }, 1000);
+                                scrollToBottom();
+                                disconnectWebSocket();
                             } catch (e) {
-                                console.error("解析结果失败:", e);
+                                console.error('解析结果失败:', e);
                             }
                         });
-                        
-                    }, (err) => {
-                        console.error('WebSocket连接失败:', err);
-                        addDebugInfo(`连接失败: ${err.message || '未知错误'}`);
-                        wsConnected = false;
-                        
-                        if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                            wsReconnectAttempts++;
-                            const delay = wsReconnectAttempts * 2000;
-                            addDebugInfo(`将在${delay/1000}秒后重连...`);
-                            
-                            setTimeout(() => {
-                                connectWebSocket(topic, assistantMessage);
-                            }, delay);
-                        } else {
-                            assistantMessage.content = 'WebSocket连接失败，请刷新页面重试';
-                            assistantMessage.isError = true;
-                            loading.value = false;
-                        }
+                    }, (error) => {
+                        console.error('WebSocket 连接失败:', error);
+                        ElMessage.error('连接失败，请刷新页面重试');
+                        loading.value = false;
                     });
                 };
-
+                
                 const disconnectWebSocket = () => {
-                    if (stompClient !== null && wsConnected) {
+                    if (stompClient && wsConnected) {
                         try {
-                            addDebugInfo('断开WebSocket...');
+                            stompClient.disconnect();
                             wsConnected = false;
-                            stopHeartbeat();
-                            
-                            stompClient.disconnect(() => { 
-                                addDebugInfo('WebSocket已断开');
-                                stompClient = null;
-                            });
-                        } catch (e) {
-                            console.error('断开连接出错:', e);
                             stompClient = null;
-                            wsConnected = false;
+                        } catch (e) {
+                            console.error('断开连接失败:', e);
                         }
                     }
                 };
                 
-                // 重试
-                const retryLastMessage = () => {
-                    if (lastUserMessage.value && typeof lastUserMessage.value === 'string') {
-                        if (messages.value.length > 0 && messages.value[messages.value.length - 1].isError) {
-                            messages.value.pop();
-                        }
-                        sendMessage(lastUserMessage.value);
-                    } else {
-                        ElMessage.warning('没有可重试的消息');
+                // ==================== 搜索结果提取 ====================
+                const extractSearchResults = (message) => {
+                    // 这里可以实现更智能的搜索结果提取
+                    // 目前作为占位实现
+                    if (message.includes('搜索结果') || message.includes('🔍')) {
+                        // 提取搜索结果并添加到 searchResults
+                        // 实际实现需要后端返回结构化数据
+                        showToolPanel.value = true;
+                        activeToolTab.value = 'search';
                     }
                 };
-
-                // 时间格式化
-                const formatDuration = (ms) => {
-                    if (!ms) return '未知';
+                
+                const extractWebUrl = (message) => {
+                    const urlMatch = message.match(/(?:正在访问|搜索页面)[:：\s]*(https?:\/\/[^\s\)]+)/i);
+                    if (urlMatch && urlMatch[1]) {
+                        currentUrl.value = urlMatch[1];
+                        ElNotification({
+                            title: '网页加载',
+                            message: '已在右侧浏览器打开',
+                            type: 'success',
+                            duration: 2000,
+                            position: 'bottom-right'
+                        });
+                    }
+                };
+                
+                // ==================== 浏览器功能 ====================
+                const createBrowserTab = () => {
+                    const newTab = {
+                        id: 'tab-' + Date.now(),
+                        title: '新标签页',
+                        icon: '🌐',
+                        url: ''
+                    };
+                    browserTabs.value.push(newTab);
+                    activeBrowserTab.value = newTab.id;
+                };
+                
+                const closeBrowserTab = (tabId) => {
+                    const index = browserTabs.value.findIndex(tab => tab.id === tabId);
+                    if (index > -1) {
+                        browserTabs.value.splice(index, 1);
+                        if (activeBrowserTab.value === tabId && browserTabs.value.length > 0) {
+                            activeBrowserTab.value = browserTabs.value[0].id;
+                        }
+                    }
+                };
+                
+                const switchBrowserTab = (tabId) => {
+                    activeBrowserTab.value = tabId;
+                    const tab = browserTabs.value.find(t => t.id === tabId);
+                    if (tab) {
+                        currentUrl.value = tab.url;
+                    }
+                };
+                
+                const navigateToUrl = () => {
+                    if (!currentUrl.value) return;
                     
-                    if (ms < 1000) {
-                        return ms + '毫秒';
-                    } else if (ms < 60000) {
-                        return (ms / 1000).toFixed(2) + '秒';
-                    } else {
-                        const minutes = Math.floor(ms / 60000);
-                        const seconds = ((ms % 60000) / 1000).toFixed(1);
-                        return minutes + '分' + seconds + '秒';
+                    let url = currentUrl.value.trim();
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        url = 'https://' + url;
                     }
-                };
-
-                                // 折叠/展开日志容器
-                const toggleLogCollapse = (messageId) => {
-                    const message = messages.value.find(msg => msg.id === messageId);
-                    if (message) {
-                        message.isCollapsed = !message.isCollapsed;
+                    
+                    currentUrl.value = url;
+                    
+                    // 更新当前标签页
+                    const currentTab = browserTabs.value.find(tab => tab.id === activeBrowserTab.value);
+                    if (currentTab) {
+                        currentTab.url = url;
+                        currentTab.title = new URL(url).hostname;
                     }
                 };
                 
-                // 展开/收起单条日志
-                const toggleLogExpand = (log) => {
-                    log.expanded = !log.expanded;
+                const openInBrowser = (url) => {
+                    currentUrl.value = url;
+                    navigateToUrl();
                 };
- 
+                
+                const goBack = () => {
+                    // 浏览器后退功能（需要实现历史记录）
+                };
+                
+                const goForward = () => {
+                    // 浏览器前进功能（需要实现历史记录）
+                };
+                
+                const refreshPage = () => {
+                    // 刷新当前页面
+                    const iframe = document.querySelector('.browser-iframe');
+                    if (iframe) {
+                        iframe.src = iframe.src;
+                    }
+                };
+                
+                const summarizeResult = (result) => {
+                    inputMessage.value = `请总结这个网页的内容：${result.url}`;
+                    sendMessage();
+                };
+                
+                // ==================== 沙箱轮询 ====================
+                const startSandboxPolling = async (sessionId) => {
+                    let attempts = 0;
+                    const maxAttempts = 20;
+                    
+                    const poll = async () => {
+                        if (attempts >= maxAttempts) return;
+                        
+                        try {
+                            const response = await fetch(`/api/agent/session/${sessionId}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.sandboxVncUrl && data.sandboxAvailable) {
+                                    sandboxVncUrl.value = data.sandboxVncUrl;
+                                    ElMessage.success('VNC 沙箱已就绪');
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('查询沙箱失败:', error);
+                        }
+                        
+                        attempts++;
+                        setTimeout(poll, 3000);
+                    };
+                    
+                    poll();
+                };
+                
+                // ==================== 初始化 ====================
+                onMounted(() => {
+                    // 初始化代码
+                });
+                
+                // ==================== 返回数据和方法 ====================
                 return {
+                    // 对话
                     messages,
                     inputMessage,
                     loading,
                     messagesContainer,
-                    serverStatus,
-                    lastUserMessage,
-                    renderMarkdown,
                     sendMessage,
-                    retryLastMessage,
                     startNewConversation,
-                    showDebug,
-                    debugInfo,
-                    toggleDebug,
-                    clearDebugInfo,
-                    addDebugInfo,
-                    checkServerStatus,
-                    formatDuration,
-                    toggleLogCollapse,
-                    toggleLogExpand,
-                    // 沙箱浏览器（双模式）
+                    renderMarkdown,
+                    
+                    // 工具面板
+                    showToolPanel,
+                    activeToolTab,
+                    searchResults,
+                    toolOutputs,
+                    summarizeResult,
+                    
+                    // 浏览器
+                    browserTabs,
+                    activeBrowserTab,
+                    browserMode,
+                    currentUrl,
                     sandboxVncUrl,
-                    showSandboxPanel,
-                    currentWebUrl,
-                    sandboxMode,
-                    toggleSandboxMode,
+                    canGoBack,
+                    canGoForward,
+                    createBrowserTab,
+                    closeBrowserTab,
+                    switchBrowserTab,
+                    navigateToUrl,
+                    openInBrowser,
+                    goBack,
+                    goForward,
+                    refreshPage
                 };
             }
         }).use(ElementPlus).mount('#app');
