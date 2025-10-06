@@ -64,6 +64,10 @@ public class ThinkDoReflectWorkflow {
                         *   如果 `reflection_agent` 的反馈包含 `STATUS: INCOMPLETE`，你必须将该反馈视为新的输入，回到第1步（规划阶段），并再次调用 `thinking_agent` 进行重新规划。
                         *   如果 `reflection_agent` 的反馈包含 `STATUS: COMPLETE`，则任务完成。你可以总结最终结果并回应用户。
 
+                    ## 错误处理机制
+                    *   **执行失败**: 如果在“执行阶段”有任何工具调用失败，立即停止执行，并直接进入“反思阶段”。将失败的步骤和错误信息一同提交给 `reflection_agent` 进行分析。
+                    *   **持续失败**: 如果同一个计划在两次尝试后仍然失败，你必须向 `thinking_agent` 指出这是一个“持续性错误”，并要求它提出一个全新的、替代性的计划方案。
+
                     ## 你的专家团队
                     - `thinking_agent`: 首席规划师，负责深度分析需求并制定详细的、分步的执行计划。
                     - `search_agent`: 互联网信息专家，负责执行网络搜索和网页浏览任务。

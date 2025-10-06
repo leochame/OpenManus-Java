@@ -1,0 +1,24 @@
+# -----------------------------------------------------------------------------
+# API Keys for OpenManus Java
+#
+# Copy this file to .env and fill in your actual API keys.
+# This file is used by docker-compose.yml to set environment variables.
+# -----------------------------------------------------------------------------
+
+# DashScope API Key (for LLM)
+# Get your key from: https://help.aliyun.com/zh/dashscope/developer-reference/activate-dashscope-and-create-an-api-key
+OPENMANUS_LLM_DEFAULTLLM_APIKEY=your-dashscope-api-key-here
+
+# Tavily API Key (for Web Search) - Optional
+# Get your key from: https://tavily.com/
+TAVILY_API_KEY=your-tavily-api-key-here
+
+# OpenAI API Key - Optional
+# Although the default LLM is DashScope, some components might use OpenAI.
+# Get your key from: https://platform.openai.com/api-keys
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Google Search API Key and CX - Optional
+# Get your keys from: https://developers.google.com/custom-search/v1/overview
+# OPENMANUS_SEARCH_APIKEY=your-google-search-api-key-here
+# OPENMANUS_SEARCH_SEARCHENGINEID=your-google-search-engine-id-here

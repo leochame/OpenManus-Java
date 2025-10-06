@@ -2,149 +2,147 @@ package com.openmanus.agent.tool;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Reflection tool
- * Using langchain4j @Tool annotation
+ * 反思工具 - 记录和分析任务执行过程
+ * 
+ * 功能：
+ * 1. 记录任务执行历史
+ * 2. 提供反思分析框架
+ * 3. 查询历史记录
+ * 
+ * 采用 Record 模式简化数据对象
  */
 @Component
+@Slf4j
 public class ReflectionTool {
     
-    private static final Logger logger = LoggerFactory.getLogger(ReflectionTool.class);
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final int MAX_RESULT_PREVIEW_LENGTH = 100;
     
-    // Store task execution history for reflection
+    // 任务执行历史记录
     private final Map<String, TaskRecord> taskHistory = new ConcurrentHashMap<>();
     
-    @Tool("Record task execution process for subsequent reflection")
-    public String recordTask(@P("Task ID") String taskId, 
-                           @P("Task description") String taskDescription,
-                           @P("Execution steps") String steps,
-                           @P("Tools used") String toolsUsed,
-                           @P("Execution result") String result) {
+    @Tool("记录任务执行过程，用于后续反思")
+    public String recordTask(@P("任务ID") String taskId, 
+                           @P("任务描述") String taskDescription,
+                           @P("执行步骤") String steps,
+                           @P("使用的工具") String toolsUsed,
+                           @P("执行结果") String result) {
         try {
-            TaskRecord record = new TaskRecord(
-                taskId,
-                taskDescription,
-                steps,
-                toolsUsed,
-                result,
-                LocalDateTime.now()
-            );
+            TaskRecord record = new TaskRecord(taskId, taskDescription, steps, toolsUsed, result, LocalDateTime.now());
             taskHistory.put(taskId, record);
-            logger.info("Record task execution: {}", taskId);
-            return "Task execution record saved, available for subsequent reflection analysis";
+            log.info("记录任务执行: {}", taskId);
+            return "任务执行记录已保存，可进行后续反思分析";
         } catch (Exception e) {
-            logger.error("Failed to record task", e);
-            return "Failed to record task: " + e.getMessage();
+            log.error("记录任务失败", e);
+            return "记录任务失败: " + e.getMessage();
         }
     }
     
-    @Tool("Perform reflection analysis on specified task")
-    public String reflectOnTask(@P("Task ID") String taskId) {
+    @Tool("对指定任务进行反思分析")
+    public String reflectOnTask(@P("任务ID") String taskId) {
         try {
             TaskRecord record = taskHistory.get(taskId);
             if (record == null) {
-                return "Task record not found: " + taskId;
+                return "未找到任务记录: " + taskId;
             }
             
-            String reflection = String.format("""
-                Task Reflection Analysis:
+            String reflection = """
+                📋 任务反思分析
                 
-                Task Information:
+                任务信息：
                 - ID: %s
-                - Description: %s
-                - Execution time: %s
+                - 描述: %s
+                - 执行时间: %s
                 
-                Execution Process:
-                - Steps: %s
-                - Tools used: %s
-                - Result: %s
+                执行过程：
+                - 步骤: %s
+                - 使用工具: %s
+                - 结果: %s
                 
-                Reflection Points:
-                1. Is the reasoning process reasonable?
-                2. Are the tool choices appropriate?
-                3. How is the execution efficiency?
-                4. How is the result quality?
-                5. What are the areas for improvement?
+                反思要点：
+                1. 推理过程是否合理？
+                2. 工具选择是否恰当？
+                3. 执行效率如何？
+                4. 结果质量如何？
+                5. 有哪些改进空间？
                 
-                Please conduct deep reflection based on the above information.
-                """,
-                record.taskId,
-                record.taskDescription,
-                record.executionTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                record.steps,
-                record.toolsUsed,
-                record.result
-            );
+                请基于以上信息进行深度反思。
+                """.formatted(
+                    record.taskId(),
+                    record.taskDescription(),
+                    record.executionTime().format(DATE_FORMATTER),
+                    record.steps(),
+                    record.toolsUsed(),
+                    record.result()
+                );
             
-            logger.info("Generate task reflection: {}", taskId);
+            log.info("生成任务反思: {}", taskId);
             return reflection;
         } catch (Exception e) {
-            logger.error("Failed to reflect on task", e);
-            return "Failed to reflect on task: " + e.getMessage();
+            log.error("任务反思失败", e);
+            return "任务反思失败: " + e.getMessage();
         }
     }
     
-    @Tool("Get all task history records")
+    @Tool("获取所有任务历史记录")
     public String getTaskHistory() {
         try {
             if (taskHistory.isEmpty()) {
-                return "No task history records available";
+                return "暂无任务历史记录";
             }
             
-            StringBuilder sb = new StringBuilder("Task History Records:\n");
+            StringBuilder sb = new StringBuilder("📚 任务历史记录\n\n");
             taskHistory.values().stream()
-                .sorted((a, b) -> b.executionTime.compareTo(a.executionTime))
-                .forEach(record -> {
-                    sb.append(String.format("""
-                        
-                        ID: %s
-                        Description: %s
-                        Time: %s
-                        Result: %s
-                        ---
-                        """,
-                        record.taskId,
-                        record.taskDescription,
-                        record.executionTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                        record.result.length() > 100 ? record.result.substring(0, 100) + "..." : record.result
-                    ));
-                });
+                .sorted((a, b) -> b.executionTime().compareTo(a.executionTime()))
+                .forEach(record -> sb.append(formatHistoryRecord(record)));
             
             return sb.toString();
         } catch (Exception e) {
-            logger.error("Failed to get task history", e);
-            return "Failed to get task history: " + e.getMessage();
+            log.error("获取任务历史失败", e);
+            return "获取任务历史失败: " + e.getMessage();
         }
     }
     
     /**
-     * Task record inner class
+     * 格式化历史记录条目
      */
-    private static class TaskRecord {
-        final String taskId;
-        final String taskDescription;
-        final String steps;
-        final String toolsUsed;
-        final String result;
-        final LocalDateTime executionTime;
+    private String formatHistoryRecord(TaskRecord record) {
+        String resultPreview = record.result().length() > MAX_RESULT_PREVIEW_LENGTH 
+            ? record.result().substring(0, MAX_RESULT_PREVIEW_LENGTH) + "..." 
+            : record.result();
         
-        TaskRecord(String taskId, String taskDescription, String steps, 
-                  String toolsUsed, String result, LocalDateTime executionTime) {
-            this.taskId = taskId;
-            this.taskDescription = taskDescription;
-            this.steps = steps;
-            this.toolsUsed = toolsUsed;
-            this.result = result;
-            this.executionTime = executionTime;
-        }
+        return """
+            ID: %s
+            描述: %s
+            时间: %s
+            结果: %s
+            ---
+            """.formatted(
+                record.taskId(),
+                record.taskDescription(),
+                record.executionTime().format(DATE_FORMATTER),
+                resultPreview
+            );
     }
+    
+    /**
+     * 任务记录 - 使用 Record 简化不可变数据对象
+     */
+    record TaskRecord(
+        String taskId,
+        String taskDescription,
+        String steps,
+        String toolsUsed,
+        String result,
+        LocalDateTime executionTime
+    ) {}
 } 

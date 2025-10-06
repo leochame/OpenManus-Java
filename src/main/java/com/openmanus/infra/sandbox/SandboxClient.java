@@ -1,20 +1,16 @@
 package com.openmanus.infra.sandbox;
 
-import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.command.InspectExecResponse;
-import com.github.dockerjava.api.model.*;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
-import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
-import com.github.dockerjava.api.async.ResultCallback;
 import com.openmanus.infra.config.OpenManusProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -22,14 +18,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Docker-based sandbox client for secure code execution.
- * Corresponds to the sandbox client in the Python version.
+ * Docker 代码执行沙箱客户端
+ * 
+ * 功能：
+ * 1. 提供安全的 Python/Bash 代码执行环境
+ * 2. 资源隔离和限制
+ * 3. 支持本地执行模式（禁用沙箱时）
+ * 
+ * 设计：单例容器，应用启动时初始化并持续运行
  */
 @Component
 public class SandboxClient implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(SandboxClient.class);
     
-    private final DockerClient dockerClient;
+    private final DockerClientManager dockerManager;
     private final OpenManusProperties.SandboxSettings config;
     private String containerId;
     private boolean isRunning = false;
@@ -39,148 +41,103 @@ public class SandboxClient implements Closeable {
         this.config = properties.getSandbox();
         
         if (!config.isUseSandbox()) {
-            this.dockerClient = null;
-            log.info("Sandbox is disabled in configuration");
+            this.dockerManager = null;
+            log.info("沙箱已禁用，将使用本地执行模式");
             return;
         }
         
-        // Initialize Docker client with Netty transport to avoid Jersey conflicts
-        DefaultDockerClientConfig dockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .build();
-        
-        this.dockerClient = DockerClientBuilder.getInstance(dockerConfig)
-            .withDockerCmdExecFactory(new NettyDockerCmdExecFactory())
-            .build();
+        // 初始化 Docker 管理器
+        this.dockerManager = new DockerClientManager();
         
         try {
-            // Test Docker connection
-            dockerClient.pingCmd().exec();
-            log.info("Docker connection established successfully");
-            
-            // Initialize container
             initializeContainer();
-            
         } catch (Exception e) {
-            log.error("Failed to initialize Docker client: {}", e.getMessage(), e);
-            throw new RuntimeException("Docker initialization failed", e);
-        }
-    }
-    
-    private void initializeContainer() {
-        try {
-            // Pull the image if it doesn't exist
-            pullImageIfNeeded();
-            
-            // Create container
-            CreateContainerResponse container = dockerClient.createContainerCmd(config.getImage())
-                .withWorkingDir(config.getWorkDir())
-                .withHostConfig(HostConfig.newHostConfig()
-                    .withMemory(parseMemoryLimit(config.getMemoryLimit()))
-                    .withCpuQuota((long) (config.getCpuLimit() * 100000)) // CPU quota in microseconds
-                    .withCpuPeriod(100000L) // 100ms period
-                    .withNetworkMode(config.isNetworkEnabled() ? "bridge" : "none")
-                    .withAutoRemove(true) // Auto-remove container when stopped
-                )
-                .withCmd("tail", "-f", "/dev/null") // Keep container running
-                .exec();
-            
-            this.containerId = container.getId();
-            
-            // Start container
-            dockerClient.startContainerCmd(containerId).exec();
-            this.isRunning = true;
-            
-            log.info("Sandbox container started with ID: {}", containerId);
-            
-        } catch (Exception e) {
-            log.error("Failed to initialize container: {}", e.getMessage(), e);
-            throw new RuntimeException("Container initialization failed", e);
-        }
-    }
-    
-    private void pullImageIfNeeded() {
-        try {
-            // Check if image exists locally
-            dockerClient.inspectImageCmd(config.getImage()).exec();
-            log.debug("Image {} already exists locally", config.getImage());
-        } catch (Exception e) {
-            // Image doesn't exist, pull it
-            log.info("Pulling Docker image: {}", config.getImage());
-            try {
-                dockerClient.pullImageCmd(config.getImage())
-                    .exec(new PullImageResultCallback())
-                    .awaitCompletion(5, TimeUnit.MINUTES);
-                log.info("Successfully pulled image: {}", config.getImage());
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Image pull interrupted", ie);
-            }
-        }
-    }
-    
-    private long parseMemoryLimit(String memoryLimit) {
-        // Parse memory limit string like "512m", "1g", etc.
-        String limit = memoryLimit.toLowerCase().trim();
-        
-        if (limit.endsWith("k")) {
-            return Long.parseLong(limit.substring(0, limit.length() - 1)) * 1024;
-        } else if (limit.endsWith("m")) {
-            return Long.parseLong(limit.substring(0, limit.length() - 1)) * 1024 * 1024;
-        } else if (limit.endsWith("g")) {
-            return Long.parseLong(limit.substring(0, limit.length() - 1)) * 1024 * 1024 * 1024;
-        } else {
-            return Long.parseLong(limit); // Assume bytes
+            log.error("初始化沙箱容器失败: {}", e.getMessage(), e);
+            throw new RuntimeException("沙箱初始化失败", e);
         }
     }
     
     /**
-     * Execute a command in the sandbox.
+     * 初始化沙箱容器
+     */
+    private void initializeContainer() {
+        log.info("初始化沙箱容器...");
+        
+        // 拉取镜像
+        dockerManager.pullImageIfNeeded(config.getImage());
+        
+        // 创建容器
+        CreateContainerResponse container = dockerManager.getClient()
+            .createContainerCmd(config.getImage())
+            .withWorkingDir(config.getWorkDir())
+            .withHostConfig(HostConfig.newHostConfig()
+                .withMemory(DockerClientManager.parseMemoryLimit(config.getMemoryLimit()))
+                .withCpuQuota((long) (config.getCpuLimit() * 100000))
+                .withCpuPeriod(100000L)
+                .withNetworkMode(config.isNetworkEnabled() ? "bridge" : "none")
+                .withAutoRemove(true)
+            )
+            .withCmd("tail", "-f", "/dev/null")  // 保持容器运行
+            .exec();
+        
+        this.containerId = container.getId();
+        
+        // 启动容器
+        dockerManager.getClient().startContainerCmd(containerId).exec();
+        this.isRunning = true;
+        
+        log.info("沙箱容器启动成功: {}", containerId);
+    }
+    
+    /**
+     * 执行命令
      * 
-     * @param command The command to execute
-     * @param timeoutSeconds Timeout in seconds (0 for default)
-     * @return ExecutionResult containing output and exit code
+     * @param command 要执行的命令
+     * @param timeoutSeconds 超时时间（秒），0 表示使用默认超时
+     * @return 执行结果
      */
     public ExecutionResult executeCommand(String command, int timeoutSeconds) {
         if (!config.isUseSandbox()) {
-            return executeLocally(command);
+            return executeLocally(command, timeoutSeconds);
         }
         
         if (!isRunning) {
-            throw new IllegalStateException("Sandbox container is not running");
+            throw new IllegalStateException("沙箱容器未运行");
         }
         
         try {
-            // Create exec instance
-            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+            // 创建执行实例
+            ExecCreateCmdResponse execCmd = dockerManager.getClient()
+                .execCreateCmd(containerId)
                 .withAttachStdout(true)
                 .withAttachStderr(true)
                 .withCmd("/bin/sh", "-c", command)
                 .exec();
             
-            // Execute command and capture output
+            // 执行命令并捕获输出
             ByteArrayOutputStream stdout = new ByteArrayOutputStream();
             ByteArrayOutputStream stderr = new ByteArrayOutputStream();
             
+            @SuppressWarnings("deprecation")
             ExecStartResultCallback callback = new ExecStartResultCallback(stdout, stderr);
+            dockerManager.getClient().execStartCmd(execCmd.getId()).exec(callback);
             
-            dockerClient.execStartCmd(execCreateCmdResponse.getId())
-                .exec(callback);
-            
-            // Wait for completion with timeout
+            // 等待执行完成
             int timeout = timeoutSeconds > 0 ? timeoutSeconds : config.getTimeout();
             boolean completed = callback.awaitCompletion(timeout, TimeUnit.SECONDS);
             
             if (!completed) {
-                log.warn("Command execution timed out after {} seconds", timeout);
+                log.warn("命令执行超时: {} 秒", timeout);
                 return new ExecutionResult(
                     stdout.toString(StandardCharsets.UTF_8),
-                    stderr.toString(StandardCharsets.UTF_8) + "\nExecution timed out",
-                    124 // Timeout exit code
+                    stderr.toString(StandardCharsets.UTF_8) + "\n执行超时",
+                    124
                 );
             }
             
-            // Get exit code
-            InspectExecResponse execResponse = dockerClient.inspectExecCmd(execCreateCmdResponse.getId()).exec();
+            // 获取退出码
+            InspectExecResponse execResponse = dockerManager.getClient()
+                .inspectExecCmd(execCmd.getId()).exec();
             Integer exitCode = execResponse.getExitCodeLong() != null ? 
                 execResponse.getExitCodeLong().intValue() : 0;
             
@@ -191,35 +148,29 @@ public class SandboxClient implements Closeable {
             );
             
         } catch (Exception e) {
-            log.error("Failed to execute command in sandbox: {}", e.getMessage(), e);
-            return new ExecutionResult(
-                "",
-                "Sandbox execution failed: " + e.getMessage(),
-                1
-            );
+            log.error("沙箱执行命令失败: {}", e.getMessage(), e);
+            return new ExecutionResult("", "沙箱执行失败: " + e.getMessage(), 1);
         }
     }
     
     /**
-     * Execute command locally (when sandbox is disabled).
+     * 本地执行命令（沙箱禁用时）
      */
-    private ExecutionResult executeLocally(String command) {
+    private ExecutionResult executeLocally(String command, int timeoutSeconds) {
         try {
             ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", command);
             pb.redirectErrorStream(false);
-            
             Process process = pb.start();
             
-            // Read output
             ByteArrayOutputStream stdout = new ByteArrayOutputStream();
             ByteArrayOutputStream stderr = new ByteArrayOutputStream();
             
-            // Start threads to read stdout and stderr
+            // 读取输出流
             Thread stdoutThread = new Thread(() -> {
                 try {
                     process.getInputStream().transferTo(stdout);
                 } catch (IOException e) {
-                    log.error("Error reading stdout: {}", e.getMessage());
+                    log.error("读取 stdout 失败: {}", e.getMessage());
                 }
             });
             
@@ -227,26 +178,26 @@ public class SandboxClient implements Closeable {
                 try {
                     process.getErrorStream().transferTo(stderr);
                 } catch (IOException e) {
-                    log.error("Error reading stderr: {}", e.getMessage());
+                    log.error("读取 stderr 失败: {}", e.getMessage());
                 }
             });
             
             stdoutThread.start();
             stderrThread.start();
             
-            // Wait for process completion
-            boolean finished = process.waitFor(config.getTimeout(), TimeUnit.SECONDS);
+            // 等待进程完成
+            int timeout = timeoutSeconds > 0 ? timeoutSeconds : config.getTimeout();
+            boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
             
             if (!finished) {
                 process.destroyForcibly();
                 return new ExecutionResult(
                     stdout.toString(StandardCharsets.UTF_8),
-                    stderr.toString(StandardCharsets.UTF_8) + "\nExecution timed out",
+                    stderr.toString(StandardCharsets.UTF_8) + "\n执行超时",
                     124
                 );
             }
             
-            // Wait for output threads to complete
             stdoutThread.join(1000);
             stderrThread.join(1000);
             
@@ -257,17 +208,13 @@ public class SandboxClient implements Closeable {
             );
             
         } catch (Exception e) {
-            log.error("Failed to execute command locally: {}", e.getMessage(), e);
-            return new ExecutionResult(
-                "",
-                "Local execution failed: " + e.getMessage(),
-                1
-            );
+            log.error("本地执行命令失败: {}", e.getMessage(), e);
+            return new ExecutionResult("", "本地执行失败: " + e.getMessage(), 1);
         }
     }
     
     /**
-     * Execute a Python script in the sandbox.
+     * 执行 Python 脚本
      */
     public ExecutionResult executePython(String script, int timeoutSeconds) {
         String command = String.format("python3 -c %s", escapeShellArgument(script));
@@ -275,97 +222,37 @@ public class SandboxClient implements Closeable {
     }
     
     /**
-     * Execute a bash script in the sandbox.
+     * 执行 Bash 脚本
      */
     public ExecutionResult executeBash(String script, int timeoutSeconds) {
         return executeCommand(script, timeoutSeconds);
     }
     
+    /**
+     * Shell 参数转义
+     */
     private String escapeShellArgument(String arg) {
-        // Simple shell argument escaping
         return "'" + arg.replace("'", "'\"'\"'") + "'";
     }
     
     @Override
     public void close() throws IOException {
-        if (dockerClient != null && containerId != null && isRunning) {
+        if (dockerManager != null && containerId != null && isRunning) {
             try {
-                log.info("Stopping sandbox container: {}", containerId);
-                dockerClient.stopContainerCmd(containerId).exec();
+                log.info("停止沙箱容器: {}", containerId);
+                dockerManager.getClient().stopContainerCmd(containerId).exec();
                 isRunning = false;
-                log.info("Sandbox container stopped successfully");
+                log.info("沙箱容器已停止");
             } catch (Exception e) {
-                log.error("Failed to stop container: {}", e.getMessage(), e);
+                log.error("停止容器失败: {}", e.getMessage(), e);
             }
         }
         
-        if (dockerClient != null) {
+        if (dockerManager != null) {
             try {
-                dockerClient.close();
+                dockerManager.close();
             } catch (Exception e) {
-                log.error("Failed to close Docker client: {}", e.getMessage(), e);
-            }
-        }
-    }
-    
-    /**
-     * Result of command execution.
-     */
-    public static class ExecutionResult {
-        private final String stdout;
-        private final String stderr;
-        private final int exitCode;
-        
-        public ExecutionResult(String stdout, String stderr, int exitCode) {
-            this.stdout = stdout != null ? stdout : "";
-            this.stderr = stderr != null ? stderr : "";
-            this.exitCode = exitCode;
-        }
-        
-        public String getStdout() {
-            return stdout;
-        }
-        
-        public String getStderr() {
-            return stderr;
-        }
-        
-        public int getExitCode() {
-            return exitCode;
-        }
-        
-        public boolean isSuccess() {
-            return exitCode == 0;
-        }
-        
-        public String getCombinedOutput() {
-            StringBuilder sb = new StringBuilder();
-            if (!stdout.isEmpty()) {
-                sb.append(stdout);
-            }
-            if (!stderr.isEmpty()) {
-                if (sb.length() > 0) {
-                    sb.append("\n");
-                }
-                sb.append("STDERR: ").append(stderr);
-            }
-            return sb.toString();
-        }
-        
-        @Override
-        public String toString() {
-            return String.format("ExecutionResult{exitCode=%d, stdout='%s', stderr='%s'}", 
-                exitCode, stdout, stderr);
-        }
-    }
-    
-    // Helper class for Docker image pulling
-    private static class PullImageResultCallback extends ResultCallback.Adapter<PullResponseItem> {
-        @Override
-        public void onNext(PullResponseItem item) {
-            // Log progress if needed
-            if (item.getStatus() != null) {
-                log.debug("Pull progress: {}", item.getStatus());
+                log.error("关闭 Docker 管理器失败: {}", e.getMessage(), e);
             }
         }
     }

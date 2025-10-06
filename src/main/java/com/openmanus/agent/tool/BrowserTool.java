@@ -13,21 +13,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
 /**
- * 浏览器工具
+ * 浏览器工具 - 提供网页访问和搜索能力
  * 
- * 提供网页访问和搜索能力：
+ * 功能：
  * 1. 访问网页并获取内容
- * 2. 搜索网络信息（基于DuckDuckGo）
- * 3. 按需创建 VNC 沙箱浏览器（首次调用时）
+ * 2. 搜索网络信息（基于 DuckDuckGo）
+ * 3. 自动管理 VNC 沙箱浏览器
  * 
- * 设计模式：策略模式 - 不同的搜索引擎可以作为不同策略
+ * 设计模式：
+ * - 策略模式：不同搜索引擎可扩展
+ * - 状态机模式：HTML 解析器
  */
 @Component
 @Slf4j
@@ -68,8 +70,8 @@ public class BrowserTool {
      * 访问网页并获取内容
      * 首次调用时会自动创建 VNC 沙箱浏览器
      */
-    @Tool("Visit web page and get content")
-    public String browseWeb(@P("Web page URL") String url) {
+    @Tool("访问网页并获取内容")
+    public String browseWeb(@P("网页 URL") String url) {
         try {
             // 确保沙箱已创建（首次调用时触发）
             ensureSandboxCreated();
@@ -109,8 +111,8 @@ public class BrowserTool {
     /**
      * 搜索网络内容
      */
-    @Tool("Search web content")
-    public String searchWeb(@P("Search keywords") String query) {
+    @Tool("搜索网络内容")
+    public String searchWeb(@P("搜索关键词") String query) {
         try {
             log.info(TO_FRONTEND, "🔍 正在搜索: {}", query);
             
@@ -163,8 +165,7 @@ public class BrowserTool {
      * 创建HTTP连接
      */
     private HttpURLConnection createConnection(String urlString, String userAgent) throws IOException {
-        URL url = new URL(urlString);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        HttpURLConnection connection = (HttpURLConnection) URI.create(urlString).toURL().openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(DEFAULT_TIMEOUT_MS);
         connection.setReadTimeout(DEFAULT_TIMEOUT_MS);
