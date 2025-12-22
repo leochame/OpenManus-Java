@@ -121,11 +121,23 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
         String input = toolExecutionRequest.arguments();
         
         agentExecutionTracker.startAgentExecution(sessionId, name(), "THINKING_START", input);
-        log.info("🚀🚀 ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
-        log.info(TO_FRONTEND,"User Request {}",toolExecutionRequest.arguments());
+        log.debug("ThinkingAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+        
+        // 思考阶段开始
+        log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+        log.info(TO_FRONTEND, "│  🧠 THINKING AGENT · 智能思考模块                        │");
+        log.info(TO_FRONTEND, "├──────────────────────────────────────────────────────────┤");
+        log.info(TO_FRONTEND, "│  📝 正在分析任务需求...                                  │");
+        log.info(TO_FRONTEND, "│  🔍 识别关键信息与约束条件                                │");
+        log.info(TO_FRONTEND, "│  📊 制定执行策略与行动计划                                │");
+        log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
+        
         String result = super.execute(toolExecutionRequest, memoryId);
 
-        log.info(TO_FRONTEND,"ThinkingAgent.execute result: {}", result);
+        // 思考阶段完成
+        log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+        log.info(TO_FRONTEND, "│  ✅ 思考完成 · 已生成执行计划                              │");
+        log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
         agentExecutionTracker.endAgentExecution(sessionId, name(), "THINKING_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
 
         return result;

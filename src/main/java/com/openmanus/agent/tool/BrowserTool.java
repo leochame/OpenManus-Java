@@ -84,7 +84,8 @@ public class BrowserTool {
             log.info("访问网页: {}", url);
             
             // 通知前端当前访问的 URL（用于网页预览）
-            log.info(TO_FRONTEND, "📄 正在访问: {}", url);
+            log.info(TO_FRONTEND, "│  🌐 BROWSER · 网页访问模块");
+            log.info(TO_FRONTEND, "│  📄 正在访问: {}", url);
 
             // 建立HTTP连接
             HttpURLConnection connection = createConnection(url, USER_AGENT_BROWSER);
@@ -127,7 +128,12 @@ public class BrowserTool {
                     Thread.sleep(1000 * retryCount);
                 }
                 
-                log.info(TO_FRONTEND, "🔍 正在搜索: {}", query);
+                log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+                log.info(TO_FRONTEND, "│  🔍 SEARCH ENGINE · 智能搜索引擎                         │");
+                log.info(TO_FRONTEND, "├──────────────────────────────────────────────────────────┤");
+                log.info(TO_FRONTEND, "│  📝 关键词: {}                                              ", query);
+                log.info(TO_FRONTEND, "│  ⚡ 正在检索全球网络资源...                                │");
+                log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
                 
                 // 确保沙箱已创建（用于可视化展示）
                 ensureSandboxCreated();
@@ -135,7 +141,7 @@ public class BrowserTool {
                 // 通知前端展示 Google 搜索页面（可视化）
                 String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
                 String displayUrl = "https://www.google.com/search?q=" + encodedQuery;
-                log.info(TO_FRONTEND, "📄 搜索页面: {}", displayUrl);
+                log.info(TO_FRONTEND, "│  🌐 可视化预览: {}", displayUrl);
                 
                 // 检查是否配置了 Serper API
                 OpenManusProperties.SearchConfig searchConfig = properties.getSearch();
@@ -148,7 +154,9 @@ public class BrowserTool {
                 
                 // 使用 Serper API 获取搜索结果
                 String results = searchWithSerperApi(query, searchConfig);
-                log.info(TO_FRONTEND, "� 搜索完成，找到相关结果");
+                log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+                log.info(TO_FRONTEND, "│  ✅ 搜索完成 · 已获取相关结果                              │");
+                log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
                 return results;
                 
             } catch (Exception e) {
@@ -385,9 +393,13 @@ public class BrowserTool {
             
             if (sandboxInfo == null || !sandboxInfo.isAvailable()) {
                 // 不存在或不可用，创建新沙箱
-                log.info(TO_FRONTEND, "🖥️ 正在为您启动可视化浏览器工作台...");
+                log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+                log.info(TO_FRONTEND, "│  🖥️ SANDBOX · 可视化沙箱环境                            │");
+                log.info(TO_FRONTEND, "├──────────────────────────────────────────────────────────┤");
+                log.info(TO_FRONTEND, "│  ⚡ 正在初始化安全沙箱环境...                              │");
+                log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
                 sandboxInfo = sessionSandboxManager.getOrCreateSandbox(sessionId);
-                log.info(TO_FRONTEND, "✅ 浏览器工作台已就绪，您可以在右侧面板查看实时操作");
+                log.info(TO_FRONTEND, "│  ✅ 沙箱已就绪 · VNC 可视化界面已开放                        │");
                 log.debug("沙箱已创建: sessionId={}, vncUrl={}", sessionId, sandboxInfo.getVncUrl());
             } else {
                 log.debug("复用现有沙箱: sessionId={}", sessionId);

@@ -97,7 +97,12 @@ public class ThinkDoReflectService {
 
         try (MDC.MDCCloseable ignored = MDC.putCloseable("sessionId", sessionId)) {
             // 【重要日志】工作流开始执行
-            log.info(TO_FRONTEND, "🚀 工作流开始执行 - 会话ID: {}", sessionId);
+            log.info(TO_FRONTEND, "╔══════════════════════════════════════════════════════════════╗");
+            log.info(TO_FRONTEND, "║  🚀 OPENMANUS AI 引擎启动                                     ║");
+            log.info(TO_FRONTEND, "╠══════════════════════════════════════════════════════════════╣");
+            log.info(TO_FRONTEND, "║  📋 任务接收成功，开始智能分析...                              ║");
+            log.info(TO_FRONTEND, "║  🔗 会话ID: {}                              ", sessionId.substring(0, 8) + "...");
+            log.info(TO_FRONTEND, "╚══════════════════════════════════════════════════════════════╝");
             
             executionTracker.startAgentExecution(sessionId, "workflow_manager", "WORKFLOW_START", userInput);
             String result = thinkDoReflectWorkflow.executeSync(userInput);
@@ -110,14 +115,23 @@ public class ThinkDoReflectService {
             long executionTimeMs = ChronoUnit.MILLIS.between(startTime, endTime);
 
             // 【重要日志】工作流执行成功
-            log.info(TO_FRONTEND, "✅ 工作流执行成功 - 耗时: {}ms", executionTimeMs);
+            log.info(TO_FRONTEND, "╔══════════════════════════════════════════════════════════════╗");
+            log.info(TO_FRONTEND, "║  ✅ 任务执行完成                                              ║");
+            log.info(TO_FRONTEND, "╠══════════════════════════════════════════════════════════════╣");
+            log.info(TO_FRONTEND, "║  ⏱️  总耗时: {}ms                                              ", executionTimeMs);
+            log.info(TO_FRONTEND, "║  📊 状态: 成功                                                ║");
+            log.info(TO_FRONTEND, "╚══════════════════════════════════════════════════════════════╝");
 
             // 发送结果到前端
             sendWorkflowResult(sessionId, userInput, result, "SUCCESS", endTime, executionTimeMs);
 
         } catch (Exception e) {
             // 【重要日志】工作流执行出错
-            log.error(TO_FRONTEND, "❌ 工作流执行出错 - 会话ID: {} - 错误: {}", sessionId, e.getMessage());
+            log.error(TO_FRONTEND, "╔══════════════════════════════════════════════════════════════╗");
+            log.error(TO_FRONTEND, "║  ❌ 任务执行异常                                              ║");
+            log.error(TO_FRONTEND, "╠══════════════════════════════════════════════════════════════╣");
+            log.error(TO_FRONTEND, "║  ⚠️  错误信息: {}                                              ", e.getMessage());
+            log.error(TO_FRONTEND, "╚══════════════════════════════════════════════════════════════╝");
             
             executionTracker.recordAgentError(sessionId, "workflow_manager", "WORKFLOW_EXECUTION", e.getMessage());
 

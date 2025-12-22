@@ -17,6 +17,8 @@ import dev.langchain4j.service.tool.ToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
+
+import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -191,7 +193,11 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
             // 5. Execute the requested tool(s)
             List<ToolExecutionRequest> requests = aiMessage.toolExecutionRequests();
             for (ToolExecutionRequest request : requests) {
-                log.info("Executing tool: {}", request.name());
+                log.debug("Executing tool: {}", request.name());
+                
+                // 通知前端工具执行开始
+                log.info(TO_FRONTEND, "│  🔧 执行工具: {}", request.name());
+                
                 Map.Entry<ToolSpecification, ToolExecutor> toolEntry = tools.get(request.name());
                 if (toolEntry != null) {
                     // Execute the tool and get the outcome.
@@ -199,6 +205,9 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
                     // Create a message with the tool's result.
                     ToolExecutionResultMessage toolResultMessage = ToolExecutionResultMessage.from(request, outcome);
                     messages.add(toolResultMessage); // Add the tool result to the conversation history for the next iteration.
+                    
+                    // 通知前端工具执行完成
+                    log.info(TO_FRONTEND, "│  ✔️  工具执行完成: {}", request.name());
                 }
             }
         }

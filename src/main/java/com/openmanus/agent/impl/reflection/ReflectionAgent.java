@@ -118,11 +118,30 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
         String input = toolExecutionRequest.arguments();
         
         agentExecutionTracker.startAgentExecution(sessionId, name(), "REFLECTION_START", input);
-        log.info(TO_FRONTEND,"🚀🚀 ReflectionAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+        log.debug("ReflectionAgent.execute, ToolExecutionRequest:{}\n memoryId:{}", toolExecutionRequest, memoryId);
+
+        // 反思阶段开始
+        log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+        log.info(TO_FRONTEND, "│  🔍 REFLECTION AGENT · 质量评估模块                       │");
+        log.info(TO_FRONTEND, "├──────────────────────────────────────────────────────────┤");
+        log.info(TO_FRONTEND, "│  📋 正在审查执行结果...                                  │");
+        log.info(TO_FRONTEND, "│  🎯 对比原始需求与实际产出                                │");
+        log.info(TO_FRONTEND, "│  💡 评估完成度并提供改进建议                              │");
+        log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
 
         String result = super.execute(toolExecutionRequest, memoryId);
 
-        log.info(TO_FRONTEND,"ReflectionAgent.execute result: {}", result);
+        // 反思阶段完成
+        boolean isComplete = result != null && result.contains("STATUS: COMPLETE");
+        if (isComplete) {
+            log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+            log.info(TO_FRONTEND, "│  ✅ 评估完成 · 任务已达标                                  │");
+            log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
+        } else {
+            log.info(TO_FRONTEND, "┌──────────────────────────────────────────────────────────┐");
+            log.info(TO_FRONTEND, "│  🔄 需要进一步优化 · 启动下一轮迭代                        │");
+            log.info(TO_FRONTEND, "└──────────────────────────────────────────────────────────┘");
+        }
         agentExecutionTracker.endAgentExecution(sessionId, name(), "REFLECTION_END", result, AgentExecutionEvent.ExecutionStatus.SUCCESS);
         
         return result;
