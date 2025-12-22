@@ -44,6 +44,8 @@ public class FastThinkWorkflow {
         // 4. 使用 AgentHandoff.builder() 构建快思考工作流
         this.handoffExecutor = AgentHandoff.builder()
                 .chatModel(chatModel) // 为主管 Agent 设置大脑
+                .name("fast_think_agent") // <--- 添加名称
+                .description("一个快速响应的Agent，用于处理简单的用户请求") // <--- 添加描述
                 .systemMessage("""
                     你是一个快速响应型智能助手，专注于直接高效地解决用户问题。
                     

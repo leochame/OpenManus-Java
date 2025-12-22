@@ -1,5 +1,6 @@
 package com.openmanus.agent.tool;
 
+import com.openmanus.infra.config.OpenManusProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -16,7 +17,10 @@ public class BrowserToolTest {
     
     @BeforeEach
     void setUp() {
-        browserTool = new BrowserTool();
+        // Mock properties
+        OpenManusProperties properties = new OpenManusProperties();
+        // Initialize with null SessionSandboxManager (safe as long as MDC sessionId is not set in tests)
+        browserTool = new BrowserTool(null, properties);
     }
     
     @Test
@@ -91,7 +95,7 @@ public class BrowserToolTest {
      * 手动测试方法 - 可以在IDE中直接运行
      */
     public static void main(String[] args) {
-        BrowserTool tool = new BrowserTool();
+        BrowserTool tool = new BrowserTool(null, new OpenManusProperties());
         
         System.out.println("=== BrowserTool 搜索功能测试 ===\n");
         

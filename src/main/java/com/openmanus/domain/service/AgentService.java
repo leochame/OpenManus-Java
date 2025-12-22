@@ -1,7 +1,5 @@
 package com.openmanus.domain.service;
 
-import com.openmanus.agent.tool.BrowserTool;
-import com.openmanus.agent.tool.OmniToolCatalog;
 import com.openmanus.agent.workflow.FastThinkWorkflow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +28,10 @@ import java.util.concurrent.CompletableFuture;
 public class AgentService {
 
     private final FastThinkWorkflow fastThinkWorkflow;
-    private final OmniToolCatalog omniToolCatalog;
 
     @Autowired
-    public AgentService(FastThinkWorkflow fastThinkWorkflow, OmniToolCatalog omniToolCatalog) {
+    public AgentService(FastThinkWorkflow fastThinkWorkflow) {
         this.fastThinkWorkflow = fastThinkWorkflow;
-        this.omniToolCatalog = omniToolCatalog;
     }
 
     /**

@@ -140,6 +140,7 @@ public class ThinkDoReflectService {
 
     /**
      * 发送工作流结果到前端
+     * 如果 WebSocket 会话已关闭，静默忽略错误
      */
     private void sendWorkflowResult(String sessionId, String userInput, String result, 
                                    String status, LocalDateTime completedTime, long executionTimeMs) {
@@ -153,7 +154,12 @@ public class ThinkDoReflectService {
                 .build();
 
         String resultDestination = "/topic/executions/" + sessionId + "/result";
-        log.debug("发送工作流结果到 {}", resultDestination);
-        messagingTemplate.convertAndSend(resultDestination, resultVO);
+        try {
+            log.debug("发送工作流结果到 {}", resultDestination);
+            messagingTemplate.convertAndSend(resultDestination, resultVO);
+        } catch (Exception e) {
+            // 静默处理：WebSocket 会话可能已关闭，这是正常的竞态条件
+            log.debug("无法发送结果到会话 {}: {}", sessionId, e.getMessage());
+        }
     }
 } 

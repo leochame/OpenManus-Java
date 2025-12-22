@@ -40,11 +40,17 @@ public class LogRelayService {
 
     /**
      * 中继日志到前端
+     * 如果 WebSocket 会话已关闭，静默忽略错误
      */
     public void relayLog(String sessionId, Map<String, Object> logMessage) {
         if (sessionId == null || logMessage == null) {
             return;
         }
-        messagingTemplate.convertAndSend("/topic/executions/" + sessionId + "/logs", logMessage);
+        try {
+            messagingTemplate.convertAndSend("/topic/executions/" + sessionId + "/logs", logMessage);
+        } catch (Exception e) {
+            // 静默处理：WebSocket 会话可能已关闭，这是正常的竞态条件
+            log.debug("无法发送日志到会话 {}: {}", sessionId, e.getMessage());
+        }
     }
 }

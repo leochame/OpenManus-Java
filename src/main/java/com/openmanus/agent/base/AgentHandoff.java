@@ -30,6 +30,10 @@ public class AgentHandoff extends AbstractAgentExecutor<AgentHandoff.Builder> {
         }
 
         public AgentHandoff build() {
+            // Ensure required metadata and parameter schema are initialized
+            this.name("agent_handoff_supervisor")
+                .description("Supervisor agent that coordinates sub-agents using a single 'context' string input.")
+                .singleParameter("context");
             return new AgentHandoff(this);
         }
     }
