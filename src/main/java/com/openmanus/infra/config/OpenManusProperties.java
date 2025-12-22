@@ -142,9 +142,25 @@ public class OpenManusProperties {
      */
     @Data
     public static class SearchConfig {
-        private String engine = "google";
+        /**
+         * Search engine type: serper, google, bing
+         */
+        private String engine = "serper";
+        
+        /**
+         * API key for the search engine
+         */
         private String apiKey = "";
+        
+        /**
+         * Maximum number of search results
+         */
         private int maxResults = 10;
+        
+        /**
+         * Serper API endpoint
+         */
+        private String serperEndpoint = "https://google.serper.dev/search";
     }
     
     /**

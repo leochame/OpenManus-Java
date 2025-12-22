@@ -2,6 +2,7 @@ package com.openmanus.agent.tool;
 
 import com.openmanus.domain.model.SessionSandboxInfo;
 import com.openmanus.domain.service.SessionSandboxManager;
+import com.openmanus.infra.config.OpenManusProperties;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +13,14 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
@@ -24,22 +29,25 @@ import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
  * 
  * 功能：
  * 1. 访问网页并获取内容
- * 2. 搜索网络信息（基于 DuckDuckGo）
+ * 2. 搜索网络信息（基于 Bing，国内可访问）
  * 3. 自动管理 VNC 沙箱浏览器
+ * 4. 支持代理配置（通过 application.yml）
  * 
  * 设计模式：
  * - 策略模式：不同搜索引擎可扩展
- * - 状态机模式：HTML 解析器
+ * - 块解析模式：HTML 结果解析器
  */
 @Component
 @Slf4j
 public class BrowserTool {
     
     private final SessionSandboxManager sessionSandboxManager;
+    private final OpenManusProperties properties;
     
     @Autowired
-    public BrowserTool(SessionSandboxManager sessionSandboxManager) {
+    public BrowserTool(SessionSandboxManager sessionSandboxManager, OpenManusProperties properties) {
         this.sessionSandboxManager = sessionSandboxManager;
+        this.properties = properties;
     }
     
     // 网络配置常量
@@ -48,21 +56,16 @@ public class BrowserTool {
     private static final int MAX_CONTENT_LENGTH = 10000;
     private static final int MAX_SEARCH_RESULTS = 5;
     private static final int MAX_RESULT_LENGTH = 8000;
-    private static final int LOG_PREVIEW_LENGTH = 100;
-    
-    // 搜索引擎配置
-    private static final String SEARCH_ENGINE_URL = "https://html.duckduckgo.com/html/?q=";
+    private static final int MAX_RETRIES = 3;
     
     // 用户代理配置
     private static final String USER_AGENT_BROWSER = "Mozilla/5.0 (compatible; OpenManus/1.0)";
-    private static final String USER_AGENT_SEARCH = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
     
     // HTTP状态码
     private static final int HTTP_OK = 200;
     
     // 消息模板
     private static final String MSG_ACCESS_FAILED = "访问失败，HTTP状态码: ";
-    private static final String MSG_SEARCH_FAILED = "搜索失败，HTTP状态码: ";
     private static final String MSG_CONTENT_TRUNCATED = "\n... (内容已截断)";
     private static final String MSG_RESULT_TRUNCATED = "\n... (结果已截断)";
     
@@ -110,45 +113,180 @@ public class BrowserTool {
     
     /**
      * 搜索网络内容
+     * 使用 Serper API 获取结构化搜索结果，同时通知前端展示搜索页面
      */
     @Tool("搜索网络内容")
     public String searchWeb(@P("搜索关键词") String query) {
+        int retryCount = 0;
+        Exception lastException = null;
+
+        while (retryCount < MAX_RETRIES) {
+            try {
+                if (retryCount > 0) {
+                    log.info("搜索重试第 {} 次: {}", retryCount, query);
+                    Thread.sleep(1000 * retryCount);
+                }
+                
+                log.info(TO_FRONTEND, "🔍 正在搜索: {}", query);
+                
+                // 确保沙箱已创建（用于可视化展示）
+                ensureSandboxCreated();
+                
+                // 通知前端展示 Google 搜索页面（可视化）
+                String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+                String displayUrl = "https://www.google.com/search?q=" + encodedQuery;
+                log.info(TO_FRONTEND, "📄 搜索页面: {}", displayUrl);
+                
+                // 检查是否配置了 Serper API
+                OpenManusProperties.SearchConfig searchConfig = properties.getSearch();
+                String apiKey = searchConfig != null ? searchConfig.getApiKey() : null;
+                
+                if (apiKey == null || apiKey.isEmpty() || apiKey.startsWith("your-")) {
+                    log.warn("Serper API 未配置，使用降级方案");
+                    return fallbackSearch(query, encodedQuery);
+                }
+                
+                // 使用 Serper API 获取搜索结果
+                String results = searchWithSerperApi(query, searchConfig);
+                log.info(TO_FRONTEND, "� 搜索完成，找到相关结果");
+                return results;
+                
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("搜索尝试 {} 失败: {}", retryCount + 1, e.getMessage());
+                retryCount++;
+            }
+        }
+        
+        log.error("搜索最终失败: {}", query, lastException);
+        return "搜索失败 (已重试 " + MAX_RETRIES + " 次): " + (lastException != null ? lastException.getMessage() : "Unknown error");
+    }
+    
+    /**
+     * 使用 Serper API 进行搜索
+     */
+    private String searchWithSerperApi(String query, OpenManusProperties.SearchConfig config) throws IOException {
+        String endpoint = config.getSerperEndpoint();
+        if (endpoint == null || endpoint.isEmpty()) {
+            endpoint = "https://google.serper.dev/search";
+        }
+        
+        // 构建请求
+        HttpURLConnection connection = (HttpURLConnection) URI.create(endpoint).toURL().openConnection();
+        connection.setRequestMethod("POST");
+        connection.setConnectTimeout(DEFAULT_TIMEOUT_MS);
+        connection.setReadTimeout(DEFAULT_TIMEOUT_MS);
+        connection.setRequestProperty("X-API-KEY", config.getApiKey());
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+        
+        // 构建 JSON 请求体
+        String requestBody = String.format("{\"q\":\"%s\",\"num\":%d}", 
+                query.replace("\"", "\\\""), 
+                Math.min(config.getMaxResults(), MAX_SEARCH_RESULTS));
+        
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestBody.getBytes(StandardCharsets.UTF_8));
+        }
+        
+        int responseCode = connection.getResponseCode();
+        if (responseCode != HTTP_OK) {
+            throw new IOException("Serper API 错误: HTTP " + responseCode);
+        }
+        
+        // 读取响应
+        String jsonResponse = readContent(connection);
+        
+        // 解析 JSON 结果
+        return parseSerperResults(jsonResponse, query);
+    }
+    
+    /**
+     * 解析 Serper API 返回的 JSON 结果
+     */
+    private String parseSerperResults(String jsonResponse, String query) {
+        StringBuilder results = new StringBuilder();
+        results.append("🔍 搜索结果: ").append(query).append("\n\n");
+        
         try {
-            log.info(TO_FRONTEND, "🔍 正在搜索: {}", query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(jsonResponse);
             
-            // 确保沙箱已创建（首次调用时触发）
-            ensureSandboxCreated();
+            int count = 0;
             
-            // 构建搜索URL（用于后端抓取）
-            String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-            String searchUrl = SEARCH_ENGINE_URL + encodedQuery;
-            
-            // 通知前端使用 Bing 搜索页面（支持 iframe 嵌入）
-            String displayUrl = "https://www.bing.com/search?q=" + encodedQuery;
-            log.info(TO_FRONTEND, "📄 搜索页面: {}", displayUrl);
-            
-            // 建立搜索连接
-            HttpURLConnection connection = createSearchConnection(searchUrl);
-            
-            // 检查响应状态
-            int responseCode = connection.getResponseCode();
-            if (responseCode != HTTP_OK) {
-                return MSG_SEARCH_FAILED + responseCode;
+            // 解析 organic 搜索结果
+            JsonNode organic = root.get("organic");
+            if (organic != null && organic.isArray()) {
+                for (JsonNode item : organic) {
+                    if (count >= MAX_SEARCH_RESULTS) break;
+                    
+                    String title = item.has("title") ? item.get("title").asText() : "";
+                    String link = item.has("link") ? item.get("link").asText() : "";
+                    String snippet = item.has("snippet") ? item.get("snippet").asText() : "";
+                    
+                    if (!title.isEmpty() && !link.isEmpty()) {
+                        count++;
+                        results.append(count).append(". **").append(title).append("**\n");
+                        results.append("   🔗 ").append(link).append("\n");
+                        if (!snippet.isEmpty()) {
+                            results.append("   📝 ").append(snippet).append("\n");
+                        }
+                        results.append("\n");
+                    }
+                }
             }
             
-            // 读取搜索结果页面
-            String htmlContent = readContent(connection);
+            // 如果有知识图谱结果，也添加进来
+            JsonNode knowledgeGraph = root.get("knowledgeGraph");
+            if (knowledgeGraph != null) {
+                String kgTitle = knowledgeGraph.has("title") ? knowledgeGraph.get("title").asText() : "";
+                String kgDescription = knowledgeGraph.has("description") ? knowledgeGraph.get("description").asText() : "";
+                
+                if (!kgTitle.isEmpty()) {
+                    results.append("📚 **知识卡片: ").append(kgTitle).append("**\n");
+                    if (!kgDescription.isEmpty()) {
+                        results.append("   ").append(kgDescription).append("\n");
+                    }
+                    results.append("\n");
+                }
+            }
             
-            // 解析搜索结果
-            String results = parseSearchResults(htmlContent, query);
-            log.info(TO_FRONTEND, "🔍 搜索结果: {}", 
-                    results.length() > LOG_PREVIEW_LENGTH ? results.substring(0, LOG_PREVIEW_LENGTH) + "..." : results);
-            return results;
+            if (count == 0) {
+                results.append("未找到相关搜索结果，请尝试其他关键词。\n");
+            } else {
+                results.append("共找到 ").append(count).append(" 个相关结果\n");
+            }
             
-        } catch (IOException e) {
-            log.error("网页搜索失败: {}", query, e);
-            return "搜索失败: " + e.getMessage();
+        } catch (Exception e) {
+            log.warn("解析 Serper 结果时出错: {}", e.getMessage());
+            results.append("搜索结果解析失败: ").append(e.getMessage()).append("\n");
         }
+        
+        String result = results.toString();
+        if (result.length() > MAX_RESULT_LENGTH) {
+            result = result.substring(0, MAX_RESULT_LENGTH) + MSG_RESULT_TRUNCATED;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 降级搜索方案：当 API 未配置时使用
+     */
+    private String fallbackSearch(String query, String encodedQuery) {
+        StringBuilder results = new StringBuilder();
+        results.append("🔍 搜索结果: ").append(query).append("\n\n");
+        results.append("⚠️ 搜索 API 未配置，请在 application.yml 中配置 Serper API Key：\n\n");
+        results.append("```yaml\n");
+        results.append("openmanus:\n");
+        results.append("  search:\n");
+        results.append("    engine: serper\n");
+        results.append("    api-key: your-serper-api-key\n");
+        results.append("```\n\n");
+        results.append("获取 Serper API Key: https://serper.dev\n\n");
+        results.append("📄 您可以手动访问搜索页面查看结果:\n");
+        results.append("   https://www.google.com/search?q=").append(encodedQuery).append("\n");
+        return results.toString();
     }
     
     /**
@@ -165,22 +303,52 @@ public class BrowserTool {
      * 创建HTTP连接
      */
     private HttpURLConnection createConnection(String urlString, String userAgent) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) URI.create(urlString).toURL().openConnection();
+        java.net.Proxy proxy = getProxy();
+        HttpURLConnection connection;
+        
+        if (proxy != null) {
+            connection = (HttpURLConnection) URI.create(urlString).toURL().openConnection(proxy);
+        } else {
+            connection = (HttpURLConnection) URI.create(urlString).toURL().openConnection();
+        }
+        
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(DEFAULT_TIMEOUT_MS);
         connection.setReadTimeout(DEFAULT_TIMEOUT_MS);
         connection.setRequestProperty("User-Agent", userAgent);
         return connection;
     }
-    
+
     /**
-     * 创建搜索连接（带额外Header）
+     * 获取代理配置
      */
-    private HttpURLConnection createSearchConnection(String urlString) throws IOException {
-        HttpURLConnection connection = createConnection(urlString, USER_AGENT_SEARCH);
-        connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-        connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
-        return connection;
+    private java.net.Proxy getProxy() {
+        OpenManusProperties.ProxyConfig proxyConfig = properties.getProxy();
+        if (proxyConfig != null && proxyConfig.isEnabled()) {
+            String proxyUrl = proxyConfig.getHttpsProxy(); // 优先使用 HTTPS 代理
+            if (proxyUrl == null || proxyUrl.isEmpty()) {
+                proxyUrl = proxyConfig.getHttpProxy();
+            }
+            
+            if (proxyUrl != null && !proxyUrl.isEmpty()) {
+                try {
+                    // 处理 http://hostname:port 格式
+                    if (proxyUrl.contains("://")) {
+                        proxyUrl = proxyUrl.substring(proxyUrl.indexOf("://") + 3);
+                    }
+                    
+                    String[] parts = proxyUrl.split(":");
+                    if (parts.length == 2) {
+                        String host = parts[0];
+                        int port = Integer.parseInt(parts[1]);
+                        return new java.net.Proxy(java.net.Proxy.Type.HTTP, new java.net.InetSocketAddress(host, port));
+                    }
+                } catch (Exception e) {
+                    log.warn("代理配置解析失败: {}", proxyUrl, e);
+                }
+            }
+        }
+        return null;
     }
     
     /**
@@ -196,38 +364,6 @@ public class BrowserTool {
             }
         }
         return content.toString();
-    }
-    
-    /**
-     * 解析DuckDuckGo搜索结果页面
-     * 采用状态机模式解析HTML
-     */
-    private String parseSearchResults(String htmlContent, String query) {
-        StringBuilder results = new StringBuilder();
-        results.append("🔍 搜索结果: ").append(query).append("\n\n");
-        
-        try {
-            SearchResultParser parser = new SearchResultParser();
-            int resultCount = parser.parse(htmlContent, results);
-            
-            if (resultCount == 0) {
-                results.append("未找到相关搜索结果，请尝试其他关键词。\n");
-            } else {
-                results.append("共找到 ").append(resultCount).append(" 个相关结果\n");
-            }
-            
-        } catch (Exception e) {
-            log.warn("解析搜索结果时出错: {}", e.getMessage());
-            results.append("搜索结果解析失败，但搜索请求已发送。请尝试直接访问搜索引擎。\n");
-        }
-        
-        // 限制返回内容长度
-        String result = results.toString();
-        if (result.length() > MAX_RESULT_LENGTH) {
-            result = result.substring(0, MAX_RESULT_LENGTH) + MSG_RESULT_TRUNCATED;
-        }
-        
-        return result;
     }
     
     /**
@@ -262,127 +398,4 @@ public class BrowserTool {
         }
     }
     
-    /**
-     * 清理HTML文本，移除标签和转义字符
-     */
-    private String cleanHtmlText(String text) {
-        if (text == null || text.isEmpty()) {
-            return "";
-        }
-        
-        // 移除HTML标签
-        text = text.replaceAll("<[^>]+>", "");
-        
-        // 处理HTML转义字符
-        text = text.replace("&amp;", "&")
-                   .replace("&lt;", "<")
-                   .replace("&gt;", ">")
-                   .replace("&quot;", "\"")
-                   .replace("&#39;", "'")
-                   .replace("&nbsp;", " ");
-        
-        // 移除多余空白字符
-        text = text.replaceAll("\\s+", " ").trim();
-        
-        return text;
-    }
-    
-    /**
-     * 搜索结果解析器 - 状态机模式
-     * 将复杂的HTML解析逻辑封装为独立类
-     */
-    private class SearchResultParser {
-        private static final String RESULT_LINK_CLASS = "class=\"result__a\"";
-        private static final String RESULT_SNIPPET_CLASS = "class=\"result__snippet\"";
-        private static final String HREF_ATTR = "href=\"";
-        
-        private int resultCount = 0;
-        private boolean inResult = false;
-        private String currentTitle = "";
-        private String currentUrl = "";
-        private String currentSnippet = "";
-        
-        int parse(String htmlContent, StringBuilder results) {
-            String[] lines = htmlContent.split("\n");
-            
-            for (String line : lines) {
-                line = line.trim();
-                
-                if (line.contains(RESULT_LINK_CLASS) && line.contains(HREF_ATTR)) {
-                    parseResultLink(line);
-                    inResult = true;
-                } else if (inResult && line.contains(RESULT_SNIPPET_CLASS)) {
-                    parseSnippet(line);
-                    appendResult(results);
-                    resetState();
-                    
-                    if (resultCount >= MAX_SEARCH_RESULTS) {
-                        break;
-                    }
-                }
-            }
-            
-            return resultCount;
-        }
-        
-        private void parseResultLink(String line) {
-            // 提取URL
-            int hrefStart = line.indexOf(HREF_ATTR) + HREF_ATTR.length();
-            int hrefEnd = line.indexOf("\"", hrefStart);
-            if (hrefStart > HREF_ATTR.length() - 1 && hrefEnd > hrefStart) {
-                currentUrl = decodeUrl(line.substring(hrefStart, hrefEnd));
-            }
-            
-            // 提取标题
-            int titleStart = line.indexOf(">") + 1;
-            int titleEnd = line.lastIndexOf("<");
-            if (titleStart > 0 && titleEnd > titleStart) {
-                currentTitle = cleanHtmlText(line.substring(titleStart, titleEnd));
-            }
-        }
-        
-        private void parseSnippet(String line) {
-            int snippetStart = line.indexOf(">") + 1;
-            int snippetEnd = line.lastIndexOf("<");
-            if (snippetStart > 0 && snippetEnd > snippetStart) {
-                currentSnippet = cleanHtmlText(line.substring(snippetStart, snippetEnd));
-            }
-        }
-        
-        private String decodeUrl(String url) {
-            // 解码DuckDuckGo的重定向URL
-            if (url.startsWith("/l/?uddg=")) {
-                int urlStart = url.indexOf("&rut=") + 5;
-                if (urlStart > 4) {
-                    int urlEnd = url.indexOf("&", urlStart);
-                    if (urlEnd == -1) urlEnd = url.length();
-                    try {
-                        return java.net.URLDecoder.decode(url.substring(urlStart, urlEnd), StandardCharsets.UTF_8);
-                    } catch (Exception e) {
-                        log.warn("URL解码失败: {}", url);
-                    }
-                }
-            }
-            return url;
-        }
-        
-        private void appendResult(StringBuilder results) {
-            if (!currentTitle.isEmpty() && !currentUrl.isEmpty()) {
-                resultCount++;
-                results.append(resultCount).append(". **").append(currentTitle).append("**\n");
-                results.append("   🔗 ").append(currentUrl).append("\n");
-                if (!currentSnippet.isEmpty()) {
-                    results.append("   📝 ").append(currentSnippet).append("\n");
-                }
-                results.append("\n");
-            }
-        }
-        
-        private void resetState() {
-            inResult = false;
-            currentTitle = "";
-            currentUrl = "";
-            currentSnippet = "";
-        }
-    }
 }

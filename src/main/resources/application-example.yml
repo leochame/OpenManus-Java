@@ -41,11 +41,12 @@ openmanus:
     https-proxy: ""
 
   search:
-    engine: "google"
-    # 请在 application-local.yml 中设置真实的搜索 API 配置
-    api-key: "your-google-search-api-key-here"
-    search-engine-id: "your-google-search-engine-id-here"
-    max-results: 10
+    engine: "serper"
+    # Serper API Key - 获取地址: https://serper.dev
+    # 注册后每月有 2500 次免费搜索额度
+    api-key: "your-serper-api-key-here"
+    serper-endpoint: "https://google.serper.dev/search"
+    max-results: 5
 
   runflow:
     enabled: false
