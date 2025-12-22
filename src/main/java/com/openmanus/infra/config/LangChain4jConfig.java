@@ -1,6 +1,5 @@
 package com.openmanus.infra.config;
 
-import com.openmanus.agent.tool.OmniToolCatalog;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
@@ -8,9 +7,6 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
-import org.bsc.langgraph4j.CompiledGraph;
-import org.bsc.langgraph4j.GraphStateException;
-import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -62,20 +58,6 @@ public class LangChain4jConfig {
                 .maxTokens(llmConfig.getMaxTokens())
                 .timeout(Duration.ofSeconds(llmConfig.getTimeout()))
                 .build();
-    }
-
-    /**
-     * Agent执行器图
-     * 编译后的图可被注入到其他组件中使用
-     */
-    @Bean
-    public CompiledGraph<AgentExecutor.State> compiledGraph(ChatModel chatModel, 
-                                                            OmniToolCatalog omniToolCatalog) throws GraphStateException {
-        AgentExecutor.Builder builder = AgentExecutor.builder()
-                .chatModel(chatModel)
-                .toolsFromObject(omniToolCatalog.getTools().toArray(new Object[0]));
-
-        return builder.build().compile();
     }
 
     /**

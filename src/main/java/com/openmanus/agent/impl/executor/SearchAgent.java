@@ -3,7 +3,6 @@ package com.openmanus.agent.impl.executor;
 import com.openmanus.agent.base.AbstractAgentExecutor;
 import com.openmanus.agent.tool.BrowserTool;
 import dev.langchain4j.data.message.SystemMessage;
-import org.bsc.langgraph4j.GraphStateException;
 
 /**
  * 搜索智能体 - 负责信息检索任务
@@ -28,7 +27,7 @@ public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
             return this;
         }
 
-        public SearchAgent build() throws GraphStateException {
+        public SearchAgent build() {
             this.name("search_agent")
                 .description("当需要获取最新信息、搜索网络内容或浏览网页时使用。适用于：网络搜索、信息收集、网页浏览、数据获取")
                 .singleParameter("搜索查询或网页URL")
@@ -66,7 +65,7 @@ public class SearchAgent extends AbstractAgentExecutor<SearchAgent.Builder> {
         return new Builder();
     }
     
-    public SearchAgent(Builder builder) throws GraphStateException {
+    public SearchAgent(Builder builder) {
         super(builder);
     }
 }

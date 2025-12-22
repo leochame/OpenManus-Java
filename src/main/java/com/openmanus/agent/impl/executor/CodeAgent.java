@@ -3,7 +3,6 @@ package com.openmanus.agent.impl.executor;
 import com.openmanus.agent.base.AbstractAgentExecutor;
 import com.openmanus.agent.tool.PythonTool;
 import dev.langchain4j.data.message.SystemMessage;
-import org.bsc.langgraph4j.GraphStateException;
 
 /**
  * 代码智能体 - 负责代码执行任务
@@ -24,7 +23,7 @@ public class CodeAgent extends AbstractAgentExecutor<CodeAgent.Builder> {
             return this;
         }
         
-        public CodeAgent build() throws GraphStateException {
+        public CodeAgent build() {
             this.name("code_agent")
                 .description("当需要编写代码、执行计算、数据分析或处理编程任务时使用。适用于：Python代码执行、数据分析、算法实现、计算任务")
                 .singleParameter("代码需求或计算任务描述")
@@ -77,7 +76,7 @@ public class CodeAgent extends AbstractAgentExecutor<CodeAgent.Builder> {
         return new Builder();
     }
     
-    public CodeAgent(Builder builder) throws GraphStateException {
+    public CodeAgent(Builder builder) {
         super(builder);
     }
 }

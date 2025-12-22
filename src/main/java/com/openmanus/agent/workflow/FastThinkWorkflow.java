@@ -5,14 +5,11 @@ import com.openmanus.agent.base.AgentHandoff;
 import com.openmanus.agent.impl.executor.CodeAgent;
 import com.openmanus.agent.impl.executor.FileAgent;
 import com.openmanus.agent.impl.executor.SearchAgent;
-import com.openmanus.agent.tool.OmniToolCatalog;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.model.chat.ChatModel;
-import org.bsc.langgraph4j.CompiledGraph;
-import org.bsc.langgraph4j.agentexecutor.AgentExecutor;
 import org.springframework.stereotype.Service;
-import java.util.Map;
+
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -31,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class FastThinkWorkflow {
 
-    private final CompiledGraph<AgentExecutor.State> handoffExecutor;
+    private final AgentHandoff handoffExecutor;
 
     /**
      * 构造函数，由 Spring 自动注入 ChatLanguageModel。
@@ -46,8 +43,8 @@ public class FastThinkWorkflow {
 
         // 4. 使用 AgentHandoff.builder() 构建快思考工作流
         this.handoffExecutor = AgentHandoff.builder()
-                .chatModel(chatModel)
-                .systemMessage(SystemMessage.from("""
+                .chatModel(chatModel) // 为主管 Agent 设置大脑
+                .systemMessage("""
                     你是一个快速响应型智能助手，专注于直接高效地解决用户问题。
                     
                     工作原则：
@@ -62,13 +59,11 @@ public class FastThinkWorkflow {
                     - payment_agent：处理支付、交易相关查询
                     - omni_agent：通用工具，可处理各类常见问题
                     
-                    记住：你是"快思考"模式，专注于快速响应和简单问题解决。
-                    """))
-                .agent(searchAgent)
-                .agent(codeAgent)
-                .agent(fileAgent)
-                .build()
-                .compile(); // 编译图，使其可执行
+                    记住：你是"快思考"模式，专注于快速响应和简单问题解决。""")
+                .agent(searchAgent) // 注册 SearchAgent 作为一个可用的子工具
+                .agent(codeAgent)   // 注册 CodeAgent 作为一个可用的子工具
+                .agent(fileAgent)   // 注册 FileAgent 作为一个可用的子工具
+                .build(); // 构建主管 Agent
     }
 
     /**
@@ -77,23 +72,24 @@ public class FastThinkWorkflow {
      * @return Agent 的最终响应
      */
     public CompletableFuture<String> execute(String userInput) {
-        Map<String, Object> inputState = Map.of("messages", UserMessage.from(userInput));
-        return CompletableFuture.supplyAsync(() -> handoffExecutor.invoke(inputState))
-                .thenApply(response -> 
-                    response.flatMap(AgentExecutor.State::finalResponse)
-                            .orElse("抱歉，我无法处理这个请求。")
-                );
+        return CompletableFuture.supplyAsync(() -> executeSync(userInput));
     }
-    
+
     /**
      * 同步执行快思考工作流
      * @param userInput 用户输入
      * @return 执行结果
      */
     public String executeSync(String userInput) {
-        Map<String, Object> inputState = Map.of("messages", UserMessage.from(userInput));
-        return handoffExecutor.invoke(inputState)
-                .flatMap(AgentExecutor.State::finalResponse)
-                .orElse("抱歉，我无法处理这个请求。");
+        // 1. 将用户输入包装成一个 ToolExecutionRequest，以启动 AgentHandoff 执行器
+        // AgentHandoff 本身被设计成一个工具，所以它的入口是 execute 方法
+        String arguments = String.format("{\"context\": \"%s\"}", userInput);
+        ToolExecutionRequest initialRequest = ToolExecutionRequest.builder()
+                .name(handoffExecutor.name()) // 使用主管 Agent 自己的名字
+                .arguments(arguments)
+                .build();
+
+        // 2. 直接调用我们自定义的执行逻辑
+        return handoffExecutor.execute(initialRequest, UUID.randomUUID());
     }
 }

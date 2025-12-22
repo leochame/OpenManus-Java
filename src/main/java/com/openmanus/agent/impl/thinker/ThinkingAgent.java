@@ -5,7 +5,6 @@ import com.openmanus.infra.monitoring.AgentExecutionTracker;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.bsc.langgraph4j.GraphStateException;
 import com.openmanus.domain.model.AgentExecutionEvent;
 import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
@@ -97,7 +96,7 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
             return this;
         }
 
-        public ThinkingAgent build() throws GraphStateException {
+        public ThinkingAgent build() {
             this.name("thinking_agent")
                 .description("当用户提出新任务或需要重新规划时，使用此工具进行任务分析和制定执行计划。适用于：分析复杂任务、制定执行步骤、重新规划策略")
                 .singleParameter("用户请求或需要重新规划的任务描述")
@@ -111,7 +110,7 @@ public class ThinkingAgent extends AbstractAgentExecutor<ThinkingAgent.Builder> 
         return new Builder();
     }
 
-    public ThinkingAgent(Builder builder) throws GraphStateException {
+    public ThinkingAgent(Builder builder) {
         super(builder);
         this.agentExecutionTracker = builder.agentExecutionTracker;
     }

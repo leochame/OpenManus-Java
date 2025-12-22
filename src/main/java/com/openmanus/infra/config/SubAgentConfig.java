@@ -10,7 +10,6 @@ import com.openmanus.agent.tool.FileTool;
 import com.openmanus.agent.tool.PythonTool;
 import com.openmanus.infra.monitoring.AgentExecutionTracker;
 import dev.langchain4j.model.chat.ChatModel;
-import org.bsc.langgraph4j.GraphStateException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,7 +27,7 @@ public class SubAgentConfig {
      */
     @Bean
     public ThinkingAgent thinkingAgent(ChatModel chatModel, 
-                                      AgentExecutionTracker agentExecutionTracker) throws GraphStateException {
+                                      AgentExecutionTracker agentExecutionTracker) {
         return ThinkingAgent.builder()
                 .chatModel(chatModel)
                 .agentExecutionTracker(agentExecutionTracker)
@@ -39,7 +38,7 @@ public class SubAgentConfig {
      * 搜索智能体 - 负责网络搜索和信息检索
      */
     @Bean
-    public SearchAgent searchAgent(ChatModel chatModel, BrowserTool browserTool) throws GraphStateException {
+    public SearchAgent searchAgent(ChatModel chatModel, BrowserTool browserTool) {
         return SearchAgent.builder()
                 .chatModel(chatModel)
                 .browserTool(browserTool)
@@ -50,7 +49,7 @@ public class SubAgentConfig {
      * 代码智能体 - 负责代码执行和计算
      */
     @Bean
-    public CodeAgent codeAgent(ChatModel chatModel, PythonTool pythonTool) throws GraphStateException {
+    public CodeAgent codeAgent(ChatModel chatModel, PythonTool pythonTool) {
         return CodeAgent.builder()
                 .chatModel(chatModel)
                 .pythonTool(pythonTool)
@@ -61,7 +60,7 @@ public class SubAgentConfig {
      * 文件智能体 - 负责文件操作
      */
     @Bean
-    public FileAgent fileAgent(ChatModel chatModel, FileTool fileTool) throws GraphStateException {
+    public FileAgent fileAgent(ChatModel chatModel, FileTool fileTool) {
         return FileAgent.builder()
                 .chatModel(chatModel)
                 .fileTool(fileTool)
@@ -73,7 +72,7 @@ public class SubAgentConfig {
      */
     @Bean
     public ReflectionAgent reflectionAgent(ChatModel chatModel, 
-                                          AgentExecutionTracker agentExecutionTracker) throws GraphStateException {
+                                          AgentExecutionTracker agentExecutionTracker) {
         return ReflectionAgent.builder()
                 .chatModel(chatModel)
                 .agentExecutionTracker(agentExecutionTracker)

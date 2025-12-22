@@ -6,7 +6,6 @@ import com.openmanus.infra.monitoring.AgentExecutionTracker;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.bsc.langgraph4j.GraphStateException;
 import static com.openmanus.infra.log.LogMarkers.TO_FRONTEND;
 
 /**
@@ -94,7 +93,7 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
             return this;
         }
 
-        public ReflectionAgent build() throws GraphStateException {
+        public ReflectionAgent build() {
             this.name("reflection_agent")
                 .description("当任务执行完成后，使用此工具评估结果质量和完整性，决定是否需要进一步改进。适用于：评估执行结果、检查任务完成度、提供改进建议")
                 .singleParameter("执行结果或包含上下文的评估请求")
@@ -108,7 +107,7 @@ public class ReflectionAgent extends AbstractAgentExecutor<ReflectionAgent.Build
         return new Builder();
     }
 
-    public ReflectionAgent(Builder builder) throws GraphStateException {
+    public ReflectionAgent(Builder builder) {
         super(builder);
         this.agentExecutionTracker = builder.agentExecutionTracker;
     }

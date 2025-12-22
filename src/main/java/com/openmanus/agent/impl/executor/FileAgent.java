@@ -3,7 +3,6 @@ package com.openmanus.agent.impl.executor;
 import com.openmanus.agent.base.AbstractAgentExecutor;
 import com.openmanus.agent.tool.FileTool;
 import dev.langchain4j.data.message.SystemMessage;
-import org.bsc.langgraph4j.GraphStateException;
 
 /**
  * 文件智能体 - 负责文件操作任务
@@ -24,7 +23,7 @@ public class FileAgent extends AbstractAgentExecutor<FileAgent.Builder> {
             return this;
         }
         
-        public FileAgent build() throws GraphStateException {
+        public FileAgent build() {
             this.name("file_agent")
                 .description("当需要读取、写入、创建或管理文件时使用。适用于：文件读写、目录操作、文件管理、内容处理")
                 .singleParameter("文件操作需求和文件路径")
@@ -61,7 +60,7 @@ public class FileAgent extends AbstractAgentExecutor<FileAgent.Builder> {
         return new Builder();
     }
     
-    public FileAgent(Builder builder) throws GraphStateException {
+    public FileAgent(Builder builder) {
         super(builder);
     }
 }
