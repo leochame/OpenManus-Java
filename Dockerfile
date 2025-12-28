@@ -48,9 +48,12 @@ RUN mkdir -p /app/workspace /app/logs \
 # 切换到非root用户
 USER openmanus
 
+# 默认服务端口（可在 docker-compose / 运行时覆盖）
+ENV SERVER_PORT=8089
+
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:${SERVER_PORT:-8089}/actuator/health || exit 1
 
 # 暴露端口
 EXPOSE 8089

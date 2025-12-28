@@ -9,6 +9,8 @@ services:
     volumes:
       - ./workspace:/app/workspace
       - ./logs:/app/logs
+    environment:
+      - SERVER_PORT=8089
     env_file:
       - .env
     restart: unless-stopped
