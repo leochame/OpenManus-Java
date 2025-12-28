@@ -34,12 +34,14 @@
     # DashScope API Key (必需)
     # 这是项目默认使用的大语言模型服务。
     # 获取地址: https://help.aliyun.com/zh/dashscope/developer-reference/activate-dashscope-and-create-an-api-key
-    OPENMANUS_LLM_DEFAULTLLM_APIKEY=your-dashscope-api-key-here
+    OPENMANUS_LLM_DEFAULT_LLM_API_KEY=your-dashscope-api-key-here
+    # 兼容旧命名（仍支持）：
+    # OPENMANUS_LLM_DEFAULTLLM_APIKEY=your-dashscope-api-key-here
 
-    # Tavily API Key (可选)
+    # Serper API Key (可选)
     # 用于 Agent 的网页搜索功能。
-    # 获取地址: https://tavily.com/
-    TAVILY_API_KEY=your-tavily-api-key-here
+    # 获取地址: https://serper.dev
+    SERPER_API_KEY=your-serper-api-key-here
 
     # OpenAI API Key (可选)
     # 如果您想切换到 OpenAI 模型，请配置此项。
@@ -48,14 +50,20 @@
     ```
 
     **注意**:
-    - `OPENMANUS_LLM_DEFAULTLLM_APIKEY` 是项目运行所必需的。
+    - `OPENMANUS_LLM_DEFAULT_LLM_API_KEY` 是项目运行所必需的。
     - 其他 API 密钥是可选的，但会影响部分 Agent 功能（如网页搜索）。
 
 ### 2.2. 应用配置 (可选)
 
-项目的主要配置文件是 `src/main/resources/application.yaml`。您可以在此文件中查看默认配置。
+配置参考文件为 `src/main/resources/application-example.yml`，包含完整的可配置项示例。
 
 如果您需要覆盖某些配置（例如，更换 LLM 模型或修改端口），建议创建一个 `src/main/resources/application-local.yml` 文件，并在其中写入您需要修改的配置。此文件不会被 Git 跟踪，可以避免将个人配置提交到代码库。
+
+启动时使用 local profile 使其生效，例如：
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
 
 ## 3. 启动应用
 

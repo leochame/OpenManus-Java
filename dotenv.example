@@ -7,11 +7,15 @@
 
 # DashScope API Key (for LLM)
 # Get your key from: https://help.aliyun.com/zh/dashscope/developer-reference/activate-dashscope-and-create-an-api-key
-OPENMANUS_LLM_DEFAULTLLM_APIKEY=your-dashscope-api-key-here
+OPENMANUS_LLM_DEFAULT_LLM_API_KEY=your-dashscope-api-key-here
+# Legacy (still supported):
+# OPENMANUS_LLM_DEFAULTLLM_APIKEY=your-dashscope-api-key-here
 
-# Tavily API Key (for Web Search) - Optional
-# Get your key from: https://tavily.com/
-TAVILY_API_KEY=your-tavily-api-key-here
+# Serper API Key (for Web Search) - Optional
+# Get your key from: https://serper.dev
+SERPER_API_KEY=your-serper-api-key-here
+# Or use OpenManus-scoped name (still supported):
+# OPENMANUS_SEARCH_API_KEY=your-serper-api-key-here
 
 # OpenAI API Key - Optional
 # Although the default LLM is DashScope, some components might use OpenAI.
