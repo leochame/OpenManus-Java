@@ -109,23 +109,28 @@ graph TD
    cd OpenManus-Java
    ```
 
-2. **Configure the environment**
-   Copy `src/main/resources/application-example.yml` to `src/main/resources/application.yaml` and fill in your LLM API Key:
-   ```yaml
-   openmanus:
-     llm:
-       default-llm:
-         # Fill in your API Key
-         api-key: "sk-..."
-   ```
-
-3. **Start the application**
+2. **Configure API keys (recommended)**
+   Copy `dotenv.example` to `.env` and fill in your API keys:
    ```bash
-   ./mvnw spring-boot:run
+   cp dotenv.example .env
    ```
 
-4. **Access the service**
-   Open your browser and go to: http://localhost:8080
+3. **Optional: override application config**
+   Use `src/main/resources/application-example.yml` as a reference, and create `src/main/resources/application-local.yml` for personal overrides.
+
+4. **Start the application**
+   ```bash
+   mvn spring-boot:run
+   ```
+   If you created `application-local.yml`, run with the local profile:
+   ```bash
+   mvn spring-boot:run -Dspring-boot.run.profiles=local
+   ```
+
+5. **Access the service**
+   Open your browser and go to: http://localhost:8089
+
+For a one-command setup (Docker Compose), see: `docs/QUICK_START.md`.
 
 ## 📊 Usage
 
@@ -135,10 +140,14 @@ All interactions are handled through a unified streaming API, `think-do-reflect-
 
 ```bash
 # Example Request
-curl -X POST http://localhost:8080/api/agent/think-do-reflect-stream \
+curl -X POST http://localhost:8089/api/agent/think-do-reflect-stream \
   -H "Content-Type: application/json" \
   -d '{"input": "Analyze the development trend of the tourism industry during the Spring Festival."}'
 ```
+
+### API Documentation
+
+Swagger UI: http://localhost:8089/swagger-ui.html
 
 ## 📬 Contact Me
 

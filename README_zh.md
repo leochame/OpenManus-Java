@@ -109,23 +109,28 @@ graph TD
    cd OpenManus-Java
    ```
 
-2. **配置环境**
-   将 `src/main/resources/application-example.yml` 复制为 `src/main/resources/application.yaml`，并填入你的 LLM API Key:
-   ```yaml
-   openmanus:
-     llm:
-       default-llm:
-         # 填入你的 API Key
-         api-key: "sk-..."
-   ```
-
-3. **启动应用**
+2. **配置 API Key（推荐）**
+   将 `dotenv.example` 复制为 `.env` 并填入你的 API Key：
    ```bash
-   ./mvnw spring-boot:run
+   cp dotenv.example .env
    ```
 
-4. **访问服务**
-   浏览器访问: http://localhost:8080
+3. **可选：覆盖应用配置**
+   以 `src/main/resources/application-example.yml` 为参考，新建 `src/main/resources/application-local.yml` 写入你的个人覆盖配置。
+
+4. **启动应用**
+   ```bash
+   mvn spring-boot:run
+   ```
+   如果你创建了 `application-local.yml`，可以通过 local profile 启动：
+   ```bash
+   mvn spring-boot:run -Dspring-boot.run.profiles=local
+   ```
+
+5. **访问服务**
+   浏览器访问: http://localhost:8089
+
+如需 Docker Compose 一键启动，请参考：`docs/QUICK_START.md`。
 
 ## 📊 使用方式
 
@@ -135,10 +140,14 @@ graph TD
 
 ```bash
 # 示例请求
-curl -X POST http://localhost:8080/api/agent/think-do-reflect-stream \
+curl -X POST http://localhost:8089/api/agent/think-do-reflect-stream \
   -H "Content-Type: application/json" \
   -d '{"input": "分析一下春节期间旅游行业的发展趋势"}'
 ```
+
+### API 文档
+
+Swagger UI：http://localhost:8089/swagger-ui.html
 
 ---
 
