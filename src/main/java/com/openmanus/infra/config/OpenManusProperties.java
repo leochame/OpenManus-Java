@@ -1,7 +1,9 @@
 package com.openmanus.infra.config;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import lombok.Data;
+import jakarta.annotation.PostConstruct;
 
 /**
  * OpenManus Configuration Properties
@@ -54,6 +56,56 @@ public class OpenManusProperties {
      */
     @NestedConfigurationProperty
     private RunflowConfig runflow = new RunflowConfig();
+
+    @PostConstruct
+    void applyEnvFallbacks() {
+        if (llm != null && llm.getDefaultLlm() != null) {
+            String apiKey = llm.getDefaultLlm().getApiKey();
+            if (isBlank(apiKey)) {
+                String envKey = firstNonBlankEnv(
+                        "OPENMANUS_LLM_DEFAULT_LLM_API_KEY",
+                        "OPENMANUS_LLM_DEFAULTLLM_APIKEY",
+                        "OPENAI_API_KEY"
+                );
+                if (!isBlank(envKey)) {
+                    llm.getDefaultLlm().setApiKey(envKey);
+                }
+            }
+        }
+
+        if (search != null) {
+            String apiKey = search.getApiKey();
+            if (isBlank(apiKey)) {
+                String envKey = firstNonBlankEnv(
+                        "OPENMANUS_SEARCH_API_KEY",
+                        "OPENMANUS_SEARCH_APIKEY",
+                        "SERPER_API_KEY",
+                        "SERPER_APIKEY"
+                );
+                if (!isBlank(envKey)) {
+                    search.setApiKey(envKey);
+                }
+            }
+        }
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    private static String firstNonBlankEnv(String... names) {
+        for (String name : names) {
+            String value = System.getenv(name);
+            if (!isBlank(value)) {
+                return value.trim();
+            }
+            value = System.getProperty(name);
+            if (!isBlank(value)) {
+                return value.trim();
+            }
+        }
+        return "";
+    }
     
     /**
      * Application basic configuration
