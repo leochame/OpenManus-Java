@@ -1,10 +1,12 @@
 # OpenManusJava
 
-<div align="center">
+<p align="center">
+  <img src="assets/img/logo.png" alt="OpenManusJava Logo" width="256" height="256">
+</p>
 
-<img src="assets/img/logo.png" alt="OpenManusJava Logo" width="256" height="256">
-
-**基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架**
+<p align="center">
+  <strong>基于 Java 的智能思考系统 - 快思考/慢思考多模式智能体框架</strong>
+</p>
 
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)](https://spring.io/projects/spring-boot)
@@ -13,9 +15,7 @@
 
 [🚀 快速开始](#-快速开始) •
 [🎯 功能特性](#-功能特性) •
-[🏗️ 架构设计](#️-架构设计) •
-
-</div>
+[🏗️ 架构设计](#-架构设计) •
 
 ## 📋 项目概述
 

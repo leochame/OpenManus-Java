@@ -1,10 +1,12 @@
 # OpenManusJava
 
-<div align="center">
+<p align="center">
+  <img src="assets/img/logo.png" alt="OpenManusJava Logo" width="256" height="256">
+</p>
 
-<img src="assets/img/logo.png" alt="OpenManusJava Logo" width="256" height="256">
-
-**An Intelligent Thinking System Based on Java - A Multi-modal Agent Framework with Fast/Slow Thinking**
+<p align="center">
+  <strong>An Intelligent Thinking System Based on Java - A Multi-modal Agent Framework with Fast/Slow Thinking</strong>
+</p>
 
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)](https://spring.io/projects/spring-boot)
@@ -13,9 +15,7 @@
 
 [🚀 Quick Start](#-quick-start) •
 [🎯 Features](#-features) •
-[🏗️ Architecture](#️-architecture) •
-
-</div>
+[🏗️ Architecture](#-architecture) •
 
 ## 📋 Project Overview
 
