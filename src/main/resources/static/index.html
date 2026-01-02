@@ -414,6 +414,28 @@
             gap: 6px;
         }
         .open-external:hover { border-color: var(--accent); color: var(--accent); }
+        .proxy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .proxy-toggle:hover { border-color: var(--border-light); color: var(--text-secondary); }
+        .proxy-toggle input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .proxy-toggle:has(input:checked) { border-color: var(--accent); color: var(--accent); }
+        .proxy-label { font-weight: 500; }
         
         .browser-content {
             flex: 1;
@@ -657,6 +679,10 @@
                         <button class="open-external" @click="openExternal" v-if="currentUrl" title="在新窗口打开">
                             <span>↗</span> 新窗口
                         </button>
+                        <label class="proxy-toggle" title="开启代理模式可以绕过网站的iframe限制">
+                            <input type="checkbox" v-model="useProxy" @change="refreshPage">
+                            <span class="proxy-label">代理</span>
+                        </label>
                         <div class="mode-toggle">
                             <button :class="['mode-btn',browserMode==='web'?'active':'']" @click="browserMode='web'">网页</button>
                             <button :class="['mode-btn',browserMode==='vnc'?'active':'']" @click="browserMode='vnc'" v-if="sandboxVncUrl">VNC</button>
@@ -664,7 +690,7 @@
                     </div>
                     <div class="browser-content">
                         <div v-if="browserMode==='web'" style="width:100%;height:100%;position:relative">
-                            <iframe v-if="currentUrl && !iframeError" :src="currentUrl" class="browser-iframe" @error="onIframeError" @load="onIframeLoad"></iframe>
+                            <iframe v-if="currentUrl && !iframeError" :src="getProxyUrl(currentUrl)" class="browser-iframe" @error="onIframeError" @load="onIframeLoad"></iframe>
                             <div v-if="currentUrl && iframeError" class="iframe-fallback">
                                 <div class="iframe-fallback-icon">🔒</div>
                                 <div class="iframe-fallback-title">此网站无法在此预览</div>
@@ -707,6 +733,8 @@
                 const currentUrl=ref('');
                 const sandboxVncUrl=ref(null);
                 const iframeError=ref(false);
+                const useProxy=ref(true);
+                const getProxyUrl=(url)=>{if(!url||!useProxy.value)return url;try{const encoded=btoa(unescape(encodeURIComponent(url))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return'/api/proxy/web?url='+encoded}catch(e){return url}};
                 let stompClient=null;
                 marked.setOptions({breaks:true,gfm:true});
                 const renderMarkdown=(content)=>{if(!content)return'';try{const html=marked.parse(content);setTimeout(()=>{document.querySelectorAll('.markdown-content pre code').forEach(b=>{if(!b.dataset.highlighted){hljs.highlightElement(b);b.dataset.highlighted='yes'}})},50);return html}catch(e){return content}};
@@ -729,7 +757,7 @@
                 const onIframeLoad=(e)=>{iframeError.value=false};
                 const startSandboxPolling=async(sid)=>{let attempts=0;const poll=async()=>{if(attempts>=20)return;try{const res=await fetch('/api/agent/session/'+sid);if(res.ok){const data=await res.json();if(data.sandboxVncUrl&&data.sandboxAvailable){sandboxVncUrl.value=data.sandboxVncUrl;ElMessage.success('VNC 已就绪');return}}}catch(e){}attempts++;setTimeout(poll,3000)};poll()};
                 onMounted(()=>{});
-                return{messages,inputMessage,loading,messagesContainer,sendMessage,startNewConversation,renderMarkdown,showToolPanel,activeToolTab,searchResults,toolOutputs,browserTabs,activeBrowserTab,browserMode,currentUrl,sandboxVncUrl,iframeError,createBrowserTab,closeBrowserTab,switchBrowserTab,navigateToUrl,openInBrowser,refreshPage,openExternal,onIframeError,onIframeLoad};
+                return{messages,inputMessage,loading,messagesContainer,sendMessage,startNewConversation,renderMarkdown,showToolPanel,activeToolTab,searchResults,toolOutputs,browserTabs,activeBrowserTab,browserMode,currentUrl,sandboxVncUrl,iframeError,useProxy,getProxyUrl,createBrowserTab,closeBrowserTab,switchBrowserTab,navigateToUrl,openInBrowser,refreshPage,openExternal,onIframeError,onIframeLoad};
             }
         });
         for(const[k,c] of Object.entries(ElementPlusIconsVue))app.component(k,c);
