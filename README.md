@@ -46,6 +46,15 @@ OpenManusJava is an intelligent thinking system developed based on Spring Boot a
 - **Real-time Thinking Process**: Visualizes the AI's thinking steps and logs.
 - **Responsive Design**: Adapts to desktop, tablet, and mobile devices.
 
+#### 🖼️ UI Preview
+
+![Workspace Overview](docs/img01.png)
+
+![Web Preview (Proxy Mode)](docs/img02.png)
+
+> Note: Some websites block being embedded in an iframe via security headers like `X-Frame-Options` or CSP `frame-ancestors`.
+> If you see “此网站无法在此预览”, enable the **“代理”** toggle in the address bar to load the page through the backend proxy.
+
 ## 🏗️ Architecture
 
 ### Core Architecture Diagram

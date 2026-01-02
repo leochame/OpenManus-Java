@@ -46,7 +46,14 @@ OpenManusJava 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考�
 - **实时思考过程**: 可视化展示 AI 的思考步骤和日志。
 - **响应式设计**: 适配桌面、平板和移动设备。
 
-![img01.png](docs/img01.png)
+#### 🖼️ 界面预览
+
+![工作台概览](docs/img01.png)
+
+![网页预览（代理模式）](docs/img02.png)
+
+> 说明：部分网站会通过 `X-Frame-Options` 或 CSP `frame-ancestors` 禁止被 iframe 嵌入，因此会出现“此网站无法在此预览”的提示。  
+> 这时请在地址栏右侧开启 **“代理”** 开关，通过后端代理加载页面即可预览（仅建议用于开发/演示场景）。
 
 
 ## 🏗️ 架构设计

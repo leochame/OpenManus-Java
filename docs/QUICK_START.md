@@ -115,3 +115,21 @@ openmanus-java    | ...  Started WebApplication in ... seconds
 - **API 文档 (Swagger UI)**: [http://localhost:8089/swagger-ui.html](http://localhost:8089/swagger-ui.html)
 
 现在，您可以开始与 OpenManus-Java Agent 进行交互了！
+
+## 5. 界面预览
+
+![工作台概览](img01.png)
+
+![网页预览（代理模式）](img02.png)
+
+## 6. 常见问题
+
+### 6.1 为什么有些网站在右侧“网页”预览里打不开？
+
+部分网站会通过 `X-Frame-Options` 或 CSP `frame-ancestors` 禁止被 iframe 嵌入，浏览器会直接拦截，因此会出现“此网站无法在此预览”的提示。
+
+### 6.2 如何解决“此网站无法在此预览”？
+
+在右侧地址栏开启 **“代理”** 开关后重试（会通过后端代理加载页面，从而绕过 iframe 限制）。
+
+> 注意：代理能力仅建议用于开发/演示场景；若目标网站本身需要登录、强校验 CSRF/Referrer/Cookie 等，仍可能无法完整使用。
