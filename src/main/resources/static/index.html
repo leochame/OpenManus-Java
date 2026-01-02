@@ -721,12 +721,12 @@
                 const createBrowserTab=()=>{const t={id:'tab-'+Date.now(),title:'新标签页',icon:'🌐',url:''};browserTabs.value.push(t);activeBrowserTab.value=t.id};
                 const closeBrowserTab=(id)=>{const i=browserTabs.value.findIndex(t=>t.id===id);if(i>-1){browserTabs.value.splice(i,1);if(activeBrowserTab.value===id&&browserTabs.value.length)activeBrowserTab.value=browserTabs.value[0].id}};
                 const switchBrowserTab=(id)=>{activeBrowserTab.value=id;const t=browserTabs.value.find(x=>x.id===id);if(t)currentUrl.value=t.url};
-                const navigateToUrl=()=>{if(!currentUrl.value)return;let url=currentUrl.value.trim();if(!url.startsWith('http://') && !url.startsWith('https://'))url='https://'+url;currentUrl.value=url;const t=browserTabs.value.find(x=>x.id===activeBrowserTab.value);if(t){t.url=url;try{t.title=new URL(url).hostname}catch(e){}}};
+                const navigateToUrl=()=>{if(!currentUrl.value)return;iframeError.value=false;let url=currentUrl.value.trim();if(!url.startsWith('http://') && !url.startsWith('https://'))url='https://'+url;currentUrl.value=url;const t=browserTabs.value.find(x=>x.id===activeBrowserTab.value);if(t){t.url=url;try{t.title=new URL(url).hostname}catch(e){}}};
                 const openInBrowser=(url)=>{iframeError.value=false;currentUrl.value=url;navigateToUrl()};
                 const refreshPage=()=>{iframeError.value=false;const f=document.querySelector('.browser-iframe');if(f)f.src=f.src};
                 const openExternal=()=>{if(currentUrl.value)window.open(currentUrl.value,'_blank')};
                 const onIframeError=()=>{iframeError.value=true};
-                const onIframeLoad=(e)=>{try{const doc=e.target.contentDocument;if(!doc||!doc.body||doc.body.innerHTML==='')iframeError.value=true}catch(err){iframeError.value=true}};
+                const onIframeLoad=(e)=>{iframeError.value=false};
                 const startSandboxPolling=async(sid)=>{let attempts=0;const poll=async()=>{if(attempts>=20)return;try{const res=await fetch('/api/agent/session/'+sid);if(res.ok){const data=await res.json();if(data.sandboxVncUrl&&data.sandboxAvailable){sandboxVncUrl.value=data.sandboxVncUrl;ElMessage.success('VNC 已就绪');return}}}catch(e){}attempts++;setTimeout(poll,3000)};poll()};
                 onMounted(()=>{});
                 return{messages,inputMessage,loading,messagesContainer,sendMessage,startNewConversation,renderMarkdown,showToolPanel,activeToolTab,searchResults,toolOutputs,browserTabs,activeBrowserTab,browserMode,currentUrl,sandboxVncUrl,iframeError,createBrowserTab,closeBrowserTab,switchBrowserTab,navigateToUrl,openInBrowser,refreshPage,openExternal,onIframeError,onIframeLoad};
