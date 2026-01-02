@@ -46,6 +46,9 @@ OpenManusJava 是一个基于 Spring Boot 和 LangChain4j 开发的智能思考�
 - **实时思考过程**: 可视化展示 AI 的思考步骤和日志。
 - **响应式设计**: 适配桌面、平板和移动设备。
 
+![img01.png](docs/img01.png)
+
+
 ## 🏗️ 架构设计
 
 ### 核心架构图
