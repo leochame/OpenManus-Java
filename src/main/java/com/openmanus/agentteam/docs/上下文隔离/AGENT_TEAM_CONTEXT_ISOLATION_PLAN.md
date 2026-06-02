@@ -358,7 +358,7 @@ public record AgentTeamExecutionContext(
 - 调整 `SubAgentExecutionIsolationTest`
 - 调整 `AgentTeamRoleExecutionServiceTest` 或补充现有测试
 
-## 阶段 D：任务状态写入所有权校验
+## 阶段 D：任务状态写入所有权校验（已完成）
 
 目标：
 

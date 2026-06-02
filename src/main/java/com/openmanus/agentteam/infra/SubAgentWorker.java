@@ -1,5 +1,6 @@
 package com.openmanus.agentteam.infra;
 
+import com.openmanus.agentteam.application.AgentTeamErrorSupport;
 import com.openmanus.agentteam.application.SubAgentExecutionService;
 import com.openmanus.agentteam.application.SubTaskExecutionOutput;
 import com.openmanus.agentteam.domain.model.AgentMessage;
@@ -84,7 +85,7 @@ public class SubAgentWorker implements Runnable {
             );
             taskPoolPort.markRunning(subTask.getTaskId(), agentId);
             SubTaskExecutionOutput output = executionService.execute(subTask, agentId);
-            taskPoolPort.markSucceeded(subTask.getTaskId(), output.summary(), output.detail());
+            taskPoolPort.markSucceeded(subTask.getTaskId(), agentId, output.summary(), output.detail());
             log.info(
                     "SubAgentWorker completed task: agentId={}, groupId={}, taskId={}, title={}, summary={}",
                     agentId,
@@ -94,14 +95,35 @@ public class SubAgentWorker implements Runnable {
                     summarize(output.summary())
             );
         } catch (Exception exception) {
-            taskPoolPort.markFailed(subTask.getTaskId(), safeMessage(exception));
+            handleExecutionFailure(subTask, exception);
+        }
+    }
+
+    private void handleExecutionFailure(SubTask subTask, Exception exception) {
+        String errorMessage = AgentTeamErrorSupport.safeMessage(exception);
+        try {
+            taskPoolPort.markFailed(subTask.getTaskId(), agentId, errorMessage);
             log.warn(
-                    "SubAgentWorker failed task: agentId={}, groupId={}, taskId={}, title={}, error={}",
+                    "SubAgentWorker failed task: agentId={}, groupId={}, taskId={}, title={}, errorType={}, error={}",
                     agentId,
                     subTask.getGroupId(),
                     subTask.getTaskId(),
                     subTask.getTitle(),
-                    safeMessage(exception)
+                    AgentTeamErrorSupport.errorType(exception),
+                    errorMessage
+            );
+        } catch (RuntimeException writebackException) {
+            log.error(
+                    "SubAgentWorker failure writeback rejected: agentId={}, groupId={}, taskId={}, title={}, executionErrorType={}, executionError={}, writebackErrorType={}, writebackError={}",
+                    agentId,
+                    subTask.getGroupId(),
+                    subTask.getTaskId(),
+                    subTask.getTitle(),
+                    AgentTeamErrorSupport.errorType(exception),
+                    errorMessage,
+                    AgentTeamErrorSupport.errorType(writebackException),
+                    AgentTeamErrorSupport.safeMessage(writebackException),
+                    writebackException
             );
         }
     }
@@ -113,13 +135,6 @@ public class SubAgentWorker implements Runnable {
             Thread.currentThread().interrupt();
             running.set(false);
         }
-    }
-
-    private String safeMessage(Exception exception) {
-        if (exception == null || exception.getMessage() == null || exception.getMessage().isBlank()) {
-            return "subagent execution failed";
-        }
-        return exception.getMessage().trim();
     }
 
     private String summarize(String value) {

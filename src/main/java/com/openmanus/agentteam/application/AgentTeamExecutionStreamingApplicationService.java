@@ -147,9 +147,17 @@ public class AgentTeamExecutionStreamingApplicationService {
             log.info("AgentTeam execution completed: sessionId={}, durationMs={}", sessionId, executionTimeMs);
             sendExecutionResult(executionTopic, sessionId, userInput, result, "SUCCESS", endTime, executionTimeMs);
         } catch (RuntimeException exception) {
-            Throwable actualError = unwrapException(exception);
-            String errorMessage = safeErrorMessage(actualError);
-            log.error("AgentTeam execution failed: sessionId={}", sessionId, exception);
+            Throwable actualError = AgentTeamErrorSupport.unwrap(exception);
+            String errorMessage = AgentTeamErrorSupport.safeMessage(actualError);
+            String errorCode = AgentTeamErrorSupport.errorCode(actualError);
+            log.error(
+                    "AgentTeam execution failed: sessionId={}, errorCode={}, errorType={}, error={}",
+                    sessionId,
+                    errorCode,
+                    AgentTeamErrorSupport.errorType(actualError),
+                    errorMessage,
+                    exception
+            );
             executionEventPort.endExecutionTracking(sessionId, "执行出错: " + errorMessage, false);
             executionEventPort.recordError(sessionId, EXECUTION_COORDINATOR, EXECUTION_ERROR, errorMessage);
             executionEventPort.endExecution(
@@ -219,25 +227,4 @@ public class AgentTeamExecutionStreamingApplicationService {
         }
     }
 
-    private static Throwable unwrapException(Throwable throwable) {
-        if (throwable == null) {
-            return new IllegalStateException("unknown error");
-        }
-        Throwable current = throwable;
-        while (current.getCause() != null && current.getCause() != current) {
-            current = current.getCause();
-        }
-        return current;
-    }
-
-    private static String safeErrorMessage(Throwable throwable) {
-        if (throwable == null) {
-            return "unknown error";
-        }
-        String message = throwable.getMessage();
-        if (message == null || message.isBlank()) {
-            return "unknown error";
-        }
-        return message.trim();
-    }
 }

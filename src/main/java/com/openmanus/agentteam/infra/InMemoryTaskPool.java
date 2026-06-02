@@ -1,5 +1,7 @@
 package com.openmanus.agentteam.infra;
 
+import com.openmanus.agentteam.application.InvalidTaskStateTransitionException;
+import com.openmanus.agentteam.application.TaskOwnershipViolationException;
 import com.openmanus.agentteam.domain.model.SubTask;
 import com.openmanus.agentteam.domain.model.TaskStatus;
 import com.openmanus.agentteam.domain.port.TaskGroupRepositoryPort;
@@ -77,51 +79,49 @@ public class InMemoryTaskPool implements TaskPoolPort {
 
     @Override
     public void markRunning(String taskId, String agentId) {
-        repository.findSubTask(taskId).ifPresent(task -> {
-            if (task.getAssignedAgentId() == null || task.getAssignedAgentId().equals(agentId)) {
-                task.markRunning(System.currentTimeMillis());
-                repository.saveSubTask(task);
-                log.info(
-                        "TaskPool mark running: agentId={}, groupId={}, taskId={}, title={}",
-                        agentId,
-                        task.getGroupId(),
-                        task.getTaskId(),
-                        task.getTitle()
-                );
-            }
-        });
+        SubTask task = requireOwnedTask(taskId, agentId);
+        requireStatus(task, TaskStatus.CLAIMED, "Only claimed task can be marked running");
+        task.markRunning(System.currentTimeMillis());
+        repository.saveSubTask(task);
+        log.info(
+                "TaskPool mark running: agentId={}, groupId={}, taskId={}, title={}",
+                agentId,
+                task.getGroupId(),
+                task.getTaskId(),
+                task.getTitle()
+        );
     }
 
     @Override
-    public void markSucceeded(String taskId, String summary, String detail) {
-        repository.findSubTask(taskId).ifPresent(task -> {
-            task.markSucceeded(summary, detail, System.currentTimeMillis());
-            repository.saveSubTask(task);
-            log.info(
-                    "TaskPool mark succeeded: agentId={}, groupId={}, taskId={}, title={}, summary={}",
-                    task.getAssignedAgentId(),
-                    task.getGroupId(),
-                    task.getTaskId(),
-                    task.getTitle(),
-                    summarize(summary)
-            );
-        });
+    public void markSucceeded(String taskId, String agentId, String summary, String detail) {
+        SubTask task = requireOwnedTask(taskId, agentId);
+        requireStatus(task, TaskStatus.RUNNING, "Only running task can be marked succeeded");
+        task.markSucceeded(summary, detail, System.currentTimeMillis());
+        repository.saveSubTask(task);
+        log.info(
+                "TaskPool mark succeeded: agentId={}, groupId={}, taskId={}, title={}, summary={}",
+                task.getAssignedAgentId(),
+                task.getGroupId(),
+                task.getTaskId(),
+                task.getTitle(),
+                summarize(summary)
+        );
     }
 
     @Override
-    public void markFailed(String taskId, String errorMessage) {
-        repository.findSubTask(taskId).ifPresent(task -> {
-            task.markFailed(errorMessage, System.currentTimeMillis());
-            repository.saveSubTask(task);
-            log.warn(
-                    "TaskPool mark failed: agentId={}, groupId={}, taskId={}, title={}, error={}",
-                    task.getAssignedAgentId(),
-                    task.getGroupId(),
-                    task.getTaskId(),
-                    task.getTitle(),
-                    summarize(errorMessage)
-            );
-        });
+    public void markFailed(String taskId, String agentId, String errorMessage) {
+        SubTask task = requireOwnedTask(taskId, agentId);
+        requireStatus(task, TaskStatus.RUNNING, "Only running task can be marked failed");
+        task.markFailed(errorMessage, System.currentTimeMillis());
+        repository.saveSubTask(task);
+        log.warn(
+                "TaskPool mark failed: agentId={}, groupId={}, taskId={}, title={}, error={}",
+                task.getAssignedAgentId(),
+                task.getGroupId(),
+                task.getTaskId(),
+                task.getTitle(),
+                summarize(errorMessage)
+        );
     }
 
     @Override
@@ -132,6 +132,27 @@ public class InMemoryTaskPool implements TaskPoolPort {
     @Override
     public List<SubTask> findByGroupId(String groupId) {
         return repository.findSubTasksByGroupId(groupId);
+    }
+
+    private SubTask requireOwnedTask(String taskId, String agentId) {
+        SubTask task = repository.findSubTask(taskId)
+                .orElseThrow(() -> new InvalidTaskStateTransitionException("Task not found: " + taskId));
+        if (task.getAssignedAgentId() == null || task.getAssignedAgentId().isBlank()) {
+            throw new InvalidTaskStateTransitionException("Task has not been claimed yet: " + taskId);
+        }
+        if (!task.getAssignedAgentId().equals(agentId)) {
+            throw new TaskOwnershipViolationException("Task is not owned by agent: " + agentId);
+        }
+        if (task.getStatus().isTerminal()) {
+            throw new InvalidTaskStateTransitionException("Task already finished: " + taskId);
+        }
+        return task;
+    }
+
+    private void requireStatus(SubTask task, TaskStatus expectedStatus, String message) {
+        if (task.getStatus() != expectedStatus) {
+            throw new InvalidTaskStateTransitionException(message + ", currentStatus=" + task.getStatus());
+        }
     }
 
     private String summarize(String value) {

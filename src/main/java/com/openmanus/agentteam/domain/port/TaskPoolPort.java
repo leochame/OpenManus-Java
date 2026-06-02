@@ -13,9 +13,9 @@ public interface TaskPoolPort {
 
     void markRunning(String taskId, String agentId);
 
-    void markSucceeded(String taskId, String summary, String detail);
+    void markSucceeded(String taskId, String agentId, String summary, String detail);
 
-    void markFailed(String taskId, String errorMessage);
+    void markFailed(String taskId, String agentId, String errorMessage);
 
     Optional<SubTask> findById(String taskId);
 
