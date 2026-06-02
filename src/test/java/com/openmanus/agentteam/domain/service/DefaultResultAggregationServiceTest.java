@@ -19,9 +19,9 @@ class DefaultResultAggregationServiceTest {
     @DisplayName("should aggregate success and failure results")
     void shouldAggregateSuccessAndFailureResults() {
         TaskGroup group = new TaskGroup("group-1", "parent-1", "master-1", "request", 1L);
-        SubTask success = new SubTask("task-1", "group-1", "task A", "desc", 1L);
-        SubTask failed = new SubTask("task-2", "group-1", "task B", "desc", 1L);
-        SubTask pending = new SubTask("task-3", "group-1", "task C", "desc", 1L);
+        SubTask success = new SubTask("task-1", "group-1", "parent-1", "task A", "desc", "", 1L);
+        SubTask failed = new SubTask("task-2", "group-1", "parent-1", "task B", "desc", "", 1L);
+        SubTask pending = new SubTask("task-3", "group-1", "parent-1", "task C", "desc", "", 1L);
 
         success.claim("agent-1", 2L);
         success.markRunning(3L);
@@ -46,7 +46,7 @@ class DefaultResultAggregationServiceTest {
     @DisplayName("should mark all succeeded when there are no failures")
     void shouldMarkAllSucceededWhenThereAreNoFailures() {
         TaskGroup group = new TaskGroup("group-1", "parent-1", "master-1", "request", 1L);
-        SubTask success = new SubTask("task-1", "group-1", "task A", "desc", 1L);
+        SubTask success = new SubTask("task-1", "group-1", "parent-1", "task A", "desc", "", 1L);
         success.claim("agent-1", 2L);
         success.markRunning(3L);
         success.markSucceeded("summary A", "detail A", 4L);

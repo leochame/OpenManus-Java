@@ -11,6 +11,12 @@ import java.util.UUID;
  */
 public class AgentTeamRoleExecutionService implements AgentTeamRoleExecutionPort {
 
+    @FunctionalInterface
+    private interface SafeCloseable extends AutoCloseable {
+        @Override
+        void close();
+    }
+
     private final AgentTeamCoordinatorFactory coordinatorFactory;
 
     public AgentTeamRoleExecutionService(AgentTeamCoordinatorFactory coordinatorFactory) {
@@ -18,16 +24,31 @@ public class AgentTeamRoleExecutionService implements AgentTeamRoleExecutionPort
     }
 
     @Override
-    public String executeSync(AgentTeamRole role, String input, String conversationId) {
+    public String executeSync(AgentTeamExecutionContext context, String input) {
         if (input == null || input.isBlank()) {
             throw new IllegalArgumentException("input cannot be null or blank");
         }
-        Object memoryId = conversationId != null && !conversationId.isBlank()
-                ? conversationId
+        AgentTeamExecutionContext executionContext = context == null
+                ? new AgentTeamExecutionContext(AgentTeamRole.SUB_AGENT, "", "", "", "", 0, "")
+                : context;
+        Object runtimeMemoryId = executionContext.memoryId() != null && !executionContext.memoryId().isBlank()
+                ? executionContext.memoryId()
                 : UUID.randomUUID();
-        try (MDC.MDCCloseable ignored = MDC.putCloseable("sessionId", String.valueOf(memoryId))) {
-            AgentCoordinator coordinator = coordinatorFactory.create(role);
-            return coordinator.execute(input, memoryId);
+        try (MDC.MDCCloseable ignoredSession = MDC.putCloseable("sessionId", String.valueOf(runtimeMemoryId));
+             SafeCloseable ignoredGroup = putCloseable("agentTeamGroupId", executionContext.groupId());
+             SafeCloseable ignoredTask = putCloseable("agentTeamTaskId", executionContext.taskId());
+             SafeCloseable ignoredAgent = putCloseable("agentTeamAgentId", executionContext.agentId());
+             SafeCloseable ignoredParent = putCloseable("agentTeamParentSessionId", executionContext.parentSessionId())) {
+            AgentCoordinator coordinator = coordinatorFactory.create(executionContext.role());
+            return coordinator.execute(input, runtimeMemoryId);
         }
+    }
+
+    private SafeCloseable putCloseable(String key, String value) {
+        if (value == null || value.isBlank()) {
+            return () -> { };
+        }
+        MDC.MDCCloseable closeable = MDC.putCloseable(key, value);
+        return closeable::close;
     }
 }

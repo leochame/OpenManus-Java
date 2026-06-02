@@ -27,21 +27,29 @@ public class SubAgentExecutionService {
 
     public SubTaskExecutionOutput execute(SubTask subTask, String agentId) {
         String prompt = buildSubTaskPrompt(subTask, agentId);
-        log.info(
-                "SubAgentExecution dispatching to role-scoped runtime: agentId={}, groupId={}, taskId={}, title={}",
-                agentId,
+        AgentTeamExecutionContext context = AgentTeamExecutionContext.subAgent(
+                subTask.getParentSessionId(),
                 subTask.getGroupId(),
                 subTask.getTaskId(),
-                subTask.getTitle()
+                agentId
         );
-        String result = roleExecutionPort.executeSync(AgentTeamRole.SUB_AGENT, prompt, subTask.getTaskId());
-        String summary = summarize(result);
         log.info(
-                "SubAgentExecution finished runtime call: agentId={}, groupId={}, taskId={}, title={}, summary={}",
+                "SubAgentExecution dispatching to role-scoped runtime: agentId={}, groupId={}, taskId={}, title={}, memoryId={}",
                 agentId,
                 subTask.getGroupId(),
                 subTask.getTaskId(),
                 subTask.getTitle(),
+                context.memoryId()
+        );
+        String result = roleExecutionPort.executeSync(context, prompt);
+        String summary = summarize(result);
+        log.info(
+                "SubAgentExecution finished runtime call: agentId={}, groupId={}, taskId={}, title={}, memoryId={}, summary={}",
+                agentId,
+                subTask.getGroupId(),
+                subTask.getTaskId(),
+                subTask.getTitle(),
+                context.memoryId(),
                 summary
         );
         return new SubTaskExecutionOutput(summary, result);
@@ -55,7 +63,8 @@ public class SubAgentExecutionService {
                         "taskId", safe(subTask.getTaskId()),
                         "groupId", safe(subTask.getGroupId()),
                         "taskTitle", safe(subTask.getTitle()),
-                        "taskDescription", safe(subTask.getDescription())
+                        "taskDescription", safe(subTask.getDescription()),
+                        "contextSummary", safe(subTask.getContextSummary())
                 )
         );
     }

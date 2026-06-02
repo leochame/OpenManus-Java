@@ -165,11 +165,16 @@ public class AgentController {
         if (ExecutionErrorCodes.SESSION_BUSY.equals(errorCode)) {
             return HttpStatus.CONFLICT;
         }
+        if (ExecutionErrorCodes.AGENTTEAM_TASK_OWNERSHIP_VIOLATION.equals(errorCode)
+                || ExecutionErrorCodes.AGENTTEAM_TASK_STATE_INVALID.equals(errorCode)) {
+            return HttpStatus.CONFLICT;
+        }
         if (ExecutionErrorCodes.ASYNC_SUBMIT_REJECTED.equals(errorCode)
                 || ExecutionErrorCodes.ASYNC_SUBMIT_EXCEPTION.equals(errorCode)) {
             return HttpStatus.SERVICE_UNAVAILABLE;
         }
-        if (ExecutionErrorCodes.INTERNAL_ERROR.equals(errorCode)) {
+        if (ExecutionErrorCodes.INTERNAL_ERROR.equals(errorCode)
+                || ExecutionErrorCodes.AGENTTEAM_EXECUTION_FAILED.equals(errorCode)) {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
 

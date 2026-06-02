@@ -54,13 +54,14 @@ class MasterAgentOrchestratorTest {
                     groupId={{groupId}}
                     title={{taskTitle}}
                     description={{taskDescription}}
+                    contextSummary={{contextSummary}}
                     """;
         }
     };
 
     private SubAgentExecutionService subAgentExecutionService(AgentExecutionPort agentExecutionPort) {
-        AgentTeamRoleExecutionPort roleExecutionPort = (role, input, conversationId) ->
-                agentExecutionPort.executeSync(input, conversationId);
+        AgentTeamRoleExecutionPort roleExecutionPort = (context, input) ->
+                agentExecutionPort.executeSync(input, context.memoryId());
         return new SubAgentExecutionService(roleExecutionPort, promptProvider);
     }
 
@@ -128,8 +129,8 @@ class MasterAgentOrchestratorTest {
                           "parallelizable": true,
                           "reason": "Independent work items",
                           "subTasks": [
-                            {"title": "API requirements", "description": "Collect API requirements"},
-                            {"title": "Deployment risks", "description": "Summarize deployment risks"}
+                            {"title": "API requirements", "description": "Collect API requirements", "contextSummary": "Parent request: Please decompose this request\\nFocus: gather API needs"},
+                            {"title": "Deployment risks", "description": "Summarize deployment risks", "contextSummary": "Parent request: Please decompose this request\\nFocus: identify rollout risks"}
                           ]
                         }
                         """),
@@ -170,6 +171,8 @@ class MasterAgentOrchestratorTest {
             assertThat(result).contains("failed: 0");
             assertThat(result).contains("API requirements");
             assertThat(result).contains("Deployment risks");
+            verify(agentExecutionPort, atLeast(1))
+                    .executeSync(org.mockito.ArgumentMatchers.contains("contextSummary=Parent request: Please decompose this request"), anyString());
             verify(agentExecutionPort, never()).executeSync(eq("Please decompose this request"), eq("conv-2"));
             verify(agentExecutionPort, atLeast(2)).executeSync(anyString(), anyString());
         } finally {
@@ -200,8 +203,8 @@ class MasterAgentOrchestratorTest {
                           "parallelizable": true,
                           "reason": "Independent work items",
                           "subTasks": [
-                            {"title": "API requirements", "description": "Collect API requirements"},
-                            {"title": "Deployment risks", "description": "Summarize deployment risks"}
+                            {"title": "API requirements", "description": "Collect API requirements", "contextSummary": "Parent request: Please decompose this request\\nFocus: gather API needs"},
+                            {"title": "Deployment risks", "description": "Summarize deployment risks", "contextSummary": "Parent request: Please decompose this request\\nFocus: identify rollout risks"}
                           ]
                         }
                         """),

@@ -10,8 +10,10 @@ public class SubTask {
 
     private final String taskId;
     private final String groupId;
+    private final String parentSessionId;
     private final String title;
     private final String description;
+    private final String contextSummary;
     private final long createdAt;
     private TaskStatus status;
     private String assignedAgentId;
@@ -22,11 +24,21 @@ public class SubTask {
     private long startedAt;
     private long finishedAt;
 
-    public SubTask(String taskId, String groupId, String title, String description, long createdAt) {
+    public SubTask(
+            String taskId,
+            String groupId,
+            String parentSessionId,
+            String title,
+            String description,
+            String contextSummary,
+            long createdAt
+    ) {
         this.taskId = taskId;
         this.groupId = groupId;
+        this.parentSessionId = parentSessionId == null ? "" : parentSessionId.trim();
         this.title = title == null ? "" : title.trim();
         this.description = description == null ? "" : description.trim();
+        this.contextSummary = contextSummary == null ? "" : contextSummary.trim();
         this.createdAt = createdAt;
         this.status = TaskStatus.PENDING;
     }
