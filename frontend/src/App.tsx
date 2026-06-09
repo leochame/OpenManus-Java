@@ -24,6 +24,7 @@ export default function App(): JSX.Element {
   const [state, dispatch] = useReducer(workflowReducer, initialWorkflowState);
   const [input, setInput] = useState('');
   const [browserMode, setBrowserMode] = useState<'web' | 'snapshot' | 'vnc'>('web');
+  const [useAgentTeam, setUseAgentTeam] = useState(true);
   const [useProxy, setUseProxy] = useState(true);
   const [showToolPanel, setShowToolPanel] = useState(true);
   const [activeToolTab, setActiveToolTab] = useState<'search' | 'status' | 'output'>('search');
@@ -100,7 +101,7 @@ export default function App(): JSX.Element {
       const startData = await startWorkflow({
         input: content,
         sessionId: state.sessionId || undefined,
-        agentTeam: true
+        agentTeam: useAgentTeam
       });
       const sessionId = startData.session_id || startData.sessionId || '';
       const topic = startData.topic || '';
@@ -359,6 +360,15 @@ export default function App(): JSX.Element {
               placeholder="Type a message, Ctrl/⌘+Enter to send"
             />
             <div className="input-actions">
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={useAgentTeam}
+                  onChange={(e) => setUseAgentTeam(e.target.checked)}
+                  disabled={state.loading}
+                />
+                Agent Team
+              </label>
               <button
                 className="btn secondary"
                 type="button"
