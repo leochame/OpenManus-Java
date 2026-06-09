@@ -1,6 +1,7 @@
 package com.openmanus.infra.web;
 
 import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
 import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
 import com.openmanus.domain.model.ExecutionErrorCodes;
 import com.openmanus.domain.model.ExecutionRequest;
@@ -36,6 +37,7 @@ public class AgentController {
     private final ConversationApplicationService conversationApplicationService;
     private final AgentTeamConversationApplicationService agentTeamConversationApplicationService;
     private final AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService;
+    private final AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService;
     private final ExecutionStreamingApplicationService executionStreamingApplicationService;
     private final AgentTeamProperties agentTeamProperties;
     private final SandboxSessionApplicationService sandboxSessionApplicationService;
@@ -44,12 +46,14 @@ public class AgentController {
             ConversationApplicationService conversationApplicationService,
             AgentTeamConversationApplicationService agentTeamConversationApplicationService,
             AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService,
+            AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService,
             ExecutionStreamingApplicationService executionStreamingApplicationService,
             AgentTeamProperties agentTeamProperties,
             SandboxSessionApplicationService sandboxSessionApplicationService) {
         this.conversationApplicationService = conversationApplicationService;
         this.agentTeamConversationApplicationService = agentTeamConversationApplicationService;
         this.agentTeamExecutionStreamingApplicationService = agentTeamExecutionStreamingApplicationService;
+        this.agentTeamCodingExecutionStreamingApplicationService = agentTeamCodingExecutionStreamingApplicationService;
         this.executionStreamingApplicationService = executionStreamingApplicationService;
         this.agentTeamProperties = agentTeamProperties;
         this.sandboxSessionApplicationService = sandboxSessionApplicationService;
@@ -111,17 +115,27 @@ public class AgentController {
     )
     public ResponseEntity<ExecutionStreamResponse> executionStream(
             @RequestBody ExecutionRequest executionRequest,
-            @RequestParam(defaultValue = "false") boolean agentTeam) {
+            @RequestParam(defaultValue = "false") boolean agentTeam,
+            @RequestParam(defaultValue = "false") boolean agentTeamCoding) {
         String userInput = executionRequest.getInput();
-        ExecutionResponse serviceResult = shouldUseAgentTeam(agentTeam)
-                ? agentTeamExecutionStreamingApplicationService.executeAndStreamEvents(
-                        userInput,
-                        executionRequest.getSessionId()
-                )
-                : executionStreamingApplicationService.executeAndStreamEvents(
-                        userInput,
-                        executionRequest.getSessionId()
-                );
+        ExecutionResponse serviceResult;
+        if (shouldUseAgentTeamCoding(agentTeamCoding)) {
+            serviceResult = agentTeamCodingExecutionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId(),
+                    executionRequest.getTargetRepositoryPath()
+            );
+        } else if (shouldUseAgentTeam(agentTeam)) {
+            serviceResult = agentTeamExecutionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId()
+            );
+        } else {
+            serviceResult = executionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId()
+            );
+        }
 
         if (!serviceResult.isSuccess()) {
             HttpStatus status = resolveErrorStatus(serviceResult.getErrorCode(), serviceResult.getError());
@@ -247,6 +261,10 @@ public class AgentController {
 
     private boolean shouldUseAgentTeam(boolean agentTeamRequested) {
         return agentTeamRequested && agentTeamProperties.isEnabled();
+    }
+
+    private boolean shouldUseAgentTeamCoding(boolean agentTeamCodingRequested) {
+        return agentTeamCodingRequested && agentTeamProperties.isEnabled();
     }
 
     /**

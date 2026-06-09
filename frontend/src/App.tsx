@@ -11,6 +11,8 @@ import type { ThoughtStep } from './types/api';
 import {
   initialWorkflowState,
   workflowReducer,
+  type AgentTeamCodingSubTaskView,
+  type AgentTeamCodingView,
   type BrowserStatus,
   type ChatMessage,
   type TimelineEntry,
@@ -23,8 +25,10 @@ marked.setOptions({ breaks: true, gfm: true });
 export default function App(): JSX.Element {
   const [state, dispatch] = useReducer(workflowReducer, initialWorkflowState);
   const [input, setInput] = useState('');
+  const [targetRepositoryPath, setTargetRepositoryPath] = useState('');
   const [browserMode, setBrowserMode] = useState<'web' | 'snapshot' | 'vnc'>('web');
   const [useAgentTeam, setUseAgentTeam] = useState(true);
+  const [useAgentTeamCoding, setUseAgentTeamCoding] = useState(false);
   const [useProxy, setUseProxy] = useState(true);
   const [showToolPanel, setShowToolPanel] = useState(true);
   const [activeToolTab, setActiveToolTab] = useState<'search' | 'status' | 'output'>('search');
@@ -101,7 +105,9 @@ export default function App(): JSX.Element {
       const startData = await startWorkflow({
         input: content,
         sessionId: state.sessionId || undefined,
-        agentTeam: useAgentTeam
+        agentTeam: useAgentTeam,
+        agentTeamCoding: useAgentTeamCoding,
+        targetRepositoryPath: useAgentTeamCoding ? targetRepositoryPath.trim() || undefined : undefined
       });
       const sessionId = startData.session_id || startData.sessionId || '';
       const topic = startData.topic || '';
@@ -347,6 +353,12 @@ export default function App(): JSX.Element {
             {state.error ? <div className="error-banner">{state.error}</div> : null}
           </div>
           <form className="input-form" onSubmit={(event) => void sendMessage(event)}>
+            <input
+              value={targetRepositoryPath}
+              onChange={(event) => setTargetRepositoryPath(event.target.value)}
+              placeholder="Target repository path for Team Coding (optional)"
+              disabled={state.loading}
+            />
             <textarea
               rows={3}
               value={input}
@@ -368,6 +380,15 @@ export default function App(): JSX.Element {
                   disabled={state.loading}
                 />
                 Agent Team
+              </label>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={useAgentTeamCoding}
+                  onChange={(e) => setUseAgentTeamCoding(e.target.checked)}
+                  disabled={state.loading}
+                />
+                Team Coding
               </label>
               <button
                 className="btn secondary"
@@ -438,6 +459,7 @@ export default function App(): JSX.Element {
                   {state.snapshotPath ? <p className="muted">Snapshot: {state.snapshotPath}</p> : null}
                   {state.snapshotPreview ? <pre>{state.snapshotPreview}</pre> : null}
                 </article>
+                {state.agentTeamCoding ? <AgentTeamCodingCard view={state.agentTeamCoding} /> : null}
                 <TimelineSection title="Web Timeline" items={state.webTimeline} />
               </>
             ) : null}
@@ -654,6 +676,67 @@ function OutputCard({ output }: { output: ToolOutput }): JSX.Element {
       <h4>{output.type}</h4>
       <p className="muted">{output.time}</p>
       <pre>{output.content}</pre>
+    </article>
+  );
+}
+
+function AgentTeamCodingCard({ view }: { view: AgentTeamCodingView }): JSX.Element {
+  return (
+    <article className="card">
+      <h4>Team Coding</h4>
+      <p className="muted">Stage: {view.stage || 'Waiting'}</p>
+      {view.groupId ? <p className="muted">Group: {view.groupId}</p> : null}
+      {view.repositoryPath ? <p className="muted">Repo: {view.repositoryPath}</p> : null}
+      <p className="muted">Tasks: {view.taskCount || view.subTasks.length}</p>
+      {view.success !== null ? <p className="muted">Success: {view.success ? 'yes' : 'no'}</p> : null}
+      {view.fallbackToSingleAgent ? <p>Fell back to single-agent execution</p> : null}
+      {view.integration ? <IntegrationSummary view={view.integration} /> : null}
+      {view.subTasks.length > 0 ? (
+        <div className="thought-steps">
+          {view.subTasks.map((subTask) => (
+            <AgentTeamSubTaskCard key={subTask.taskId} subTask={subTask} />
+          ))}
+        </div>
+      ) : (
+        <p className="muted">Waiting for structured team coding updates</p>
+      )}
+    </article>
+  );
+}
+
+function IntegrationSummary({ view }: { view: NonNullable<AgentTeamCodingView['integration']> }): JSX.Element {
+  return (
+    <div>
+      <p className="muted">
+        Integration: {view.integrationBranch || 'pending'} {view.success === null ? '' : `(${view.success ? 'ok' : 'failed'})`}
+      </p>
+      {view.verification ? <p>{view.verification}</p> : null}
+      {view.mergedBranches.length > 0 ? <p>Merged: {view.mergedBranches.join(', ')}</p> : null}
+      {view.conflictFiles.length > 0 ? <p>Conflicts: {view.conflictFiles.join(', ')}</p> : null}
+      {view.errorMessage ? <p>{view.errorMessage}</p> : null}
+    </div>
+  );
+}
+
+function AgentTeamSubTaskCard({ subTask }: { subTask: AgentTeamCodingSubTaskView }): JSX.Element {
+  return (
+    <article className="thought-step status">
+      <header>
+        <strong>{subTask.title || subTask.taskId}</strong>
+        <span>{subTask.status || 'PENDING'}</span>
+      </header>
+      {subTask.goal ? <p>{subTask.goal}</p> : null}
+      {subTask.summary ? <pre>{subTask.summary}</pre> : null}
+      {subTask.branchName ? <p>Branch: {subTask.branchName}</p> : null}
+      {subTask.commitSha ? <p>Commit: {subTask.commitSha}</p> : null}
+      {subTask.worktreePath ? <p>Worktree: {subTask.worktreePath}</p> : null}
+      {subTask.changedFiles.length > 0 ? <p>Files: {subTask.changedFiles.join(', ')}</p> : null}
+      {subTask.ownedPaths.length > 0 ? <p>Owned Paths: {subTask.ownedPaths.join(', ')}</p> : null}
+      {subTask.verificationCommands.length > 0 ? <p>Verify: {subTask.verificationCommands.join(' | ')}</p> : null}
+      {subTask.testPassed !== null ? <p>Tests: {subTask.testPassed ? 'passed' : 'failed'}</p> : null}
+      {subTask.testSummary ? <p>{subTask.testSummary}</p> : null}
+      {subTask.conflictRisk ? <p>Conflict Risk: {subTask.conflictRisk}</p> : null}
+      {subTask.errorMessage ? <p>{subTask.errorMessage}</p> : null}
     </article>
   );
 }

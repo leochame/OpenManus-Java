@@ -84,6 +84,83 @@ describe('workflowReducer', () => {
     expect(state.toolOutputs[0].content).toContain('搜索结果');
   });
 
+  it('surfaces intermediate agent team coding stages in trace and tool output', () => {
+    let state = workflowReducer(initialWorkflowState, {
+      type: 'SEND_USER_MESSAGE',
+      payload: { content: 'build feature', time: '09:00' }
+    });
+    state = workflowReducer(state, {
+      type: 'START_ASSISTANT_MESSAGE',
+      payload: { time: '09:00' }
+    });
+    state = workflowReducer(state, {
+      type: 'HANDLE_EVENT',
+      payload: {
+        eventType: 'INTERMEDIATE_RESULT',
+        agentName: 'agentteam_coding_coordinator',
+        output: 'integrationBranch=agentteam/integration-123',
+        metadata: {
+          stage: 'INTEGRATION',
+          integrationBranch: 'agentteam/integration-123',
+          verification: 'compile success'
+        }
+      }
+    });
+
+    expect(state.messages[1].thoughtSteps[0]?.kind).toBe('status');
+    expect(state.messages[1].thoughtSteps[0]?.title).toBe('Agent Team INTEGRATION');
+    expect(state.toolOutputs[0]?.type).toBe('Agent Team INTEGRATION');
+    expect(state.toolOutputs[0]?.content).toContain('integrationBranch=agentteam/integration-123');
+  });
+
+  it('stores structured team coding metadata for frontend inspection', () => {
+    const state = workflowReducer(initialWorkflowState, {
+      type: 'HANDLE_EVENT',
+      payload: {
+        eventType: 'INTERMEDIATE_RESULT',
+        agentName: 'agentteam_coding_coordinator',
+        output: 'parallel coding summary',
+        metadata: {
+          stage: 'SUMMARY',
+          groupId: 'coding-group-1',
+          repositoryPath: 'E:/Project/OpenManus-Java',
+          taskCount: 1,
+          success: true,
+          tasks: [
+            {
+              taskId: 'task-a',
+              title: 'API task',
+              goal: 'Implement endpoint',
+              ownedPaths: ['src/main/java/api'],
+              verificationCommands: ['./scripts/mvnw-local.sh test'],
+              conflictRisk: 'low'
+            }
+          ],
+          subAgents: [
+            {
+              taskId: 'task-a',
+              status: 'SUCCEEDED',
+              summary: 'done',
+              branchName: 'agentteam/task-a',
+              commitSha: 'abc123',
+              worktreePath: 'E:/wt/task-a',
+              changedFiles: ['A.java'],
+              testPassed: true,
+              testSummary: 'tests passed',
+              errorMessage: ''
+            }
+          ]
+        }
+      }
+    });
+
+    expect(state.agentTeamCoding?.stage).toBe('SUMMARY');
+    expect(state.agentTeamCoding?.groupId).toBe('coding-group-1');
+    expect(state.agentTeamCoding?.subTasks[0]?.branchName).toBe('agentteam/task-a');
+    expect(state.agentTeamCoding?.subTasks[0]?.commitSha).toBe('abc123');
+    expect(state.agentTeamCoding?.subTasks[0]?.ownedPaths).toEqual(['src/main/java/api']);
+  });
+
   it('updates browser state from structured search events', () => {
     let state = workflowReducer(initialWorkflowState, {
       type: 'HANDLE_EVENT',

@@ -49,6 +49,45 @@ export interface TimelineEntry {
   detail?: string;
 }
 
+export interface AgentTeamCodingSubTaskView {
+  taskId: string;
+  title: string;
+  goal: string;
+  status: string;
+  summary: string;
+  branchName: string;
+  commitSha: string;
+  worktreePath: string;
+  changedFiles: string[];
+  testPassed: boolean | null;
+  testSummary: string;
+  errorMessage: string;
+  ownedPaths: string[];
+  verificationCommands: string[];
+  conflictRisk: string;
+}
+
+export interface AgentTeamCodingIntegrationView {
+  success: boolean | null;
+  integrationBranch: string;
+  mergedBranches: string[];
+  conflictFiles: string[];
+  verification: string;
+  errorMessage: string;
+}
+
+export interface AgentTeamCodingView {
+  stage: string;
+  groupId: string;
+  conversationId: string;
+  success: boolean | null;
+  fallbackToSingleAgent: boolean;
+  repositoryPath: string;
+  taskCount: number;
+  subTasks: AgentTeamCodingSubTaskView[];
+  integration: AgentTeamCodingIntegrationView | null;
+}
+
 export interface WorkflowState {
   connectionStatus: ConnectionStatus;
   loading: boolean;
@@ -71,6 +110,7 @@ export interface WorkflowState {
   autoSwitchedToVnc: boolean;
   searchTimeline: TimelineEntry[];
   webTimeline: TimelineEntry[];
+  agentTeamCoding: AgentTeamCodingView | null;
 }
 
 export interface WorkflowSnapshot {
@@ -89,6 +129,7 @@ export interface WorkflowSnapshot {
   autoSwitchedToVnc?: boolean;
   searchTimeline?: TimelineEntry[];
   webTimeline?: TimelineEntry[];
+  agentTeamCoding?: AgentTeamCodingView | null;
 }
 
 export type WorkflowAction =
@@ -128,7 +169,8 @@ export const initialWorkflowState: WorkflowState = {
   snapshotPreview: null,
   autoSwitchedToVnc: false,
   searchTimeline: [],
-  webTimeline: []
+  webTimeline: [],
+  agentTeamCoding: null
 };
 
 export function workflowReducer(state: WorkflowState, action: WorkflowAction): WorkflowState {
@@ -218,6 +260,7 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
       }
 
       applyStructuredBrowserEvent(patch, state, eventType, metadata);
+      applyAgentTeamCodingEvent(patch, state, eventType, metadata);
 
       if (patch.searchResults === undefined && fallbackSearchResults.length > 0) {
         patch.searchResults = fallbackSearchResults;
@@ -306,7 +349,8 @@ export function workflowReducer(state: WorkflowState, action: WorkflowAction): W
         snapshotPreview: action.payload.snapshotPreview || null,
         autoSwitchedToVnc: action.payload.autoSwitchedToVnc || false,
         searchTimeline: action.payload.searchTimeline || [],
-        webTimeline: action.payload.webTimeline || []
+        webTimeline: action.payload.webTimeline || [],
+        agentTeamCoding: action.payload.agentTeamCoding || null
       };
     case 'ROLLBACK_PENDING_ASSISTANT': {
       const messages = state.messages.slice();
@@ -418,6 +462,15 @@ function keyEventToolOutput(event: ExecutionEventPayload,
         content: outputAsString || normalizePayloadOutput(event.metadata),
         time: formatTime()
       };
+    case 'INTERMEDIATE_RESULT': {
+      const stage = asString(event.metadata?.stage) || 'STATUS';
+      return {
+        id: randomId(),
+        type: `Agent Team ${stage}`,
+        content: outputAsString || normalizePayloadOutput(event.metadata),
+        time: formatTime()
+      };
+    }
     default:
       return null;
   }
@@ -536,6 +589,32 @@ function applyStructuredBrowserEvent(patch: Partial<WorkflowState>,
   }
 }
 
+function applyAgentTeamCodingEvent(
+  patch: Partial<WorkflowState>,
+  state: WorkflowState,
+  eventType: string,
+  metadata: Record<string, unknown>
+): void {
+  if (eventType !== 'INTERMEDIATE_RESULT') {
+    return;
+  }
+  const stage = asString(metadata.stage);
+  const current = state.agentTeamCoding || createEmptyAgentTeamCodingView();
+  const next: AgentTeamCodingView = {
+    ...current,
+    stage: stage || current.stage,
+    groupId: asString(metadata.groupId) || current.groupId,
+    conversationId: asString(metadata.conversationId) || current.conversationId,
+    success: asNullableBoolean(metadata.success, current.success),
+    fallbackToSingleAgent: asBoolean(metadata.fallbackToSingleAgent, current.fallbackToSingleAgent),
+    repositoryPath: asString(metadata.repositoryPath) || current.repositoryPath,
+    taskCount: asNumber(metadata.taskCount, current.taskCount),
+    subTasks: mergeAgentTeamCodingSubTasks(current.subTasks, metadata),
+    integration: mergeAgentTeamCodingIntegration(current.integration, metadata)
+  };
+  patch.agentTeamCoding = next;
+}
+
 function prependTimeline(items: TimelineEntry[], item: Omit<TimelineEntry, 'id' | 'time'>): TimelineEntry[] {
   return [{
     id: randomId(),
@@ -565,6 +644,199 @@ function parseSearchResultItems(value: unknown): SearchResultItem[] {
     .filter((item): item is SearchResultItem => item !== null);
 }
 
+function createEmptyAgentTeamCodingView(): AgentTeamCodingView {
+  return {
+    stage: '',
+    groupId: '',
+    conversationId: '',
+    success: null,
+    fallbackToSingleAgent: false,
+    repositoryPath: '',
+    taskCount: 0,
+    subTasks: [],
+    integration: null
+  };
+}
+
+function mergeAgentTeamCodingSubTasks(
+  current: AgentTeamCodingSubTaskView[],
+  metadata: Record<string, unknown>
+): AgentTeamCodingSubTaskView[] {
+  const taskDefinitions = parseTaskDefinitions(metadata.tasks);
+  const subAgentEntries = parseSubAgentEntries(metadata.subAgents);
+  if (taskDefinitions.length === 0 && subAgentEntries.length === 0) {
+    return current;
+  }
+
+  const byTaskId = new Map<string, AgentTeamCodingSubTaskView>();
+  for (const item of current) {
+    byTaskId.set(item.taskId, item);
+  }
+  for (const task of taskDefinitions) {
+    const existing = byTaskId.get(task.taskId) || emptySubTask(task.taskId);
+    byTaskId.set(task.taskId, {
+      ...existing,
+      title: task.title || existing.title,
+      goal: task.goal || existing.goal,
+      ownedPaths: task.ownedPaths.length > 0 ? task.ownedPaths : existing.ownedPaths,
+      verificationCommands: task.verificationCommands.length > 0 ? task.verificationCommands : existing.verificationCommands,
+      conflictRisk: task.conflictRisk || existing.conflictRisk
+    });
+  }
+  for (const subAgent of subAgentEntries) {
+    const existing = byTaskId.get(subAgent.taskId) || emptySubTask(subAgent.taskId);
+    byTaskId.set(subAgent.taskId, {
+      ...existing,
+      status: subAgent.status || existing.status,
+      summary: subAgent.summary || existing.summary,
+      branchName: subAgent.branchName || existing.branchName,
+      commitSha: subAgent.commitSha || existing.commitSha,
+      worktreePath: subAgent.worktreePath || existing.worktreePath,
+      changedFiles: subAgent.changedFiles.length > 0 ? subAgent.changedFiles : existing.changedFiles,
+      testPassed: subAgent.testPassed,
+      testSummary: subAgent.testSummary || existing.testSummary,
+      errorMessage: subAgent.errorMessage || existing.errorMessage
+    });
+  }
+  return Array.from(byTaskId.values()).sort((a, b) => a.taskId.localeCompare(b.taskId));
+}
+
+function mergeAgentTeamCodingIntegration(
+  current: AgentTeamCodingIntegrationView | null,
+  metadata: Record<string, unknown>
+): AgentTeamCodingIntegrationView | null {
+  const hasIntegrationFields =
+    metadata.integrationBranch !== undefined ||
+    metadata.verification !== undefined ||
+    metadata.conflictFiles !== undefined ||
+    metadata.integrationSuccess !== undefined ||
+    metadata.errorMessage !== undefined ||
+    metadata.mergedBranches !== undefined;
+  if (!hasIntegrationFields) {
+    return current;
+  }
+  return {
+    success: asNullableBoolean(metadata.integrationSuccess, current?.success ?? null),
+    integrationBranch: asString(metadata.integrationBranch) || current?.integrationBranch || '',
+    mergedBranches: asStringArray(metadata.mergedBranches, current?.mergedBranches || []),
+    conflictFiles: asStringArray(metadata.conflictFiles, current?.conflictFiles || []),
+    verification: asString(metadata.verification) || current?.verification || '',
+    errorMessage: asString(metadata.errorMessage) || current?.errorMessage || ''
+  };
+}
+
+function parseTaskDefinitions(value: unknown): Array<{
+  taskId: string;
+  title: string;
+  goal: string;
+  ownedPaths: string[];
+  verificationCommands: string[];
+  conflictRisk: string;
+}> {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => {
+      if (item === null || typeof item !== 'object') {
+        return null;
+      }
+      const record = item as Record<string, unknown>;
+      const taskId = asString(record.taskId);
+      if (taskId.length === 0) {
+        return null;
+      }
+      return {
+        taskId,
+        title: asString(record.title),
+        goal: asString(record.goal),
+        ownedPaths: asStringArray(record.ownedPaths),
+        verificationCommands: asStringArray(record.verificationCommands),
+        conflictRisk: asString(record.conflictRisk)
+      };
+    })
+    .filter((item): item is {
+      taskId: string;
+      title: string;
+      goal: string;
+      ownedPaths: string[];
+      verificationCommands: string[];
+      conflictRisk: string;
+    } => item !== null);
+}
+
+function parseSubAgentEntries(value: unknown): Array<{
+  taskId: string;
+  status: string;
+  summary: string;
+  branchName: string;
+  commitSha: string;
+  worktreePath: string;
+  changedFiles: string[];
+  testPassed: boolean | null;
+  testSummary: string;
+  errorMessage: string;
+}> {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => {
+      if (item === null || typeof item !== 'object') {
+        return null;
+      }
+      const record = item as Record<string, unknown>;
+      const taskId = asString(record.taskId);
+      if (taskId.length === 0) {
+        return null;
+      }
+      return {
+        taskId,
+        status: asString(record.status),
+        summary: asString(record.summary),
+        branchName: asString(record.branchName),
+        commitSha: asString(record.commitSha),
+        worktreePath: asString(record.worktreePath),
+        changedFiles: asStringArray(record.changedFiles),
+        testPassed: asNullableBoolean(record.testPassed, null),
+        testSummary: asString(record.testSummary),
+        errorMessage: asString(record.errorMessage)
+      };
+    })
+    .filter((item): item is {
+      taskId: string;
+      status: string;
+      summary: string;
+      branchName: string;
+      commitSha: string;
+      worktreePath: string;
+      changedFiles: string[];
+      testPassed: boolean | null;
+      testSummary: string;
+      errorMessage: string;
+    } => item !== null);
+}
+
+function emptySubTask(taskId: string): AgentTeamCodingSubTaskView {
+  return {
+    taskId,
+    title: '',
+    goal: '',
+    status: '',
+    summary: '',
+    branchName: '',
+    commitSha: '',
+    worktreePath: '',
+    changedFiles: [],
+    testPassed: null,
+    testSummary: '',
+    errorMessage: '',
+    ownedPaths: [],
+    verificationCommands: [],
+    conflictRisk: ''
+  };
+}
+
 function parseWebSnapshotOutput(output: string): { url: string; path: string; preview: string } | null {
   if (output.length === 0 || output.trim().startsWith('{') === false) {
     return null;
@@ -585,6 +857,25 @@ function parseWebSnapshotOutput(output: string): { url: string; path: string; pr
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+function asStringArray(value: unknown, fallback: string[] = []): string[] {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+  return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function asBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+function asNullableBoolean(value: unknown, fallback: boolean | null): boolean | null {
+  return typeof value === 'boolean' ? value : fallback;
 }
 
 function firstNonEmpty(...values: string[]): string {
@@ -661,6 +952,18 @@ function createThoughtStep(
       title: '执行异常',
       content: payload.error || output || '执行异常',
       status: status || 'ERROR',
+      agentName
+    };
+  }
+  if (eventType === 'INTERMEDIATE_RESULT') {
+    const stage = asString(payload.metadata?.stage) || 'STATUS';
+    return {
+      id: randomId(),
+      time,
+      kind: 'status',
+      title: `Agent Team ${stage}`,
+      content: output || summarizeMetadata(payload.metadata, ['stage', 'integrationBranch', 'verification']),
+      status: status || 'RUNNING',
       agentName
     };
   }

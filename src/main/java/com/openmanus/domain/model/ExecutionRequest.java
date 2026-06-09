@@ -17,4 +17,6 @@ public class ExecutionRequest {
      * 会话ID；为空时由服务端生成新会话。
      */
     private String sessionId;
+
+    private String targetRepositoryPath;
 } 
