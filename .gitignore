@@ -234,3 +234,6 @@ ehthumbs.db
 Desktop.ini
 
 openManus.md
+
+# AgentTeam worktree artifacts (generated at runtime, must NOT be committed)
+.agentteam/
