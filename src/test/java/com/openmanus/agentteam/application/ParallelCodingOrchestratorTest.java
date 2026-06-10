@@ -23,13 +23,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("ParallelCodingOrchestrator Tests")
 class ParallelCodingOrchestratorTest {
 
     @Test
-    @DisplayName("should fall back to single agent when git runtime is unavailable")
-    void shouldFallBackToSingleAgentWhenGitRuntimeIsUnavailable() {
+    @DisplayName("should throw ParallelCodingException when git runtime is unavailable instead of falling back to Docker")
+    void shouldThrowExceptionWhenGitRuntimeIsUnavailable() {
         RecordingAgentExecutionPort agentExecutionPort = new RecordingAgentExecutionPort();
         agentExecutionPort.syncResponse = "single-agent-result";
         ParallelCodingOrchestrator orchestrator = new ParallelCodingOrchestrator(
@@ -50,10 +51,10 @@ class ParallelCodingOrchestratorTest {
                 5
         );
 
-        ParallelCodingExecutionResult result = orchestrator.execute("Implement feature", "conv-1", Path.of("/repo"));
-
-        assertThat(result.fallbackToSingleAgent()).isTrue();
-        assertThat(result.fallbackResponse()).isEqualTo("single-agent-result");
+        assertThatThrownBy(() -> orchestrator.execute("Implement feature", "conv-1", Path.of("/repo")))
+                .isInstanceOf(ParallelCodingException.class)
+                .hasMessageContaining("代码执行无法启动")
+                .hasMessageContaining("Git worktree");
     }
 
     @Test
@@ -239,7 +240,7 @@ class ParallelCodingOrchestratorTest {
         private final List<String> failTaskIds = new ArrayList<>();
 
         private RecordingSubAgentCodingExecutionService() {
-            super((role, input, conversationId) -> "unused", new GitWorkspacePort() {
+            super((context, input) -> "unused", new GitWorkspacePort() {
                 @Override
                 public GitWorkspaceSnapshot inspectWorkspace(Path worktreePath) {
                     return null;

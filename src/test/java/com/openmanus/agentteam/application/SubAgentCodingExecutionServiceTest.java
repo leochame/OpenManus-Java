@@ -122,7 +122,7 @@ class SubAgentCodingExecutionServiceTest {
     @DisplayName("should reject blank worktree metadata")
     void shouldRejectBlankWorktreeMetadata() {
         SubAgentCodingExecutionService service = new SubAgentCodingExecutionService(
-                (role, input, conversationId) -> "ok",
+                (context, input) -> "ok",
                 new RecordingGitWorkspacePort()
         );
 
