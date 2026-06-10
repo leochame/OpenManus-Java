@@ -70,7 +70,7 @@ class WebSocketExecutionStreamPublisherTest {
 
         verify(messagingTemplate).convertAndSend(
                 eq(TOPIC + "/result"),
-                argThat(payload -> payload instanceof ExecutionResultView view
+                (Object) argThat(payload -> payload instanceof ExecutionResultView view
                         && "hello".equals(view.getResult()))
         );
     }

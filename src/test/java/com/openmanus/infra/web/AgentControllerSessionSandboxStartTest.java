@@ -1,9 +1,13 @@
 package com.openmanus.infra.web;
 
+import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
+import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
 import com.openmanus.domain.model.ExecutionErrorCodes;
 import com.openmanus.domain.model.ExecutionResponse;
 import com.openmanus.domain.service.ConversationApplicationService;
 import com.openmanus.domain.service.ExecutionStreamingApplicationService;
+import com.openmanus.infra.config.AgentTeamProperties;
 import com.openmanus.sandbox.application.SandboxSessionApplicationService;
 import com.openmanus.sandbox.domain.model.SessionSandboxInfo;
 import org.junit.jupiter.api.DisplayName;
@@ -23,14 +27,25 @@ class AgentControllerSessionSandboxStartTest {
 
     private final ConversationApplicationService conversationApplicationService =
             mock(ConversationApplicationService.class);
+    private final AgentTeamConversationApplicationService agentTeamConversationApplicationService =
+            mock(AgentTeamConversationApplicationService.class);
+    private final AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService =
+            mock(AgentTeamExecutionStreamingApplicationService.class);
+    private final AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService =
+            mock(AgentTeamCodingExecutionStreamingApplicationService.class);
     private final ExecutionStreamingApplicationService executionStreamingApplicationService =
             mock(ExecutionStreamingApplicationService.class);
+    private final AgentTeamProperties agentTeamProperties = new AgentTeamProperties();
     private final SandboxSessionApplicationService sandboxSessionApplicationService =
             mock(SandboxSessionApplicationService.class);
 
     private final AgentController controller = new AgentController(
             conversationApplicationService,
+            agentTeamConversationApplicationService,
+            agentTeamExecutionStreamingApplicationService,
+            agentTeamCodingExecutionStreamingApplicationService,
             executionStreamingApplicationService,
+            agentTeamProperties,
             sandboxSessionApplicationService
     );
 
@@ -97,7 +112,7 @@ class AgentControllerSessionSandboxStartTest {
         request.setInput("hello");
         request.setSessionId("session-123");
 
-        ResponseEntity<ExecutionStreamResponse> response = controller.executionStream(request);
+        ResponseEntity<ExecutionStreamResponse> response = controller.executionStream(request, false, false);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();

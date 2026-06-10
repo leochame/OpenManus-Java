@@ -127,6 +127,7 @@ Thumbs.db
 # Docker
 docker-compose.override.yml
 .dockerignore
+Dockerfile
 
 # Secrets and configuration
 *.env
@@ -138,6 +139,7 @@ application-dev.yml
 application-prod.yml
 application.yml
 application.yaml
+*.yml
 
 # Temporary files
 *.tmp
@@ -230,3 +232,8 @@ temp/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+openManus.md
+
+# AgentTeam worktree artifacts (generated at runtime, must NOT be committed)
+.agentteam/

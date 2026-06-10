@@ -227,6 +227,10 @@ public abstract class AbstractAgentExecutor<B extends AbstractAgentExecutor.Buil
             this.systemMessage = Objects.requireNonNull(message, "message cannot be null");
             return result();
         }
+
+        protected String configuredSystemMessage() {
+            return systemMessage;
+        }
     }
 
     private final AiChatModel aiChatModel;

@@ -23,6 +23,13 @@ openmanus:
       timeout: 120
     providers: {}
 
+  agentteam:
+    enabled: false
+    worker-count: 3
+    idle-poll-interval-millis: 500
+    master-poll-interval-millis: 300
+    max-sub-tasks-per-group: 5
+
   sandbox:
     type: "docker"
     image: "python:3.11-slim"

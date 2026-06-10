@@ -58,7 +58,9 @@ public class AgentCoordinator extends AbstractAgentExecutor<AgentCoordinator.Bui
             this.name("agent_coordinator")
                     .description("统一协调搜索、代码、文件与反思工具，完成端到端任务。")
                     .singleParameter("用户请求")
-                    .systemMessage(SYSTEM_PROMPT);
+                    .systemMessage(this.configuredSystemMessage() == null || this.configuredSystemMessage().isBlank()
+                            ? SYSTEM_PROMPT
+                            : this.configuredSystemMessage());
 
             if (browserTool != null) {
                 this.toolFromObject(browserTool);

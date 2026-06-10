@@ -15,7 +15,6 @@ import com.openmanus.aiframework.runtime.AiProxyConfig;
 import com.openmanus.aiframework.runtime.AiSearchConfig;
 import com.openmanus.aiframework.runtime.AiSessionSandboxGateway;
 import com.openmanus.aiframework.tool.AiRegisteredTool;
-import com.openmanus.aiframework.tool.AiToolRegistry;
 import com.openmanus.aiframework.tool.mcp.McpToolRegistryBootstrap;
 import com.openmanus.domain.service.ExecutionEventPort;
 import com.openmanus.sandbox.support.SandboxPathResolver;
@@ -84,6 +83,25 @@ public class AgentArchitectureConfig {
     }
 
     @Bean
+    public LocalAgentToolRegistry localAgentToolRegistry(BrowserTool browserTool,
+                                                         PythonExecutionTool pythonExecutionTool,
+                                                         SearchTool searchTool,
+                                                         WebFetchTool webFetchTool,
+                                                         ShellTool shellTool,
+                                                         TaskReflectionTool taskReflectionTool,
+                                                         OpenManusProperties properties) {
+        return new LocalAgentToolRegistry(
+                browserTool,
+                pythonExecutionTool,
+                searchTool,
+                webFetchTool,
+                shellTool,
+                taskReflectionTool,
+                properties.getChatMemory().isShellToolEnabled()
+        );
+    }
+
+    @Bean
     public AgentExecutionService agentExecutionService(AgentCoordinator agentCoordinator,
                                                        @Qualifier(AsyncConfig.ASYNC_EXECUTOR_NAME) Executor asyncExecutor) {
         return new AgentExecutionService(agentCoordinator, asyncExecutor);
@@ -99,9 +117,11 @@ public class AgentArchitectureConfig {
             SearchTool searchTool,
             WebFetchTool webFetchTool,
             ShellTool shellTool,
-            TaskReflectionTool taskReflectionTool) {
+            TaskReflectionTool taskReflectionTool,
+            LocalAgentToolRegistry localAgentToolRegistry) {
         return agentCoordinator(chatModel, chatMemoryProvider, properties, sessionSandboxGateway, null, null,
-                browserTool, pythonExecutionTool, searchTool, webFetchTool, shellTool, taskReflectionTool);
+                browserTool, pythonExecutionTool, searchTool, webFetchTool, shellTool, taskReflectionTool,
+                localAgentToolRegistry);
     }
 
     @Bean
@@ -109,7 +129,7 @@ public class AgentArchitectureConfig {
             AiChatModel chatModel,
             AiMemoryProvider chatMemoryProvider,
             OpenManusProperties properties,
-            AiSessionSandboxGateway sessionSandboxGateway,
+            @Qualifier("sandboxGatewayAdapter") AiSessionSandboxGateway sessionSandboxGateway,
             BrowserTool browserTool,
             PythonExecutionTool pythonExecutionTool,
             SearchTool searchTool,
@@ -117,6 +137,7 @@ public class AgentArchitectureConfig {
             ShellTool shellTool,
             TaskReflectionTool taskReflectionTool,
             Optional<McpToolRegistryBootstrap> mcpToolRegistryBootstrap,
+            LocalAgentToolRegistry localAgentToolRegistry,
             ExecutionEventPort executionEventPort) {
         return agentCoordinator(
                 chatModel,
@@ -130,7 +151,8 @@ public class AgentArchitectureConfig {
                 searchTool,
                 webFetchTool,
                 shellTool,
-                taskReflectionTool
+                taskReflectionTool,
+                localAgentToolRegistry
         );
     }
 
@@ -145,7 +167,8 @@ public class AgentArchitectureConfig {
             SearchTool searchTool,
             WebFetchTool webFetchTool,
             ShellTool shellTool,
-            TaskReflectionTool taskReflectionTool) {
+            TaskReflectionTool taskReflectionTool,
+            LocalAgentToolRegistry localAgentToolRegistry) {
         return agentCoordinator(
                 chatModel,
                 chatMemoryProvider,
@@ -158,7 +181,8 @@ public class AgentArchitectureConfig {
                 searchTool,
                 webFetchTool,
                 shellTool,
-                taskReflectionTool
+                taskReflectionTool,
+                localAgentToolRegistry
         );
     }
 
@@ -174,7 +198,8 @@ public class AgentArchitectureConfig {
             SearchTool searchTool,
             WebFetchTool webFetchTool,
             ShellTool shellTool,
-            TaskReflectionTool taskReflectionTool) {
+            TaskReflectionTool taskReflectionTool,
+            LocalAgentToolRegistry localAgentToolRegistry) {
         AgentCoordinator.Builder builder = AgentCoordinator.builder()
                 .aiChatModel(chatModel)
                 .aiMemoryProvider(chatMemoryProvider)
@@ -192,13 +217,11 @@ public class AgentArchitectureConfig {
                 .toolResultBudgetPreviewHeadChars(properties.getChatMemory().getToolResultBudgetPreviewHeadChars())
                 .toolResultBudgetPreviewTailChars(properties.getChatMemory().getToolResultBudgetPreviewTailChars())
                 .toolResultBudgetDecayChars(properties.getChatMemory().getToolResultBudgetDecayChars())
-                .executionEventPort(executionEventPort)
-                .browserTool(browserTool)
-                .pythonExecutionTool(pythonExecutionTool)
-                .toolFromObject(searchTool)
-                .toolFromObject(webFetchTool)
-                .shellTool(properties.getChatMemory().isShellToolEnabled() ? shellTool : null)
-                .taskReflectionTool(taskReflectionTool);
+                .executionEventPort(executionEventPort);
+
+        for (AiRegisteredTool tool : localAgentToolRegistry.allLocalTools()) {
+            builder.tool(tool);
+        }
 
         registerMcpTools(
                 builder,
@@ -229,14 +252,14 @@ public class AgentArchitectureConfig {
             return;
         }
         Map<String, AiRegisteredTool> localToolRegistry = new LinkedHashMap<>();
-        appendLocalTools(localToolRegistry, browserTool);
-        appendLocalTools(localToolRegistry, pythonExecutionTool);
-        appendLocalTools(localToolRegistry, searchTool);
-        appendLocalTools(localToolRegistry, webFetchTool);
+        LocalAgentToolRegistry.appendLocalTools(localToolRegistry, browserTool);
+        LocalAgentToolRegistry.appendLocalTools(localToolRegistry, pythonExecutionTool);
+        LocalAgentToolRegistry.appendLocalTools(localToolRegistry, searchTool);
+        LocalAgentToolRegistry.appendLocalTools(localToolRegistry, webFetchTool);
         if (properties.getChatMemory().isShellToolEnabled()) {
-            appendLocalTools(localToolRegistry, shellTool);
+            LocalAgentToolRegistry.appendLocalTools(localToolRegistry, shellTool);
         }
-        appendLocalTools(localToolRegistry, taskReflectionTool);
+        LocalAgentToolRegistry.appendLocalTools(localToolRegistry, taskReflectionTool);
 
         List<AiRegisteredTool> mcpTools = bootstrap.discoverAndRegister(localToolRegistry);
         for (AiRegisteredTool mcpTool : mcpTools) {
@@ -244,15 +267,4 @@ public class AgentArchitectureConfig {
         }
     }
 
-    private static void appendLocalTools(Map<String, AiRegisteredTool> targetRegistry, Object toolObject) {
-        if (toolObject == null) {
-            return;
-        }
-        for (AiRegisteredTool localTool : AiToolRegistry.scan(toolObject)) {
-            AiRegisteredTool existing = targetRegistry.putIfAbsent(localTool.name(), localTool);
-            if (existing != null) {
-                throw new IllegalStateException("Duplicate tool name detected: " + localTool.name());
-            }
-        }
-    }
 }

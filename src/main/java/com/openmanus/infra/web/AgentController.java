@@ -1,15 +1,20 @@
 package com.openmanus.infra.web;
 
+import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
+import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
 import com.openmanus.domain.model.ExecutionErrorCodes;
 import com.openmanus.domain.model.ExecutionRequest;
 import com.openmanus.domain.model.ExecutionResponse;
 import com.openmanus.domain.service.ConversationApplicationService;
 import com.openmanus.domain.service.ExecutionStreamingApplicationService;
 import com.openmanus.domain.service.SessionIdPolicy;
+import com.openmanus.infra.config.AgentTeamProperties;
 import com.openmanus.sandbox.domain.model.SessionSandboxInfo;
 import com.openmanus.sandbox.application.SandboxSessionApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,21 +30,34 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/agent")
 @Tag(name = "Agent API", description = "Web API interface for intelligent agent")
+@Slf4j
 public class AgentController {
     private static final String ERROR_EMPTY_INPUT = "输入不能为空";
     private static final String ERROR_SESSION_BUSY = "当前会话正在执行中，请稍后重试";
     private static final String ERROR_ASYNC_SUBMIT_FAILED = "任务提交失败，请稍后重试";
     private static final String ERROR_ASYNC_SUBMIT_EXCEPTION = "任务提交异常，请稍后重试";
     private final ConversationApplicationService conversationApplicationService;
+    private final AgentTeamConversationApplicationService agentTeamConversationApplicationService;
+    private final AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService;
+    private final AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService;
     private final ExecutionStreamingApplicationService executionStreamingApplicationService;
+    private final AgentTeamProperties agentTeamProperties;
     private final SandboxSessionApplicationService sandboxSessionApplicationService;
-    
+
     public AgentController(
             ConversationApplicationService conversationApplicationService,
+            AgentTeamConversationApplicationService agentTeamConversationApplicationService,
+            AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService,
+            AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService,
             ExecutionStreamingApplicationService executionStreamingApplicationService,
+            AgentTeamProperties agentTeamProperties,
             SandboxSessionApplicationService sandboxSessionApplicationService) {
         this.conversationApplicationService = conversationApplicationService;
+        this.agentTeamConversationApplicationService = agentTeamConversationApplicationService;
+        this.agentTeamExecutionStreamingApplicationService = agentTeamExecutionStreamingApplicationService;
+        this.agentTeamCodingExecutionStreamingApplicationService = agentTeamCodingExecutionStreamingApplicationService;
         this.executionStreamingApplicationService = executionStreamingApplicationService;
+        this.agentTeamProperties = agentTeamProperties;
         this.sandboxSessionApplicationService = sandboxSessionApplicationService;
     }
     /**
@@ -58,6 +76,7 @@ public class AgentController {
     public CompletableFuture<ResponseEntity<Map<String, Object>>> chat(
             @RequestBody Map<String, String> payload,
             @RequestParam(defaultValue = "false") boolean stateful,
+            @RequestParam(defaultValue = "false") boolean agentTeam,
             @RequestParam(defaultValue = "false") boolean sync) {
 
         String message = payload.get("message");
@@ -74,10 +93,12 @@ public class AgentController {
         }
 
         try {
-            return conversationApplicationService.chat(message, conversationId, sync)
-                    .handle((result, throwable) -> throwable == null
-                            ? toChatResponse(result)
-                            : buildChatInternalErrorResponse(conversationId));
+            CompletableFuture<Map<String, Object>> execution = shouldUseAgentTeam(agentTeam)
+                    ? agentTeamConversationApplicationService.chat(message, conversationId, sync)
+                    : conversationApplicationService.chat(message, conversationId, sync);
+            return execution.handle((result, throwable) -> throwable == null
+                    ? toChatResponse(result)
+                    : buildChatInternalErrorResponse(conversationId));
         } catch (RuntimeException e) {
             return CompletableFuture.completedFuture(buildChatInternalErrorResponse(conversationId));
         }
@@ -95,12 +116,35 @@ public class AgentController {
             description = "Runs the same agent execution pipeline and returns a session ID for WebSocket streaming."
     )
     public ResponseEntity<ExecutionStreamResponse> executionStream(
-            @RequestBody ExecutionRequest executionRequest) {
+            @RequestBody ExecutionRequest executionRequest,
+            @RequestParam(defaultValue = "false") boolean agentTeam,
+            @RequestParam(defaultValue = "false") boolean agentTeamCoding) {
         String userInput = executionRequest.getInput();
-        ExecutionResponse serviceResult = executionStreamingApplicationService.executeAndStreamEvents(
-                userInput,
-                executionRequest.getSessionId()
+        log.info(
+                "executionStream request received: sessionId={}, agentTeam={}, agentTeamCoding={}, targetRepositoryPath={}",
+                executionRequest.getSessionId(),
+                agentTeam,
+                agentTeamCoding,
+                executionRequest.getTargetRepositoryPath()
         );
+        ExecutionResponse serviceResult;
+        if (shouldUseAgentTeamCoding(agentTeamCoding)) {
+            serviceResult = agentTeamCodingExecutionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId(),
+                    executionRequest.getTargetRepositoryPath()
+            );
+        } else if (shouldUseAgentTeam(agentTeam)) {
+            serviceResult = agentTeamExecutionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId()
+            );
+        } else {
+            serviceResult = executionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId()
+            );
+        }
 
         if (!serviceResult.isSuccess()) {
             HttpStatus status = resolveErrorStatus(serviceResult.getErrorCode(), serviceResult.getError());
@@ -144,12 +188,21 @@ public class AgentController {
         if (ExecutionErrorCodes.SESSION_BUSY.equals(errorCode)) {
             return HttpStatus.CONFLICT;
         }
+        if (ExecutionErrorCodes.AGENTTEAM_TASK_OWNERSHIP_VIOLATION.equals(errorCode)
+                || ExecutionErrorCodes.AGENTTEAM_TASK_STATE_INVALID.equals(errorCode)) {
+            return HttpStatus.CONFLICT;
+        }
         if (ExecutionErrorCodes.ASYNC_SUBMIT_REJECTED.equals(errorCode)
                 || ExecutionErrorCodes.ASYNC_SUBMIT_EXCEPTION.equals(errorCode)) {
             return HttpStatus.SERVICE_UNAVAILABLE;
         }
-        if (ExecutionErrorCodes.INTERNAL_ERROR.equals(errorCode)) {
+        if (ExecutionErrorCodes.INTERNAL_ERROR.equals(errorCode)
+                || ExecutionErrorCodes.AGENTTEAM_EXECUTION_FAILED.equals(errorCode)) {
             return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        if (ExecutionErrorCodes.WORKTREE_UNAVAILABLE.equals(errorCode)
+                || ExecutionErrorCodes.PLAN_NOT_PARALLELIZABLE.equals(errorCode)) {
+            return HttpStatus.BAD_REQUEST;
         }
 
         // Backward-compatible fallback for payloads without errorCode.
@@ -222,6 +275,30 @@ public class AgentController {
 
     private static String normalizeConversationId(String rawConversationId) {
         return SessionIdPolicy.normalizeOrNull(rawConversationId);
+    }
+
+    private boolean shouldUseAgentTeam(boolean agentTeamRequested) {
+        boolean result = agentTeamRequested && agentTeamProperties.isEnabled();
+        if (agentTeamRequested) {
+            log.info(
+                    "AgentTeam routing decision: agentTeamRequested=true, agentTeamEnabled={}, path={}",
+                    agentTeamProperties.isEnabled(),
+                    result ? "AGENT_TEAM" : "SINGLE_AGENT (fallback)"
+            );
+        }
+        return result;
+    }
+
+    private boolean shouldUseAgentTeamCoding(boolean agentTeamCodingRequested) {
+        boolean result = agentTeamCodingRequested && agentTeamProperties.isEnabled();
+        if (agentTeamCodingRequested) {
+            log.info(
+                    "AgentTeamCoding routing decision: agentTeamCodingRequested=true, agentTeamEnabled={}, path={}",
+                    agentTeamProperties.isEnabled(),
+                    result ? "AGENT_TEAM_CODING (worktree)" : "SINGLE_AGENT (fallback)"
+            );
+        }
+        return result;
     }
 
     /**
