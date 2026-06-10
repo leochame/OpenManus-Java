@@ -12,6 +12,9 @@ public final class ExecutionErrorCodes {
     public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     public static final String WORKTREE_UNAVAILABLE = "WORKTREE_UNAVAILABLE";
     public static final String PLAN_NOT_PARALLELIZABLE = "PLAN_NOT_PARALLELIZABLE";
+    public static final String AGENTTEAM_TASK_OWNERSHIP_VIOLATION = "AGENTTEAM_TASK_OWNERSHIP_VIOLATION";
+    public static final String AGENTTEAM_TASK_STATE_INVALID = "AGENTTEAM_TASK_STATE_INVALID";
+    public static final String AGENTTEAM_EXECUTION_FAILED = "AGENTTEAM_EXECUTION_FAILED";
     // Fallback-only code for controller status mapping when upstream returns an unknown business error code.
     // It is not a stable output of ExecutionStreamingApplicationService in normal execution paths.
     public static final String UNKNOWN_ERROR = "UNKNOWN_ERROR";

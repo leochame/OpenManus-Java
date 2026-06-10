@@ -66,7 +66,7 @@ public class AgentTeamConversationApplicationService {
         }
 
         return CompletableFuture.supplyAsync(() -> executeSyncWithMonitoring(message, sessionId, userId), asyncExecutor)
-                .exceptionally(error -> completeFailure(sessionId, unwrapException(error)))
+                .exceptionally(error -> completeFailure(sessionId, AgentTeamErrorSupport.unwrap(error)))
                 .whenComplete((ignored, throwable) -> sessionExecutionGuard.release(sessionId));
     }
 
@@ -99,7 +99,8 @@ public class AgentTeamConversationApplicationService {
     }
 
     private Map<String, Object> completeFailure(String sessionId, Throwable error) {
-        String message = safeErrorMessage(error);
+        String message = AgentTeamErrorSupport.safeMessage(error);
+        String errorCode = AgentTeamErrorSupport.errorCode(error);
         executionEventPort.endExecutionTracking(sessionId, "执行出错: " + message, false);
         executionEventPort.recordError(sessionId, EXECUTION_COORDINATOR, EXECUTION_ERROR, message);
         executionEventPort.endExecution(
@@ -109,29 +110,7 @@ public class AgentTeamConversationApplicationService {
                 "执行出错: " + message,
                 "ERROR"
         );
-        return errorResult(sessionId, message);
-    }
-
-    private static Throwable unwrapException(Throwable throwable) {
-        if (throwable == null) {
-            return new IllegalStateException("unknown error");
-        }
-        Throwable current = throwable;
-        while (current.getCause() != null && current.getCause() != current) {
-            current = current.getCause();
-        }
-        return current;
-    }
-
-    private static String safeErrorMessage(Throwable throwable) {
-        if (throwable == null) {
-            return "unknown error";
-        }
-        String message = throwable.getMessage();
-        if (message == null || message.isBlank()) {
-            return "unknown error";
-        }
-        return message.trim();
+        return errorResult(sessionId, message, errorCode);
     }
 
     private static Map<String, Object> successResult(String sessionId, String response) {
@@ -143,9 +122,10 @@ public class AgentTeamConversationApplicationService {
         return result;
     }
 
-    private static Map<String, Object> errorResult(String sessionId, String message) {
+    private static Map<String, Object> errorResult(String sessionId, String message, String errorCode) {
         Map<String, Object> errorResult = new HashMap<>();
         errorResult.put("error", message);
+        errorResult.put("errorCode", errorCode);
         errorResult.put("conversationId", sessionId);
         return errorResult;
     }

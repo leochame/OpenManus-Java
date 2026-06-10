@@ -52,66 +52,92 @@ public class MasterAgentOrchestrator {
     }
 
     public String execute(String userInput, String conversationId) {
-        DecompositionPlan plan = decompositionService.decompose(userInput, maxSubTasksPerGroup);
-        log.info(
-                "TeamMaster decomposition finished: parallelizable={}, subTaskCount={}, reason={}",
-                plan.parallelizable(),
-                plan.subTasks() == null ? 0 : plan.subTasks().size(),
-                plan.reason()
-        );
-        if (!plan.parallelizable()) {
-            log.info("TeamMaster falling back to single-agent execution: conversationId={}", conversationId);
-            return agentExecutionPort.executeSync(userInput, conversationId);
-        }
-
-        workerManager.ensureStarted();
-        TaskGroup taskGroup = taskGroupManager.createGroup(
-                conversationId == null || conversationId.isBlank() ? UUID.randomUUID().toString() : conversationId,
-                "team-master",
-                userInput
-        );
-        List<SubTask> subTasks = materializeSubTasks(taskGroup.getGroupId(), plan.subTasks());
-        log.info(
-                "TeamMaster created task group: groupId={}, conversationId={}, subTaskCount={}",
-                taskGroup.getGroupId(),
-                conversationId,
-                subTasks.size()
-        );
-        taskGroupManager.registerSubTasks(taskGroup.getGroupId(), subTasks);
-        for (SubTask subTask : subTasks) {
+        try {
+            DecompositionPlan plan = decompositionService.decompose(userInput, maxSubTasksPerGroup);
             log.info(
-                    "TeamMaster submitting subtask to pool: groupId={}, taskId={}, title={}",
-                    taskGroup.getGroupId(),
-                    subTask.getTaskId(),
-                    subTask.getTitle()
+                    "TeamMaster decomposition finished: parallelizable={}, subTaskCount={}, reason={}",
+                    plan.parallelizable(),
+                    plan.subTasks() == null ? 0 : plan.subTasks().size(),
+                    plan.reason()
             );
-            taskPoolPort.submit(subTask);
-        }
+            if (!plan.parallelizable()) {
+                log.info("TeamMaster falling back to single-agent execution: conversationId={}", conversationId);
+                return agentExecutionPort.executeSync(userInput, conversationId);
+            }
 
-        TaskGroupSnapshot snapshot = waitForCompletion(taskGroup.getGroupId());
-        TaskGroupResult result = resultAggregationService.aggregate(
-                taskGroup,
-                taskPoolPort.findByGroupId(taskGroup.getGroupId())
-        );
-        log.info(
-                "TeamMaster aggregation finished: groupId={}, status={}, successCount={}, failedCount={}",
-                taskGroup.getGroupId(),
-                snapshot.status(),
-                snapshot.succeededTasks(),
-                snapshot.failedTasks()
-        );
-        return renderFinalAnswer(taskGroup, snapshot, result);
+            workerManager.ensureStarted();
+            TaskGroup taskGroup = taskGroupManager.createGroup(
+                    conversationId == null || conversationId.isBlank() ? UUID.randomUUID().toString() : conversationId,
+                    "team-master",
+                    userInput
+            );
+            List<SubTask> subTasks = materializeSubTasks(taskGroup.getGroupId(), taskGroup.getParentTaskId(), plan.subTasks());
+            log.info(
+                    "TeamMaster created task group: groupId={}, conversationId={}, subTaskCount={}",
+                    taskGroup.getGroupId(),
+                    conversationId,
+                    subTasks.size()
+            );
+            taskGroupManager.registerSubTasks(taskGroup.getGroupId(), subTasks);
+            for (SubTask subTask : subTasks) {
+                log.info(
+                        "TeamMaster submitting subtask to pool: groupId={}, taskId={}, title={}",
+                        taskGroup.getGroupId(),
+                        subTask.getTaskId(),
+                        subTask.getTitle()
+                );
+                taskPoolPort.submit(subTask);
+            }
+
+            TaskGroupSnapshot snapshot = waitForCompletion(taskGroup.getGroupId());
+            TaskGroupResult result = resultAggregationService.aggregate(
+                    taskGroup,
+                    taskPoolPort.findByGroupId(taskGroup.getGroupId())
+            );
+            log.info(
+                    "TeamMaster aggregation finished: groupId={}, status={}, successCount={}, failedCount={}",
+                    taskGroup.getGroupId(),
+                    snapshot.status(),
+                    snapshot.succeededTasks(),
+                    snapshot.failedTasks()
+            );
+            return renderFinalAnswer(taskGroup, snapshot, result);
+        } catch (AgentTeamException exception) {
+            log.error(
+                    "TeamMaster orchestration failed: conversationId={}, errorCode={}, errorType={}, error={}",
+                    conversationId,
+                    exception.getErrorCode(),
+                    exception.getClass().getSimpleName(),
+                    exception.getMessage(),
+                    exception
+            );
+            throw exception;
+        } catch (RuntimeException exception) {
+            log.error(
+                    "TeamMaster orchestration failed: conversationId={}, errorType={}, error={}",
+                    conversationId,
+                    exception.getClass().getSimpleName(),
+                    AgentTeamErrorSupport.safeMessage(exception),
+                    exception
+            );
+            throw new AgentTeamExecutionFailedException(
+                    "AgentTeam orchestration failed: " + AgentTeamErrorSupport.safeMessage(exception),
+                    exception
+            );
+        }
     }
 
-    private List<SubTask> materializeSubTasks(String groupId, List<SubTaskPlan> subTaskPlans) {
+    private List<SubTask> materializeSubTasks(String groupId, String parentSessionId, List<SubTaskPlan> subTaskPlans) {
         List<SubTask> subTasks = new ArrayList<>();
         long now = System.currentTimeMillis();
         for (SubTaskPlan plan : subTaskPlans) {
             subTasks.add(new SubTask(
                     UUID.randomUUID().toString(),
                     groupId,
+                    parentSessionId,
                     plan.title(),
                     plan.description(),
+                    plan.contextSummary(),
                     now
             ));
         }
@@ -128,7 +154,7 @@ public class MasterAgentOrchestrator {
                 Thread.sleep(masterPollIntervalMillis);
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
-                throw new IllegalStateException("master polling interrupted", exception);
+                throw new AgentTeamExecutionFailedException("master polling interrupted", exception);
             }
         }
     }

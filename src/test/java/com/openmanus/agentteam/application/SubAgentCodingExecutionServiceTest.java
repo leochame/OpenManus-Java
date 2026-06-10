@@ -179,16 +179,11 @@ class SubAgentCodingExecutionServiceTest {
         private RuntimeException failure;
 
         @Override
-        public String executeSync(AgentTeamRole role, String input, String conversationId) {
-            return executeSync(role, input, conversationId, null);
-        }
-
-        @Override
-        public String executeSync(AgentTeamRole role, String input, String conversationId, String worktreePath) {
-            this.role = role;
+        public String executeSync(AgentTeamExecutionContext context, String input) {
+            this.role = context.role();
             this.input = input;
-            this.conversationId = conversationId;
-             this.worktreePath = worktreePath;
+            this.conversationId = context.memoryId();
+            this.worktreePath = context.worktreePath();
             if (failure != null) {
                 throw failure;
             }

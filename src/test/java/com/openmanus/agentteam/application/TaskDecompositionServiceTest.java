@@ -75,6 +75,9 @@ class TaskDecompositionServiceTest {
                         "Summarize deployment risks",
                         "Write a short validation checklist"
                 );
+        assertThat(plan.subTasks())
+                .extracting(item -> item.contextSummary())
+                .allSatisfy(summary -> assertThat(summary).contains("Parent request:", "Team instruction:"));
     }
 
     @Test
@@ -123,6 +126,9 @@ class TaskDecompositionServiceTest {
 
         assertThat(plan.parallelizable()).isTrue();
         assertThat(plan.subTasks()).hasSize(3);
+        assertThat(plan.subTasks())
+                .extracting(item -> item.contextSummary())
+                .allSatisfy(summary -> assertThat(summary).contains("Parent request:", "Team instruction:"));
     }
 
     @Test
@@ -169,5 +175,48 @@ class TaskDecompositionServiceTest {
 
         assertThat(plan.parallelizable()).isTrue();
         assertThat(plan.subTasks()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("should preserve llm context summary when provided")
+    void shouldPreserveLlmContextSummaryWhenProvided() {
+        AiChatModel aiChatModel = mock(AiChatModel.class);
+        when(aiChatModel.chat(any())).thenReturn(new AiChatResponse(
+                AiChatMessage.assistant("""
+                        {
+                          "parallelizable": true,
+                          "reason": "Independent work items",
+                          "subTasks": [
+                            {
+                              "title": "API requirements",
+                              "description": "Collect API requirements",
+                              "contextSummary": "Parent request: Build a service\\nFocus: API contract only"
+                            },
+                            {
+                              "title": "Deployment risks",
+                              "description": "Summarize deployment risks",
+                              "contextSummary": "Parent request: Build a service\\nFocus: rollout risk only"
+                            }
+                          ]
+                        }
+                        """),
+                null,
+                null,
+                null,
+                null,
+                null
+        ));
+        TaskDecompositionService service =
+                new TaskDecompositionService(aiChatModel, new ObjectMapper(), promptProvider);
+
+        DecompositionPlan plan = service.decompose("Build a service", 5);
+
+        assertThat(plan.parallelizable()).isTrue();
+        assertThat(plan.subTasks())
+                .extracting(item -> item.contextSummary())
+                .containsExactly(
+                        "Parent request: Build a service\nFocus: API contract only",
+                        "Parent request: Build a service\nFocus: rollout risk only"
+                );
     }
 }

@@ -37,8 +37,8 @@ class DefaultTaskGroupManagerTest {
     @DisplayName("should register subtasks and refresh snapshot")
     void shouldRegisterSubTasksAndRefreshSnapshot() {
         TaskGroup group = manager.createGroup("parent-1", "master-1", "split this task");
-        SubTask first = new SubTask("task-1", group.getGroupId(), "task A", "desc A", 1L);
-        SubTask second = new SubTask("task-2", group.getGroupId(), "task B", "desc B", 1L);
+        SubTask first = new SubTask("task-1", group.getGroupId(), group.getParentTaskId(), "task A", "desc A", "", 1L);
+        SubTask second = new SubTask("task-2", group.getGroupId(), group.getParentTaskId(), "task B", "desc B", "", 1L);
 
         manager.registerSubTasks(group.getGroupId(), List.of(first, second));
 

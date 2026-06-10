@@ -65,10 +65,10 @@ public class TaskDecompositionService {
 
         DecompositionPlan llmPlan = tryLlmDecompose(userInput, maxSubTasks);
         if (llmPlan != null) {
-            return llmPlan;
+            return enrichContextSummary(llmPlan, userInput);
         }
 
-        return ruleBasedDecompose(userInput, maxSubTasks);
+        return enrichContextSummary(ruleBasedDecompose(userInput, maxSubTasks), userInput);
     }
 
     private DecompositionPlan tryLlmDecompose(String userInput, int maxSubTasks) {
@@ -150,7 +150,8 @@ public class TaskDecompositionService {
             if (title.isBlank()) {
                 title = buildTitle(results.size() + 1, description);
             }
-            results.add(new SubTaskPlan(title, description));
+            String contextSummary = normalizeReason(item.path("contextSummary").asText(null), "");
+            results.add(new SubTaskPlan(title, description, contextSummary));
             if (results.size() >= limit) {
                 break;
             }
@@ -218,6 +219,7 @@ public class TaskDecompositionService {
         ObjectNode itemProperties = itemSchema.putObject("properties");
         itemProperties.putObject("title").put("type", "string");
         itemProperties.putObject("description").put("type", "string");
+        itemProperties.putObject("contextSummary").put("type", "string");
 
         ArrayNode itemRequired = itemSchema.putArray("required");
         itemRequired.add("title");
@@ -256,7 +258,7 @@ public class TaskDecompositionService {
             if (!normalizedDescriptions.add(normalized)) {
                 continue;
             }
-            results.add(new SubTaskPlan(buildTitle(results.size() + 1, normalized), normalized));
+            results.add(new SubTaskPlan(buildTitle(results.size() + 1, normalized), normalized, ""));
             if (results.size() >= limit) {
                 break;
             }
@@ -287,7 +289,7 @@ public class TaskDecompositionService {
             if (title.isBlank()) {
                 title = buildTitle(results.size() + 1, description);
             }
-            results.add(new SubTaskPlan(title, description));
+            results.add(new SubTaskPlan(title, description, normalizeReason(subTask.contextSummary(), "")));
             if (results.size() >= limit) {
                 break;
             }
@@ -322,6 +324,32 @@ public class TaskDecompositionService {
     private String buildTitle(int index, String description) {
         String compact = description.length() > 24 ? description.substring(0, 24) : description;
         return "SubTask-" + index + ": " + compact;
+    }
+
+    private DecompositionPlan enrichContextSummary(DecompositionPlan plan, String userInput) {
+        if (plan == null) {
+            return null;
+        }
+        List<SubTaskPlan> enriched = new ArrayList<>();
+        for (SubTaskPlan subTask : plan.subTasks()) {
+            if (subTask == null) {
+                continue;
+            }
+            String contextSummary = normalizeReason(subTask.contextSummary(), fallbackContextSummary(userInput));
+            enriched.add(new SubTaskPlan(subTask.title(), subTask.description(), contextSummary));
+        }
+        return new DecompositionPlan(plan.parallelizable(), plan.reason(), enriched);
+    }
+
+    private String fallbackContextSummary(String userInput) {
+        String request = normalizeReason(userInput, "");
+        return """
+                Parent request:
+                %s
+
+                Team instruction:
+                Complete only this assigned subtask. Return concise evidence and result for Team Master aggregation.
+                """.formatted(request).trim();
     }
 
     private String normalizeReason(String reason, String fallback) {

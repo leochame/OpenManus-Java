@@ -51,12 +51,11 @@ public class SubAgentCodingExecutionService {
                     initialSnapshot.headCommit(),
                     subTask.verificationCommands()
             );
-            String rawOutput = roleExecutionPort.executeSync(
-                    AgentTeamRole.CODING_SUB_AGENT,
-                    prompt,
+            AgentTeamExecutionContext context = AgentTeamExecutionContext.codingSubAgent(
                     worktreeSession.sessionId(),
                     worktreeSession.worktreePath()
             );
+            String rawOutput = roleExecutionPort.executeSync(context, prompt);
             GitWorkspaceSnapshot workspaceSnapshot = gitWorkspacePort.inspectWorkspace(worktreePath);
             log.info(
                     "SubAgentCodingExecution workspace after agent run: taskId={}, branch={}, worktreePath={}, clean={}, changedFiles={}",

@@ -27,8 +27,8 @@ class TaskGroupStatusCalculatorTest {
     @Test
     @DisplayName("should mark all-success group as completed")
     void shouldMarkAllSuccessGroupAsCompleted() {
-        SubTask first = new SubTask("task-1", "group-1", "A", "desc", 1L);
-        SubTask second = new SubTask("task-2", "group-1", "B", "desc", 1L);
+        SubTask first = new SubTask("task-1", "group-1", "parent-1", "A", "desc", "", 1L);
+        SubTask second = new SubTask("task-2", "group-1", "parent-1", "B", "desc", "", 1L);
         first.claim("agent-1", 2L);
         first.markRunning(3L);
         first.markSucceeded("ok", "detail", 4L);
@@ -46,8 +46,8 @@ class TaskGroupStatusCalculatorTest {
     @Test
     @DisplayName("should mark mixed finished group as partial failed")
     void shouldMarkMixedFinishedGroupAsPartialFailed() {
-        SubTask success = new SubTask("task-1", "group-1", "A", "desc", 1L);
-        SubTask failed = new SubTask("task-2", "group-1", "B", "desc", 1L);
+        SubTask success = new SubTask("task-1", "group-1", "parent-1", "A", "desc", "", 1L);
+        SubTask failed = new SubTask("task-2", "group-1", "parent-1", "B", "desc", "", 1L);
         success.claim("agent-1", 2L);
         success.markRunning(3L);
         success.markSucceeded("ok", "detail", 4L);
@@ -65,8 +65,8 @@ class TaskGroupStatusCalculatorTest {
     @Test
     @DisplayName("should mark claimed or running tasks as running")
     void shouldMarkClaimedOrRunningTasksAsRunning() {
-        SubTask claimed = new SubTask("task-1", "group-1", "A", "desc", 1L);
-        SubTask running = new SubTask("task-2", "group-1", "B", "desc", 1L);
+        SubTask claimed = new SubTask("task-1", "group-1", "parent-1", "A", "desc", "", 1L);
+        SubTask running = new SubTask("task-2", "group-1", "parent-1", "B", "desc", "", 1L);
         claimed.claim("agent-1", 2L);
         running.claim("agent-2", 2L);
         running.markRunning(3L);
