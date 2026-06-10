@@ -72,18 +72,38 @@ public class HostModeExecutionGateway implements AiSessionSandboxGateway {
 
     /**
      * Resolves a user path WITHOUT sandbox remapping.
-     * Returns the path as-is (absolute) or resolved against current working directory (relative).
+     * <p>
+     * When a worktree root has been registered for this session (via a prior
+     * {@link #executeCommand} call), relative paths are resolved against that
+     * worktree root. Otherwise, they fall back to the JVM current working directory.
+     * <p>
+     * Absolute paths are returned as-is — they will be validated later by
+     * {@link #validateFileOperationPath}.
      */
     @Override
     public String resolveWorkspacePath(String sessionId, String userPath) {
+        Path basePath = resolveEffectiveBase(sessionId);
         if (userPath == null || userPath.isBlank()) {
-            return Paths.get("").toAbsolutePath().normalize().toString();
+            return basePath.toString();
         }
         Path candidate = Paths.get(userPath);
         if (candidate.isAbsolute()) {
             return candidate.normalize().toString();
         }
-        return Paths.get("").toAbsolutePath().resolve(candidate).normalize().toString();
+        return basePath.resolve(candidate).normalize().toString();
+    }
+
+    /**
+     * Returns the effective base path for resolving relative paths for a session.
+     * Prefers the registered worktree root (set by {@link #executeCommand}) over
+     * the JVM current working directory.
+     */
+    private Path resolveEffectiveBase(String sessionId) {
+        Path worktreeRoot = worktreeRoots.get(sessionId);
+        if (worktreeRoot != null) {
+            return worktreeRoot;
+        }
+        return Paths.get("").toAbsolutePath().normalize();
     }
 
     /**

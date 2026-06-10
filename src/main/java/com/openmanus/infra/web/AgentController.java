@@ -195,6 +195,10 @@ public class AgentController {
         if (ExecutionErrorCodes.INTERNAL_ERROR.equals(errorCode)) {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
+        if (ExecutionErrorCodes.WORKTREE_UNAVAILABLE.equals(errorCode)
+                || ExecutionErrorCodes.PLAN_NOT_PARALLELIZABLE.equals(errorCode)) {
+            return HttpStatus.BAD_REQUEST;
+        }
 
         // Backward-compatible fallback for payloads without errorCode.
         if (ERROR_EMPTY_INPUT.equals(error)) {

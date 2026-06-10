@@ -226,6 +226,29 @@ public class AgentTeamCodingExecutionStreamingApplicationService {
                     endTime,
                     executionTimeMs
             );
+        } catch (ParallelCodingException codingException) {
+            String errorMessage = codingException.userMessage();
+            log.error("AgentTeam coding execution rejected: sessionId={}, errorCode={}, message={}",
+                    sessionId, codingException.errorCode(), errorMessage);
+            executionEventPort.endExecutionTracking(sessionId, errorMessage, false);
+            executionEventPort.recordError(sessionId, EXECUTION_COORDINATOR, EXECUTION_ERROR, errorMessage);
+            executionEventPort.endExecution(
+                    sessionId,
+                    EXECUTION_COORDINATOR,
+                    EXECUTION_COMPLETE,
+                    errorMessage,
+                    "ERROR"
+            );
+            long executionTimeMs = ChronoUnit.MILLIS.between(startTime, LocalDateTime.now());
+            sendExecutionResult(
+                    executionTopic,
+                    sessionId,
+                    userInput,
+                    errorMessage,
+                    "ERROR",
+                    LocalDateTime.now(),
+                    executionTimeMs
+            );
         } catch (RuntimeException exception) {
             Throwable actualError = unwrapException(exception);
             String errorMessage = safeErrorMessage(actualError);

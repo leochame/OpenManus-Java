@@ -10,6 +10,7 @@ import com.openmanus.agentteam.domain.model.SubAgentCodingResult;
 import com.openmanus.agentteam.domain.model.SubAgentCodingStatus;
 import com.openmanus.agentteam.domain.model.WorktreeSession;
 import com.openmanus.agentteam.domain.port.GitWorktreeProvisioningPort;
+import com.openmanus.domain.model.ExecutionErrorCodes;
 import com.openmanus.domain.service.AgentExecutionPort;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,16 +56,10 @@ public class ParallelCodingOrchestrator {
         GitRepositoryRuntime runtime = gitWorktreeProvisioningPort.inspectRepository(repositoryPath);
         if (!runtime.supportsWorktreeOperations()) {
             String reason = runtime.failureReason() == null ? "git worktree mode unavailable" : runtime.failureReason();
-            log.warn("ParallelCodingOrchestrator falling back because git runtime is unavailable: reason={}", reason);
-            String fallback = agentExecutionPort.executeSync(userInput, conversationId);
-            return new ParallelCodingExecutionResult(
-                    true,
-                    true,
-                    "Fell back to single-agent execution because worktree mode is unavailable: " + reason,
-                    fallback,
-                    null,
-                    List.of(),
-                    null
+            log.warn("ParallelCodingOrchestrator: worktree unavailable, rejecting request: reason={}", reason);
+            throw new ParallelCodingException(
+                    ExecutionErrorCodes.WORKTREE_UNAVAILABLE,
+                    buildWorktreeUnavailableMessage(reason, repositoryPath)
             );
         }
 
@@ -76,15 +71,10 @@ public class ParallelCodingOrchestrator {
                 plan.reason()
         );
         if (!plan.parallelizable()) {
-            String fallback = agentExecutionPort.executeSync(userInput, conversationId);
-            return new ParallelCodingExecutionResult(
-                    true,
-                    true,
-                    "Fell back to single-agent execution because plan is not safely parallelizable: " + plan.reason(),
-                    fallback,
-                    null,
-                    List.of(),
-                    null
+            log.warn("ParallelCodingOrchestrator: plan not parallelizable, rejecting request: reason={}", plan.reason());
+            throw new ParallelCodingException(
+                    ExecutionErrorCodes.PLAN_NOT_PARALLELIZABLE,
+                    buildPlanNotParallelizableMessage(plan.reason())
             );
         }
 
@@ -261,6 +251,35 @@ public class ParallelCodingOrchestrator {
                 );
             }
         }
+    }
+
+    private String buildWorktreeUnavailableMessage(String reason, Path repositoryPath) {
+        String path = repositoryPath.toAbsolutePath().normalize().toString();
+        if (reason.contains("not a git repository") || reason.contains("is not a git")) {
+            return "代码执行无法启动：所选路径 \"" + path + "\" 不是有效的 Git 仓库。请检查路径是否正确。";
+        }
+        if (reason.toLowerCase().contains("git command is not available")
+                || reason.contains("git 命令不可用")) {
+            return "代码执行无法启动：服务器上未安装 Git，无法创建隔离工作区。";
+        }
+        return "代码执行无法启动：Git worktree 操作不可用（原因：" + reason + "）。请检查仓库路径是否正确（路径：" + path + "）。";
+    }
+
+    private String buildPlanNotParallelizableMessage(String planningReason) {
+        if (planningReason != null) {
+            if (planningReason.toLowerCase().contains("fewer than two")
+                    || planningReason.contains("子任务少于")) {
+                return "代码执行无法并行化：请求中未检测到多个独立的编码子任务。"
+                        + "请使用编号列表（如 1) 或 - 开头）明确列出多个并行子任务。";
+            }
+            if (planningReason.toLowerCase().contains("depend")
+                    || planningReason.contains("依赖")) {
+                return "代码执行无法并行化：检测到子任务之间存在依赖关系，无法安全并行执行。"
+                        + "请将任务拆分为完全独立的子任务后重试。";
+            }
+        }
+        return "代码执行无法并行化：" + (planningReason == null ? "任务无法安全拆分为独立子任务。" : planningReason)
+                + " 请调整请求格式后重试。";
     }
 
     private String buildSummary(
