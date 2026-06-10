@@ -10,7 +10,8 @@ public record AgentTeamExecutionContext(
         String taskId,
         String agentId,
         int depth,
-        String memoryId
+        String memoryId,
+        String worktreePath
 ) {
 
     public AgentTeamExecutionContext {
@@ -21,6 +22,7 @@ public record AgentTeamExecutionContext(
         agentId = normalize(agentId);
         depth = Math.max(0, depth);
         memoryId = normalize(memoryId);
+        worktreePath = normalize(worktreePath);
     }
 
     public static AgentTeamExecutionContext subAgent(
@@ -36,7 +38,24 @@ public record AgentTeamExecutionContext(
                 taskId,
                 agentId,
                 1,
-                AgentTeamMemoryIds.subAgent(parentSessionId, groupId, taskId, agentId)
+                AgentTeamMemoryIds.subAgent(parentSessionId, groupId, taskId, agentId),
+                ""
+        );
+    }
+
+    public static AgentTeamExecutionContext codingSubAgent(
+            String memoryId,
+            String worktreePath
+    ) {
+        return new AgentTeamExecutionContext(
+                AgentTeamRole.CODING_SUB_AGENT,
+                "",
+                "",
+                "",
+                "",
+                0,
+                memoryId,
+                worktreePath
         );
     }
 

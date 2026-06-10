@@ -1,8 +1,11 @@
 package com.openmanus.infra.config;
 
 import com.openmanus.agentteam.application.AgentTeamApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
 import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
 import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
+import com.openmanus.infra.config.AgentTeamProperties;
 import com.openmanus.domain.service.ConversationApplicationService;
 import com.openmanus.domain.service.AgentExecutionPort;
 import com.openmanus.domain.service.ExecutionStreamingApplicationService;
@@ -19,6 +22,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.nio.file.Path;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -73,6 +77,25 @@ public class DomainServiceConfig {
                 streamPublisher,
                 asyncExecutor,
                 sessionExecutionGuard
+        );
+    }
+
+    @Bean
+    AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService(
+            AgentTeamCodingApplicationService agentTeamCodingApplicationService,
+            ExecutionEventPort executionEventPort,
+            ExecutionStreamPublisher streamPublisher,
+            @Qualifier(AsyncConfig.ASYNC_EXECUTOR_NAME) Executor asyncExecutor,
+            SessionExecutionGuard sessionExecutionGuard,
+            AgentTeamProperties agentTeamProperties) {
+        return new AgentTeamCodingExecutionStreamingApplicationService(
+                agentTeamCodingApplicationService,
+                executionEventPort,
+                streamPublisher,
+                asyncExecutor,
+                sessionExecutionGuard,
+                Path.of("").toAbsolutePath().normalize(),
+                agentTeamProperties.isEnabled()
         );
     }
 

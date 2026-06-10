@@ -84,12 +84,14 @@ export interface WorkflowRequestPayload {
   input: string;
   sessionId?: string;
   agentTeam?: boolean;
+  agentTeamCoding?: boolean;
+  targetRepositoryPath?: string;
 }
 
 export interface ThoughtStep {
   id: string;
   time: string;
-  kind: 'llm_request' | 'llm_response' | 'tool_start' | 'tool_end' | 'iteration' | 'error' | 'result';
+  kind: 'llm_request' | 'llm_response' | 'tool_start' | 'tool_end' | 'iteration' | 'status' | 'error' | 'result';
   title: string;
   content: string;
   status: string;

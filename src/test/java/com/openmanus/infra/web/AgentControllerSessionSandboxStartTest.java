@@ -1,6 +1,7 @@
 package com.openmanus.infra.web;
 
 import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
 import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
 import com.openmanus.domain.model.ExecutionErrorCodes;
 import com.openmanus.domain.model.ExecutionResponse;
@@ -30,6 +31,8 @@ class AgentControllerSessionSandboxStartTest {
             mock(AgentTeamConversationApplicationService.class);
     private final AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService =
             mock(AgentTeamExecutionStreamingApplicationService.class);
+    private final AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService =
+            mock(AgentTeamCodingExecutionStreamingApplicationService.class);
     private final ExecutionStreamingApplicationService executionStreamingApplicationService =
             mock(ExecutionStreamingApplicationService.class);
     private final AgentTeamProperties agentTeamProperties = new AgentTeamProperties();
@@ -40,6 +43,7 @@ class AgentControllerSessionSandboxStartTest {
             conversationApplicationService,
             agentTeamConversationApplicationService,
             agentTeamExecutionStreamingApplicationService,
+            agentTeamCodingExecutionStreamingApplicationService,
             executionStreamingApplicationService,
             agentTeamProperties,
             sandboxSessionApplicationService
@@ -108,7 +112,7 @@ class AgentControllerSessionSandboxStartTest {
         request.setInput("hello");
         request.setSessionId("session-123");
 
-        ResponseEntity<ExecutionStreamResponse> response = controller.executionStream(request, false);
+        ResponseEntity<ExecutionStreamResponse> response = controller.executionStream(request, false, false);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();

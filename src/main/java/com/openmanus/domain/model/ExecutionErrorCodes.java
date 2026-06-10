@@ -10,6 +10,8 @@ public final class ExecutionErrorCodes {
     public static final String ASYNC_SUBMIT_REJECTED = "ASYNC_SUBMIT_REJECTED";
     public static final String ASYNC_SUBMIT_EXCEPTION = "ASYNC_SUBMIT_EXCEPTION";
     public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
+    public static final String WORKTREE_UNAVAILABLE = "WORKTREE_UNAVAILABLE";
+    public static final String PLAN_NOT_PARALLELIZABLE = "PLAN_NOT_PARALLELIZABLE";
     public static final String AGENTTEAM_TASK_OWNERSHIP_VIOLATION = "AGENTTEAM_TASK_OWNERSHIP_VIOLATION";
     public static final String AGENTTEAM_TASK_STATE_INVALID = "AGENTTEAM_TASK_STATE_INVALID";
     public static final String AGENTTEAM_EXECUTION_FAILED = "AGENTTEAM_EXECUTION_FAILED";

@@ -1,6 +1,7 @@
 package com.openmanus.infra.web;
 
 import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
+import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
 import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
 import com.openmanus.domain.model.ExecutionErrorCodes;
 import com.openmanus.domain.model.ExecutionRequest;
@@ -13,6 +14,7 @@ import com.openmanus.sandbox.domain.model.SessionSandboxInfo;
 import com.openmanus.sandbox.application.SandboxSessionApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/agent")
 @Tag(name = "Agent API", description = "Web API interface for intelligent agent")
+@Slf4j
 public class AgentController {
     private static final String ERROR_EMPTY_INPUT = "输入不能为空";
     private static final String ERROR_SESSION_BUSY = "当前会话正在执行中，请稍后重试";
@@ -36,6 +39,7 @@ public class AgentController {
     private final ConversationApplicationService conversationApplicationService;
     private final AgentTeamConversationApplicationService agentTeamConversationApplicationService;
     private final AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService;
+    private final AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService;
     private final ExecutionStreamingApplicationService executionStreamingApplicationService;
     private final AgentTeamProperties agentTeamProperties;
     private final SandboxSessionApplicationService sandboxSessionApplicationService;
@@ -44,12 +48,14 @@ public class AgentController {
             ConversationApplicationService conversationApplicationService,
             AgentTeamConversationApplicationService agentTeamConversationApplicationService,
             AgentTeamExecutionStreamingApplicationService agentTeamExecutionStreamingApplicationService,
+            AgentTeamCodingExecutionStreamingApplicationService agentTeamCodingExecutionStreamingApplicationService,
             ExecutionStreamingApplicationService executionStreamingApplicationService,
             AgentTeamProperties agentTeamProperties,
             SandboxSessionApplicationService sandboxSessionApplicationService) {
         this.conversationApplicationService = conversationApplicationService;
         this.agentTeamConversationApplicationService = agentTeamConversationApplicationService;
         this.agentTeamExecutionStreamingApplicationService = agentTeamExecutionStreamingApplicationService;
+        this.agentTeamCodingExecutionStreamingApplicationService = agentTeamCodingExecutionStreamingApplicationService;
         this.executionStreamingApplicationService = executionStreamingApplicationService;
         this.agentTeamProperties = agentTeamProperties;
         this.sandboxSessionApplicationService = sandboxSessionApplicationService;
@@ -111,17 +117,34 @@ public class AgentController {
     )
     public ResponseEntity<ExecutionStreamResponse> executionStream(
             @RequestBody ExecutionRequest executionRequest,
-            @RequestParam(defaultValue = "false") boolean agentTeam) {
+            @RequestParam(defaultValue = "false") boolean agentTeam,
+            @RequestParam(defaultValue = "false") boolean agentTeamCoding) {
         String userInput = executionRequest.getInput();
-        ExecutionResponse serviceResult = shouldUseAgentTeam(agentTeam)
-                ? agentTeamExecutionStreamingApplicationService.executeAndStreamEvents(
-                        userInput,
-                        executionRequest.getSessionId()
-                )
-                : executionStreamingApplicationService.executeAndStreamEvents(
-                        userInput,
-                        executionRequest.getSessionId()
-                );
+        log.info(
+                "executionStream request received: sessionId={}, agentTeam={}, agentTeamCoding={}, targetRepositoryPath={}",
+                executionRequest.getSessionId(),
+                agentTeam,
+                agentTeamCoding,
+                executionRequest.getTargetRepositoryPath()
+        );
+        ExecutionResponse serviceResult;
+        if (shouldUseAgentTeamCoding(agentTeamCoding)) {
+            serviceResult = agentTeamCodingExecutionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId(),
+                    executionRequest.getTargetRepositoryPath()
+            );
+        } else if (shouldUseAgentTeam(agentTeam)) {
+            serviceResult = agentTeamExecutionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId()
+            );
+        } else {
+            serviceResult = executionStreamingApplicationService.executeAndStreamEvents(
+                    userInput,
+                    executionRequest.getSessionId()
+            );
+        }
 
         if (!serviceResult.isSuccess()) {
             HttpStatus status = resolveErrorStatus(serviceResult.getErrorCode(), serviceResult.getError());
@@ -176,6 +199,10 @@ public class AgentController {
         if (ExecutionErrorCodes.INTERNAL_ERROR.equals(errorCode)
                 || ExecutionErrorCodes.AGENTTEAM_EXECUTION_FAILED.equals(errorCode)) {
             return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        if (ExecutionErrorCodes.WORKTREE_UNAVAILABLE.equals(errorCode)
+                || ExecutionErrorCodes.PLAN_NOT_PARALLELIZABLE.equals(errorCode)) {
+            return HttpStatus.BAD_REQUEST;
         }
 
         // Backward-compatible fallback for payloads without errorCode.
@@ -251,7 +278,27 @@ public class AgentController {
     }
 
     private boolean shouldUseAgentTeam(boolean agentTeamRequested) {
-        return agentTeamRequested && agentTeamProperties.isEnabled();
+        boolean result = agentTeamRequested && agentTeamProperties.isEnabled();
+        if (agentTeamRequested) {
+            log.info(
+                    "AgentTeam routing decision: agentTeamRequested=true, agentTeamEnabled={}, path={}",
+                    agentTeamProperties.isEnabled(),
+                    result ? "AGENT_TEAM" : "SINGLE_AGENT (fallback)"
+            );
+        }
+        return result;
+    }
+
+    private boolean shouldUseAgentTeamCoding(boolean agentTeamCodingRequested) {
+        boolean result = agentTeamCodingRequested && agentTeamProperties.isEnabled();
+        if (agentTeamCodingRequested) {
+            log.info(
+                    "AgentTeamCoding routing decision: agentTeamCodingRequested=true, agentTeamEnabled={}, path={}",
+                    agentTeamProperties.isEnabled(),
+                    result ? "AGENT_TEAM_CODING (worktree)" : "SINGLE_AGENT (fallback)"
+            );
+        }
+        return result;
     }
 
     /**

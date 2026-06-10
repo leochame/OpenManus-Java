@@ -10,6 +10,7 @@ const mockInspectProxyPreview = vi.fn();
 const mockDisconnect = vi.fn();
 const mockConnect = vi.fn();
 const mockSubscribe = vi.fn();
+const messageInputPlaceholder = /Type a message, Ctrl\/.*Enter to send/;
 
 vi.mock('./api/agentApi', () => ({
   ApiError: class ApiError extends Error {
@@ -93,7 +94,7 @@ describe('App', () => {
 
   it('supports ctrl/cmd + enter submit', async () => {
     render(<App />);
-    const textarea = screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send');
+    const textarea = screen.getByPlaceholderText(messageInputPlaceholder);
     await userEvent.type(textarea, 'hello via hotkey');
     fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
 
@@ -121,7 +122,7 @@ describe('App', () => {
 
   it('sends message and renders assistant result with tool output', async () => {
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'hello');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'hello');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
@@ -141,7 +142,7 @@ describe('App', () => {
 
   it('clears prompt input', async () => {
     render(<App />);
-    const textarea = screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send');
+    const textarea = screen.getByPlaceholderText(messageInputPlaceholder);
     await userEvent.type(textarea, 'to be cleared');
     expect(textarea).toHaveValue('to be cleared');
     await userEvent.click(screen.getByRole('button', { name: 'Clear' }));
@@ -150,7 +151,7 @@ describe('App', () => {
 
   it('resets conversation when clicking new chat', async () => {
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'history task');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'history task');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
     await screen.findAllByText('assistant result');
 
@@ -162,7 +163,7 @@ describe('App', () => {
   it('shows error banner when request fails', async () => {
     mockStartWorkflow.mockRejectedValueOnce(new Error('network error'));
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'trigger error');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'trigger error');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
@@ -172,18 +173,30 @@ describe('App', () => {
 
   it('reuses session id on follow-up request', async () => {
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'first');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'first');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
-      expect(mockStartWorkflow).toHaveBeenCalledWith({ input: 'first', sessionId: undefined });
+      expect(mockStartWorkflow).toHaveBeenCalledWith({
+        input: 'first',
+        sessionId: undefined,
+        agentTeam: true,
+        agentTeamCoding: false,
+        targetRepositoryPath: undefined
+      });
     });
 
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'second');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'second');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
-      expect(mockStartWorkflow).toHaveBeenLastCalledWith({ input: 'second', sessionId: 's-1' });
+      expect(mockStartWorkflow).toHaveBeenLastCalledWith({
+        input: 'second',
+        sessionId: 's-1',
+        agentTeam: true,
+        agentTeamCoding: false,
+        targetRepositoryPath: undefined
+      });
     });
   });
 
@@ -209,17 +222,23 @@ describe('App', () => {
       });
 
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'first request');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'first request');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     const firstFailureTexts = await screen.findAllByText('执行出错: first failure');
     expect(firstFailureTexts.length).toBeGreaterThan(0);
 
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'second request');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'second request');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
-      expect(mockStartWorkflow).toHaveBeenLastCalledWith({ input: 'second request', sessionId: 's-1' });
+      expect(mockStartWorkflow).toHaveBeenLastCalledWith({
+        input: 'second request',
+        sessionId: 's-1',
+        agentTeam: true,
+        agentTeamCoding: false,
+        targetRepositoryPath: undefined
+      });
     });
     const secondSuccessTexts = await screen.findAllByText('second success');
     expect(secondSuccessTexts.length).toBeGreaterThan(0);
@@ -230,7 +249,7 @@ describe('App', () => {
     const vncButton = screen.getByRole('button', { name: 'VNC' });
     expect(vncButton).toBeDisabled();
 
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'start');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'start');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
@@ -269,7 +288,7 @@ describe('App', () => {
     });
 
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'open blocked');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'open blocked');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => {
@@ -297,7 +316,7 @@ describe('App', () => {
     });
 
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'browse page');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'browse page');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     const snapshotFrame = await screen.findByTitle('snapshot-preview');
@@ -322,12 +341,103 @@ describe('App', () => {
     });
 
     render(<App />);
-    await userEvent.type(screen.getByPlaceholderText('Type a message, Ctrl/⌘+Enter to send'), 'open visible');
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'open visible');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     const vncFrame = await screen.findByTitle('vnc-preview');
     expect(vncFrame).toHaveAttribute('src', 'https://vnc.local');
     expect(screen.getByRole('button', { name: 'VNC' })).toHaveClass('active');
     expect(screen.queryByTitle('web-preview')).not.toBeInTheDocument();
+  });
+
+  it('renders structured team coding status details from intermediate events', async () => {
+    mockSubscribe.mockImplementation((_topic: string, handlers: Record<string, (...args: unknown[]) => void>) => {
+      handlers.onEvent?.({
+        eventType: 'INTERMEDIATE_RESULT',
+        agentName: 'agentteam_coding_coordinator',
+        output: 'parallel coding summary',
+        metadata: {
+          stage: 'SUMMARY',
+          groupId: 'coding-group-1',
+          repositoryPath: 'E:/Project/OpenManus-Java',
+          taskCount: 1,
+          success: true,
+          tasks: [
+            {
+              taskId: 'task-a',
+              title: 'API task',
+              goal: 'Implement endpoint',
+              ownedPaths: ['src/main/java/api'],
+              verificationCommands: ['./scripts/mvnw-local.sh test'],
+              conflictRisk: 'low'
+            }
+          ],
+          subAgents: [
+            {
+              taskId: 'task-a',
+              status: 'SUCCEEDED',
+              summary: 'done',
+              branchName: 'agentteam/task-a',
+              commitSha: 'abc123',
+              worktreePath: 'E:/wt/task-a',
+              changedFiles: ['A.java'],
+              testPassed: true,
+              testSummary: 'tests passed',
+              errorMessage: ''
+            }
+          ]
+        }
+      });
+      handlers.onEvent?.({
+        eventType: 'INTERMEDIATE_RESULT',
+        agentName: 'agentteam_coding_coordinator',
+        output: 'integrationBranch=agentteam/integration-1',
+        metadata: {
+          stage: 'INTEGRATION',
+          integrationSuccess: true,
+          integrationBranch: 'agentteam/integration-1',
+          mergedBranches: ['agentteam/task-a'],
+          verification: 'compile success'
+        }
+      });
+      handlers.onResult?.({
+        result: 'assistant result',
+        sessionId: 's-1'
+      });
+    });
+
+    render(<App />);
+    await userEvent.click(screen.getByLabelText('Team Coding'));
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'implement api');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Web Status' }));
+    expect(await screen.findByRole('heading', { name: 'Team Coding' })).toBeInTheDocument();
+    expect(screen.getByText('Group: coding-group-1')).toBeInTheDocument();
+    expect(screen.getByText('Branch: agentteam/task-a')).toBeInTheDocument();
+    expect(screen.getByText('Commit: abc123')).toBeInTheDocument();
+    expect(screen.getByText(/Integration: agentteam\/integration-1/)).toBeInTheDocument();
+    expect(screen.getByText('compile success')).toBeInTheDocument();
+  });
+
+  it('passes target repository path when team coding is enabled', async () => {
+    render(<App />);
+    await userEvent.click(screen.getByLabelText('Team Coding'));
+    await userEvent.type(
+      screen.getByPlaceholderText('Target repository path for Team Coding (optional)'),
+      'E:\\Project\\agentteam-demo-site'
+    );
+    await userEvent.type(screen.getByPlaceholderText(messageInputPlaceholder), 'build demo page');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() => {
+      expect(mockStartWorkflow).toHaveBeenCalledWith({
+        input: 'build demo page',
+        sessionId: undefined,
+        agentTeam: true,
+        agentTeamCoding: true,
+        targetRepositoryPath: 'E:\\Project\\agentteam-demo-site'
+      });
+    });
   });
 });
