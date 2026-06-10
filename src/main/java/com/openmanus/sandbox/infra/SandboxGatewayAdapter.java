@@ -5,10 +5,12 @@ import com.openmanus.aiframework.runtime.AiSessionSandboxGateway;
 import com.openmanus.aiframework.runtime.AiSessionSandboxInfo;
 import com.openmanus.sandbox.application.SandboxSessionApplicationService;
 import com.openmanus.sandbox.domain.model.SessionSandboxInfo;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Primary
 @Component
 public class SandboxGatewayAdapter implements AiSessionSandboxGateway {
 

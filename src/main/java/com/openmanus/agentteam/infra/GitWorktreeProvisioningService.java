@@ -122,7 +122,7 @@ public class GitWorktreeProvisioningService implements GitWorktreeProvisioningPo
                 "failed to create git worktree for branch " + branchName
         );
         return listWorktrees(normalizedRepositoryPath).stream()
-                .filter(worktree -> normalizedWorktreePath.toString().equals(worktree.path()))
+                .filter(worktree -> sameNormalizedPath(normalizedWorktreePath, worktree.path()))
                 .findFirst()
                 .orElseThrow(() -> new GitWorktreeProvisioningException(
                         "git worktree was created but not found in worktree list: " + normalizedWorktreePath
@@ -196,7 +196,7 @@ public class GitWorktreeProvisioningService implements GitWorktreeProvisioningPo
                 continue;
             }
             if (line.startsWith("worktree ")) {
-                currentPath = line.substring("worktree ".length()).trim();
+                currentPath = normalizeListedPath(line.substring("worktree ".length()).trim());
             } else if (line.startsWith("HEAD ")) {
                 currentHead = line.substring("HEAD ".length()).trim();
             } else if (line.startsWith("branch ")) {
@@ -209,6 +209,20 @@ public class GitWorktreeProvisioningService implements GitWorktreeProvisioningPo
             worktrees.add(new GitWorktreeInfo(currentPath, currentBranchRef, currentHead, detached));
         }
         return worktrees;
+    }
+
+    private boolean sameNormalizedPath(Path normalizedPath, String listedPath) {
+        if (listedPath == null || listedPath.isBlank()) {
+            return false;
+        }
+        return normalizedPath.equals(Path.of(listedPath).toAbsolutePath().normalize());
+    }
+
+    private String normalizeListedPath(String path) {
+        if (path == null || path.isBlank()) {
+            return path;
+        }
+        return Path.of(path).toAbsolutePath().normalize().toString();
     }
 
     private void ensureParentExists(Path worktreePath) {

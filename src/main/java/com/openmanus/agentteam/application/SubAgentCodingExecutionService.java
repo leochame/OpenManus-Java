@@ -8,6 +8,7 @@ import com.openmanus.agentteam.domain.model.WorktreeSession;
 import com.openmanus.agentteam.domain.port.GitWorkspacePort;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -36,53 +37,94 @@ public class SubAgentCodingExecutionService {
         WorktreeSession worktreeSession = request.worktreeSession();
         validate(subTask, worktreeSession);
         Path worktreePath = Path.of(worktreeSession.worktreePath());
+        ensureWorktreeDirectoryExists(worktreePath);
 
         String prompt = buildPrompt(subTask, worktreeSession);
         try {
+            GitWorkspaceSnapshot initialSnapshot = gitWorkspacePort.inspectWorkspace(worktreePath);
             log.info(
-                    "SubAgentCodingExecution dispatching worktree-scoped task: taskId={}, branch={}, worktreePath={}, verificationCommands={}",
+                    "SubAgentCodingExecution dispatching worktree-scoped task: taskId={}, branch={}, worktreePath={}, clean={}, headCommit={}, verificationCommands={}",
                     subTask.taskId(),
                     worktreeSession.branchName(),
                     worktreeSession.worktreePath(),
+                    initialSnapshot.clean(),
+                    initialSnapshot.headCommit(),
                     subTask.verificationCommands()
             );
             String rawOutput = roleExecutionPort.executeSync(
-                    AgentTeamRole.SUB_AGENT,
+                    AgentTeamRole.CODING_SUB_AGENT,
                     prompt,
-                    worktreeSession.sessionId()
+                    worktreeSession.sessionId(),
+                    worktreeSession.worktreePath()
             );
             GitWorkspaceSnapshot workspaceSnapshot = gitWorkspacePort.inspectWorkspace(worktreePath);
+            log.info(
+                    "SubAgentCodingExecution workspace after agent run: taskId={}, branch={}, worktreePath={}, clean={}, changedFiles={}",
+                    subTask.taskId(),
+                    worktreeSession.branchName(),
+                    worktreeSession.worktreePath(),
+                    workspaceSnapshot.clean(),
+                    workspaceSnapshot.changedFiles()
+            );
+            if (didNotProduceWorkspaceChanges(initialSnapshot, workspaceSnapshot)) {
+                String noChangeMessage = "Sub-agent produced no code changes in its worktree";
+                log.warn(
+                        "SubAgentCodingExecution completed without code changes: taskId={}, branch={}, worktreePath={}, initialHeadCommit={}, finalHeadCommit={}",
+                        subTask.taskId(),
+                        worktreeSession.branchName(),
+                        worktreeSession.worktreePath(),
+                        initialSnapshot.headCommit(),
+                        workspaceSnapshot.headCommit()
+                );
+                return new SubAgentCodingResult(
+                        subTask.taskId(),
+                        SubAgentCodingStatus.FAILED,
+                        noChangeMessage,
+                        List.of(),
+                        worktreeSession.branchName(),
+                        null,
+                        worktreeSession.worktreePath(),
+                        null,
+                        verificationHint(subTask),
+                        rawOutput,
+                        noChangeMessage
+                );
+            }
             String commitSha = workspaceSnapshot.clean()
                     ? workspaceSnapshot.headCommit()
                     : gitWorkspacePort.commitAllChanges(worktreePath, commitMessage(subTask, worktreeSession));
             GitWorkspaceSnapshot committedSnapshot = gitWorkspacePort.inspectWorkspace(worktreePath);
+            List<String> changedFiles = committedSnapshot.changedFiles().isEmpty()
+                    ? workspaceSnapshot.changedFiles()
+                    : committedSnapshot.changedFiles();
             log.info(
                     "SubAgentCodingExecution finished worktree task: taskId={}, branch={}, worktreePath={}, changedFiles={}, commitSha={}",
                     subTask.taskId(),
                     worktreeSession.branchName(),
                     worktreeSession.worktreePath(),
-                    committedSnapshot.changedFiles(),
+                    changedFiles,
                     commitSha
             );
             return new SubAgentCodingResult(
                     subTask.taskId(),
                     SubAgentCodingStatus.SUCCEEDED,
                     summarize(rawOutput),
-                    committedSnapshot.changedFiles(),
+                    changedFiles,
                     worktreeSession.branchName(),
                     commitSha,
                     worktreeSession.worktreePath(),
-                    !subTask.verificationCommands().isEmpty(),
+                    null,
                     verificationHint(subTask),
                     rawOutput,
                     null
             );
         } catch (RuntimeException exception) {
             log.warn(
-                    "SubAgentCodingExecution failed: taskId={}, branch={}, worktreePath={}, error={}",
+                    "SubAgentCodingExecution failed: taskId={}, branch={}, worktreePath={}, errorType={}, error={}",
                     subTask.taskId(),
                     worktreeSession.branchName(),
                     worktreeSession.worktreePath(),
+                    exception.getClass().getSimpleName(),
                     exception.getMessage()
             );
             log.warn(
@@ -100,7 +142,7 @@ public class SubAgentCodingExecutionService {
                     worktreeSession.branchName(),
                     null,
                     worktreeSession.worktreePath(),
-                    false,
+                    null,
                     verificationHint(subTask),
                     "",
                     exception.getMessage()
@@ -120,6 +162,12 @@ public class SubAgentCodingExecutionService {
         validateText(worktreeSession.sessionId(), "worktreeSession.sessionId");
         validateText(worktreeSession.branchName(), "worktreeSession.branchName");
         validateText(worktreeSession.worktreePath(), "worktreeSession.worktreePath");
+    }
+
+    private void ensureWorktreeDirectoryExists(Path worktreePath) {
+        if (!Files.isDirectory(worktreePath)) {
+            throw new IllegalStateException("worktree path does not exist or is not a directory: " + worktreePath);
+        }
     }
 
     private void validateText(String value, String fieldName) {
@@ -155,11 +203,14 @@ public class SubAgentCodingExecutionService {
 
                 Execution Rules:
                 1. Work only inside the current subtask boundary.
-                2. Treat the worktree path above as your primary code workspace.
-                3. Prefer explicit cwd/worktree paths when using shell-based file inspection or verification.
-                4. Do not re-decompose the task.
-                5. Do not delegate to another agent.
-                6. Return a concise engineering summary, including files touched and verification outcome if available.
+                2. Treat the worktree path above as your primary code workspace — you are running on the HOST filesystem directly.
+                3. Use runShellCommand with explicit cwd=worktreePath for all file operations, discovery, and verification.
+                4. All file changes in this worktree are automatically staged and committed by the orchestrator after you finish.
+                5. Do not run git commands yourself — the infrastructure handles git commit/push.
+                6. Focus on writing/editing files and running verification commands (compile, test, lint).
+                7. Do not re-decompose the task.
+                8. Do not delegate to another agent.
+                9. Return a concise engineering summary, including files touched and verification outcome if available.
                 """
                 .formatted(
                         subTask.taskId(),
@@ -195,6 +246,19 @@ public class SubAgentCodingExecutionService {
         return "agentteam: complete " + subTask.taskId() + " on " + worktreeSession.branchName();
     }
 
+    private boolean didNotProduceWorkspaceChanges(
+            GitWorkspaceSnapshot initialSnapshot,
+            GitWorkspaceSnapshot workspaceSnapshot
+    ) {
+        if (!workspaceSnapshot.clean()) {
+            return false;
+        }
+        if (!workspaceSnapshot.changedFiles().isEmpty()) {
+            return false;
+        }
+        return sameText(initialSnapshot.headCommit(), workspaceSnapshot.headCommit());
+    }
+
     private String renderList(List<String> values, String fallback) {
         if (values == null || values.isEmpty()) {
             return fallback;
@@ -214,5 +278,12 @@ public class SubAgentCodingExecutionService {
 
     private String safe(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private boolean sameText(String left, String right) {
+        if (left == null || right == null) {
+            return left == null && right == null;
+        }
+        return left.equals(right);
     }
 }

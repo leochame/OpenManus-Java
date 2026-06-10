@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,11 +81,11 @@ class ParallelCodingOrchestratorTest {
         RecordingSubAgentCodingExecutionService executionService = new RecordingSubAgentCodingExecutionService();
         executionService.resultsByTaskId.put("task-a", new SubAgentCodingResult(
                 "task-a", SubAgentCodingStatus.SUCCEEDED, "backend done", List.of("src/main/java/Foo.java"),
-                "agentteam/branch-a", "commit-a", "/repo/.agentteam/worktrees/task-a", true, "compile", "out", null
+                "agentteam/branch-a", "commit-a", "/repo/.agentteam/worktrees/task-a", Boolean.TRUE, "compile", "out", null
         ));
         executionService.resultsByTaskId.put("task-b", new SubAgentCodingResult(
                 "task-b", SubAgentCodingStatus.SUCCEEDED, "frontend done", List.of("frontend/src/App.tsx"),
-                "agentteam/branch-b", "commit-b", "/repo/.agentteam/worktrees/task-b", true, "npm test", "out", null
+                "agentteam/branch-b", "commit-b", "/repo/.agentteam/worktrees/task-b", Boolean.TRUE, "npm test", "out", null
         ));
         ParallelCodingOrchestrator orchestrator = new ParallelCodingOrchestrator(
                 agentExecutionPort,
@@ -136,7 +137,7 @@ class ParallelCodingOrchestratorTest {
         RecordingSubAgentCodingExecutionService executionService = new RecordingSubAgentCodingExecutionService();
         executionService.resultsByTaskId.put("task-a", new SubAgentCodingResult(
                 "task-a", SubAgentCodingStatus.SUCCEEDED, "backend done", List.of("src/main/java/Foo.java"),
-                "agentteam/branch-a", "commit-a", "/repo/.agentteam/worktrees/task-a", true, "compile", "out", null
+                "agentteam/branch-a", "commit-a", "/repo/.agentteam/worktrees/task-a", Boolean.TRUE, "compile", "out", null
         ));
         executionService.failTaskIds.add("task-b");
         ParallelCodingOrchestrator orchestrator = new ParallelCodingOrchestrator(
@@ -155,6 +156,8 @@ class ParallelCodingOrchestratorTest {
 
         assertThat(result.success()).isFalse();
         assertThat(result.summary()).contains("status: PARTIAL_FAILED");
+        assertThat(result.summary()).contains("error=simulated subtask failure");
+        assertThat(result.summary()).contains("worktree=/repo/.agentteam/worktrees/");
         assertThat(result.subAgentResults()).extracting(SubAgentCodingResult::status)
                 .contains(SubAgentCodingStatus.FAILED);
     }
@@ -203,7 +206,7 @@ class ParallelCodingOrchestratorTest {
 
     private static final class RecordingGitWorktreePort implements GitWorktreeProvisioningPort {
         private final GitRepositoryRuntime runtime;
-        private final List<String> createdBranches = new ArrayList<>();
+        private final List<String> createdBranches = Collections.synchronizedList(new ArrayList<>());
 
         private RecordingGitWorktreePort(GitRepositoryRuntime runtime) {
             this.runtime = runtime;
@@ -232,7 +235,7 @@ class ParallelCodingOrchestratorTest {
 
     private static final class RecordingSubAgentCodingExecutionService extends SubAgentCodingExecutionService {
         private final Map<String, SubAgentCodingResult> resultsByTaskId = new HashMap<>();
-        private final List<String> seenBranches = new ArrayList<>();
+        private final List<String> seenBranches = Collections.synchronizedList(new ArrayList<>());
         private final List<String> failTaskIds = new ArrayList<>();
 
         private RecordingSubAgentCodingExecutionService() {

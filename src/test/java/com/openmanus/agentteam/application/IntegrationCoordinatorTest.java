@@ -27,9 +27,9 @@ class IntegrationCoordinatorTest {
 
         IntegrationResult result = coordinator.integrate(Path.of("/repo"), List.of(
                 new SubAgentCodingResult("task-a", SubAgentCodingStatus.SUCCEEDED, "done", List.of("a"),
-                        "agentteam/task-a", "commit-a", "/repo/wt-a", true, "compile", "raw", null),
+                        "agentteam/task-a", "commit-a", "/repo/wt-a", Boolean.TRUE, "compile", "raw", null),
                 new SubAgentCodingResult("task-b", SubAgentCodingStatus.SUCCEEDED, "done", List.of("b"),
-                        "agentteam/task-b", "commit-b", "/repo/wt-b", true, "compile", "raw", null)
+                        "agentteam/task-b", "commit-b", "/repo/wt-b", Boolean.TRUE, "compile", "raw", null)
         ));
 
         assertThat(result.success()).isTrue();
@@ -49,9 +49,9 @@ class IntegrationCoordinatorTest {
 
         IntegrationResult result = coordinator.integrate(Path.of("/repo"), List.of(
                 new SubAgentCodingResult("task-a", SubAgentCodingStatus.SUCCEEDED, "done", List.of("a"),
-                        "agentteam/task-a", "commit-a", "/repo/wt-a", true, "compile", "raw", null),
+                        "agentteam/task-a", "commit-a", "/repo/wt-a", Boolean.TRUE, "compile", "raw", null),
                 new SubAgentCodingResult("task-b", SubAgentCodingStatus.SUCCEEDED, "done", List.of("b"),
-                        "agentteam/task-b", "commit-b", "/repo/wt-b", true, "compile", "raw", null)
+                        "agentteam/task-b", "commit-b", "/repo/wt-b", Boolean.TRUE, "compile", "raw", null)
         ));
 
         assertThat(result.success()).isFalse();

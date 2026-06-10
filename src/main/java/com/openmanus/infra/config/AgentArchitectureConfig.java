@@ -129,7 +129,7 @@ public class AgentArchitectureConfig {
             AiChatModel chatModel,
             AiMemoryProvider chatMemoryProvider,
             OpenManusProperties properties,
-            AiSessionSandboxGateway sessionSandboxGateway,
+            @Qualifier("sandboxGatewayAdapter") AiSessionSandboxGateway sessionSandboxGateway,
             BrowserTool browserTool,
             PythonExecutionTool pythonExecutionTool,
             SearchTool searchTool,

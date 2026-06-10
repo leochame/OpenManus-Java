@@ -37,36 +37,67 @@ public class ParallelCodingPlanner {
         return new ParallelCodingPlan(true, "Explicit independent coding subtasks detected", subTasks);
     }
 
+    /**
+     * Pattern for inline numbered items: "1) ...", "2) ...", "1. ...", "2. ..."
+     * Also matches Chinese numbered items: "一、...", "二、..."
+     */
+    private static final Pattern INLINE_NUMBERED = Pattern.compile(
+            "(?:^|\\s)(\\d+[.)]\\s*|[一二三四五六七八九十]+[、.]\\s*)"
+    );
+
     private List<CodeSubTask> extractSubTasks(String userInput, int maxSubTasks) {
-        String[] lines = userInput.split("\\R");
         Set<String> normalizedGoals = new LinkedHashSet<>();
         List<CodeSubTask> subTasks = new ArrayList<>();
         int limit = Math.max(2, maxSubTasks);
+
+        // Step 1: Try to split by newlines first (existing behavior)
+        String[] lines = userInput.split("\\R");
         for (String line : lines) {
             String content = extractBulletContent(line);
-            if (content == null || content.isBlank()) {
-                continue;
-            }
-            String normalized = content.trim();
-            if (!normalizedGoals.add(normalized)) {
-                continue;
-            }
-            int index = subTasks.size() + 1;
-            subTasks.add(new CodeSubTask(
-                    "code-task-" + index,
-                    buildTitle(index, normalized),
-                    normalized,
-                    inferOwnedPaths(normalized),
-                    List.of(),
-                    inferVerificationCommands(normalized),
-                    List.of(),
-                    inferConflictRisk(normalized)
-            ));
-            if (subTasks.size() >= limit) {
-                break;
+            if (content != null && !content.isBlank()) {
+                addSubTaskIfUnique(content.trim(), normalizedGoals, subTasks);
+                if (subTasks.size() >= limit) {
+                    return subTasks;
+                }
             }
         }
+
+        // Step 2: If no bullet items found from newlines, try splitting inline numbered items
+        if (subTasks.isEmpty()) {
+            String[] inlineParts = userInput.split(
+                    "(?=(?:^|\\s)\\d+[.)]\\s+)|(?=(?:^|\\s)[一二三四五六七八九十]+[、.]\\s+)");
+            if (inlineParts.length >= 2) {
+                for (String part : inlineParts) {
+                    String cleaned = part.replaceFirst(
+                            "^\\s*\\d+[.)]\\s*|^\\s*[一二三四五六七八九十]+[、.]\\s*", "").trim();
+                    if (!cleaned.isBlank() && cleaned.length() > 3) {
+                        addSubTaskIfUnique(cleaned, normalizedGoals, subTasks);
+                        if (subTasks.size() >= limit) {
+                            return subTasks;
+                        }
+                    }
+                }
+            }
+        }
+
         return subTasks;
+    }
+
+    private void addSubTaskIfUnique(String goal, Set<String> seen, List<CodeSubTask> subTasks) {
+        if (!seen.add(goal)) {
+            return;
+        }
+        int index = subTasks.size() + 1;
+        subTasks.add(new CodeSubTask(
+                "code-task-" + index,
+                buildTitle(index, goal),
+                goal,
+                inferOwnedPaths(goal),
+                List.of(),
+                inferVerificationCommands(goal),
+                List.of(),
+                inferConflictRisk(goal)
+        ));
     }
 
     private String extractBulletContent(String line) {

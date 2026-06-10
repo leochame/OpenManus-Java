@@ -103,27 +103,31 @@ public class ParallelCodingOrchestrator {
         );
 
         List<SubAgentCodingResult> results = executeParallel(repositoryPath, taskGroup);
-        long failedCount = results.stream().filter(result -> result.status() == SubAgentCodingStatus.FAILED).count();
-        var integrationResult = failedCount == 0 ? integrationCoordinator.integrate(repositoryPath, results) : null;
-        boolean success = failedCount == 0 && integrationResult != null && integrationResult.success();
-        String summary = buildSummary(taskGroup, results, plan.reason(), success, integrationResult);
-        log.info(
-                "ParallelCodingOrchestrator completed: groupId={}, success={}, failedCount={}, branches={}, integrationBranch={}",
-                groupId,
-                success,
-                failedCount,
-                results.stream().map(SubAgentCodingResult::branchName).toList(),
-                integrationResult == null ? null : integrationResult.integrationBranch()
-        );
-        return new ParallelCodingExecutionResult(
-                success,
-                false,
-                summary,
-                null,
-                taskGroup,
-                results,
-                integrationResult
-        );
+        try {
+            long failedCount = results.stream().filter(result -> result.status() == SubAgentCodingStatus.FAILED).count();
+            var integrationResult = failedCount == 0 ? integrationCoordinator.integrate(repositoryPath, results) : null;
+            boolean success = failedCount == 0 && integrationResult != null && integrationResult.success();
+            String summary = buildSummary(taskGroup, results, plan.reason(), success, integrationResult);
+            log.info(
+                    "ParallelCodingOrchestrator completed: groupId={}, success={}, failedCount={}, branches={}, integrationBranch={}",
+                    groupId,
+                    success,
+                    failedCount,
+                    results.stream().map(SubAgentCodingResult::branchName).toList(),
+                    integrationResult == null ? null : integrationResult.integrationBranch()
+            );
+            return new ParallelCodingExecutionResult(
+                    success,
+                    false,
+                    summary,
+                    null,
+                    taskGroup,
+                    results,
+                    integrationResult
+            );
+        } finally {
+            cleanupWorktrees(repositoryPath, results);
+        }
     }
 
     private List<SubAgentCodingResult> executeParallel(Path repositoryPath, CodeTaskGroup taskGroup) {
@@ -154,10 +158,11 @@ public class ParallelCodingOrchestrator {
                 .resolve(subTask.taskId());
         String sessionId = taskGroup.groupId() + "-" + subTask.taskId();
         log.info(
-                "ParallelCodingOrchestrator provisioning worktree: groupId={}, taskId={}, branch={}, worktreePath={}",
+                "ParallelCodingOrchestrator provisioning worktree: groupId={}, taskId={}, branch={}, repositoryPath={}, worktreePath={}",
                 taskGroup.groupId(),
                 subTask.taskId(),
                 branchName,
+                repositoryPath,
                 worktreePath
         );
         try {
@@ -195,11 +200,12 @@ public class ParallelCodingOrchestrator {
             return result;
         } catch (RuntimeException exception) {
             log.warn(
-                    "ParallelCodingOrchestrator subtask failed before completion: groupId={}, taskId={}, branch={}, worktreePath={}, error={}",
+                    "ParallelCodingOrchestrator subtask failed before completion: groupId={}, taskId={}, branch={}, worktreePath={}, errorType={}, error={}",
                     taskGroup.groupId(),
                     subTask.taskId(),
                     branchName,
                     worktreePath,
+                    exception.getClass().getSimpleName(),
                     exception.getMessage()
             );
             return new SubAgentCodingResult(
@@ -210,7 +216,7 @@ public class ParallelCodingOrchestrator {
                     branchName,
                     null,
                     worktreePath.toAbsolutePath().normalize().toString(),
-                    false,
+                    null,
                     subTask.verificationCommands().isEmpty()
                             ? "No verification commands were provided"
                             : "Planned verification commands: " + String.join(" | ", subTask.verificationCommands()),
@@ -229,6 +235,32 @@ public class ParallelCodingOrchestrator {
         String raw = value == null ? "task" : value.trim().toLowerCase();
         String sanitized = raw.replaceAll("[^a-z0-9._/-]+", "-");
         return sanitized.replaceAll("-{2,}", "-");
+    }
+
+    private void cleanupWorktrees(Path repositoryPath, List<SubAgentCodingResult> results) {
+        for (SubAgentCodingResult result : results) {
+            if (result.worktreePath() == null || result.worktreePath().isBlank()) {
+                continue;
+            }
+            try {
+                Path worktreePath = Path.of(result.worktreePath());
+                log.info(
+                        "ParallelCodingOrchestrator cleaning up worktree: taskId={}, branch={}, path={}",
+                        result.taskId(),
+                        result.branchName(),
+                        worktreePath
+                );
+                gitWorktreeProvisioningPort.removeWorktree(repositoryPath, worktreePath, true);
+            } catch (RuntimeException exception) {
+                log.warn(
+                        "ParallelCodingOrchestrator failed to clean up worktree: taskId={}, branch={}, path={}, error={}",
+                        result.taskId(),
+                        result.branchName(),
+                        result.worktreePath(),
+                        exception.getMessage()
+                );
+            }
+        }
     }
 
     private String buildSummary(
@@ -252,14 +284,24 @@ public class ParallelCodingOrchestrator {
                     .append(" [").append(result.status()).append("]")
                     .append(" branch=").append(result.branchName())
                     .append(" commit=").append(result.commitSha() == null ? "" : result.commitSha())
+                    .append(" worktree=").append(result.worktreePath() == null ? "" : result.worktreePath())
                     .append(" files=").append(result.changedFiles())
                     .append('\n');
+            if (result.errorMessage() != null && !result.errorMessage().isBlank()) {
+                builder.append("  error=").append(result.errorMessage()).append('\n');
+            }
+            if (result.testSummary() != null && !result.testSummary().isBlank()) {
+                builder.append("  verification=").append(result.testSummary()).append('\n');
+            }
         }
         if (integrationResult != null) {
             builder.append("\nIntegration:\n");
             builder.append("branch=").append(integrationResult.integrationBranch()).append('\n');
             builder.append("merged=").append(integrationResult.mergedBranches()).append('\n');
             builder.append("verification=").append(integrationResult.testSummary()).append('\n');
+            if (integrationResult.errorMessage() != null && !integrationResult.errorMessage().isBlank()) {
+                builder.append("error=").append(integrationResult.errorMessage()).append('\n');
+            }
         }
         return builder.toString().trim();
     }

@@ -41,13 +41,16 @@ public class AgentTeamCodingExecutionStreamingApplicationService {
     private final SessionExecutionGuard sessionExecutionGuard;
     private final Path repositoryPath;
 
+    private final boolean agentTeamEnabled;
+
     public AgentTeamCodingExecutionStreamingApplicationService(
             AgentTeamCodingApplicationService agentTeamCodingApplicationService,
             ExecutionEventPort executionEventPort,
             ExecutionStreamPublisher streamPublisher,
             Executor asyncExecutor,
             SessionExecutionGuard sessionExecutionGuard,
-            Path repositoryPath
+            Path repositoryPath,
+            boolean agentTeamEnabled
     ) {
         this.agentTeamCodingApplicationService = agentTeamCodingApplicationService;
         this.executionEventPort = executionEventPort;
@@ -55,6 +58,12 @@ public class AgentTeamCodingExecutionStreamingApplicationService {
         this.asyncExecutor = asyncExecutor;
         this.sessionExecutionGuard = sessionExecutionGuard;
         this.repositoryPath = repositoryPath;
+        this.agentTeamEnabled = agentTeamEnabled;
+        log.info(
+                "AgentTeamCodingExecutionStreamingApplicationService initialized: agentTeamEnabled={}, defaultRepositoryPath={}",
+                agentTeamEnabled,
+                repositoryPath
+        );
     }
 
     public ExecutionResponse executeAndStreamEvents(
@@ -156,23 +165,36 @@ public class AgentTeamCodingExecutionStreamingApplicationService {
         LocalDateTime startTime = LocalDateTime.now();
         try (MDC.MDCCloseable ignored = MDC.putCloseable(SESSION_ID_KEY, sessionId)) {
             Path resolvedRepositoryPath = resolveRepositoryPath(targetRepositoryPath);
-            log.info("AgentTeam coding execution started: sessionId={}, repositoryPath={}", sessionId, resolvedRepositoryPath);
+            log.info(
+                    "AgentTeam coding execution started: sessionId={}, requestedTargetRepositoryPath={}, resolvedRepositoryPath={}, defaultRepositoryPath={}",
+                    sessionId,
+                    targetRepositoryPath,
+                    resolvedRepositoryPath,
+                    repositoryPath
+            );
             executionEventPort.startExecutionTracking(sessionId, userInput);
             executionEventPort.startExecution(sessionId, EXECUTION_COORDINATOR, EXECUTION_START, userInput);
             recordStageEvent(
                     sessionId,
                     "PLAN",
                     "Planning parallel coding subtasks",
-                    Map.of("repositoryPath", resolvedRepositoryPath.toString())
+                    Map.of(
+                            "repositoryPath", resolvedRepositoryPath.toString(),
+                            "requestedTargetRepositoryPath", safe(targetRepositoryPath)
+                    )
             );
 
             var result = agentTeamCodingApplicationService.execute(
                     userInput,
                     sessionId,
-                    targetRepositoryPath,
-                    repositoryPath
+                    resolvedRepositoryPath
             );
-            recordStageEvent(sessionId, "SUMMARY", result.summary(), buildSummaryMetadata(result));
+            recordStageEvent(
+                    sessionId,
+                    "SUMMARY",
+                    result.summary(),
+                    buildSummaryMetadata(result, resolvedRepositoryPath)
+            );
             if (result.integrationResult() != null) {
                 recordStageEvent(
                         sessionId,
@@ -259,11 +281,13 @@ public class AgentTeamCodingExecutionStreamingApplicationService {
     }
 
     private Map<String, Object> buildSummaryMetadata(
-            com.openmanus.agentteam.domain.model.ParallelCodingExecutionResult result
+            com.openmanus.agentteam.domain.model.ParallelCodingExecutionResult result,
+            Path resolvedRepositoryPath
     ) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("success", result.success());
         metadata.put("fallbackToSingleAgent", result.fallbackToSingleAgent());
+        metadata.put("repositoryPath", resolvedRepositoryPath == null ? "" : resolvedRepositoryPath.toString());
         if (result.taskGroup() != null) {
             metadata.put("groupId", safe(result.taskGroup().groupId()));
             metadata.put("conversationId", safe(result.taskGroup().conversationId()));

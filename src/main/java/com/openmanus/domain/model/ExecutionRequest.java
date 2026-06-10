@@ -1,5 +1,8 @@
 package com.openmanus.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -7,6 +10,7 @@ import lombok.Data;
  * 用于接收前端传递的请求数据
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ExecutionRequest {
     /**
      * 用户输入内容
@@ -18,5 +22,7 @@ public class ExecutionRequest {
      */
     private String sessionId;
 
+    @JsonProperty("targetRepositoryPath")
+    @JsonAlias({"target_repository_path", "targetRepoPath"})
     private String targetRepositoryPath;
 } 

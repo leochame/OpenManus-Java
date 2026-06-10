@@ -11,6 +11,9 @@ import com.openmanus.agentteam.application.MasterAgentOrchestrator;
 import com.openmanus.agentteam.application.ParallelCodingOrchestrator;
 import com.openmanus.agentteam.application.ParallelCodingPlanner;
 import com.openmanus.agentteam.application.SubAgentCodingExecutionService;
+import com.openmanus.agentteam.application.PermissionBehavior;
+import com.openmanus.agentteam.application.PermissionEvaluator;
+import com.openmanus.agentteam.application.PermissionRule;
 import com.openmanus.agentteam.application.SubAgentToolPolicy;
 import com.openmanus.agentteam.application.SubAgentExecutionService;
 import com.openmanus.agentteam.application.TaskDecompositionService;
@@ -28,8 +31,10 @@ import com.openmanus.agentteam.domain.service.ResultAggregationService;
 import com.openmanus.agentteam.domain.service.TaskGroupManager;
 import com.openmanus.agentteam.domain.service.TaskGroupStatusCalculator;
 import com.openmanus.agentteam.infra.AgentTeamCoordinatorFactory;
+import com.openmanus.agentteam.infra.BashSecurityChecker;
 import com.openmanus.agentteam.infra.ClasspathAgentTeamPromptProvider;
 import com.openmanus.agentteam.infra.GitWorktreeProvisioningService;
+import com.openmanus.agentteam.infra.HostModeExecutionGateway;
 import com.openmanus.agentteam.infra.InMemoryAgentMessageBus;
 import com.openmanus.agentteam.infra.InMemoryTaskGroupRepository;
 import com.openmanus.agentteam.infra.InMemoryTaskPool;
@@ -45,6 +50,9 @@ import com.openmanus.domain.service.ExecutionEventPort;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Bean wiring for the agentteam module.
@@ -111,10 +119,67 @@ public class AgentTeamConfig {
     }
 
     @Bean
+    BashSecurityChecker bashSecurityChecker(AgentTeamProperties properties) {
+        return new BashSecurityChecker(properties.getSecurity());
+    }
+
+    @Bean
+    PermissionEvaluator permissionEvaluator(AgentTeamProperties properties) {
+        AgentTeamProperties.SecurityConfig security = properties.getSecurity();
+        List<PermissionRule> rules = security.getPermissionRules().stream()
+                .map(ruleConfig -> new PermissionRule(
+                        extractToolName(ruleConfig.getPattern()),
+                        extractContentPattern(ruleConfig.getPattern()),
+                        "ALLOW".equalsIgnoreCase(ruleConfig.getBehavior())
+                                ? PermissionBehavior.ALLOW
+                                : PermissionBehavior.DENY,
+                        ruleConfig.getPriority(),
+                        ruleConfig.getDescription().isBlank()
+                                ? ruleConfig.getPattern()
+                                : ruleConfig.getDescription()
+                ))
+                .toList();
+        PermissionBehavior defaultBehavior = "ALLOW".equalsIgnoreCase(security.getDefaultBehavior())
+                ? PermissionBehavior.ALLOW
+                : PermissionBehavior.DENY;
+        return new PermissionEvaluator(rules, defaultBehavior);
+    }
+
+    /**
+     * Extracts the tool name from a "toolName:contentPattern" string.
+     * e.g. "bash:git status*" → "bash", "file:src/**" → "file"
+     */
+    private static String extractToolName(String fullPattern) {
+        int colonIdx = fullPattern.indexOf(':');
+        if (colonIdx > 0) {
+            return fullPattern.substring(0, colonIdx);
+        }
+        return "bash"; // default: treat as bash command
+    }
+
+    /**
+     * Extracts the content pattern from a "toolName:contentPattern" string.
+     * e.g. "bash:git status*" → "git status*"
+     */
+    private static String extractContentPattern(String fullPattern) {
+        int colonIdx = fullPattern.indexOf(':');
+        if (colonIdx > 0) {
+            return fullPattern.substring(colonIdx + 1);
+        }
+        return fullPattern;
+    }
+
+    @Bean
+    HostModeExecutionGateway hostModeExecutionGateway(BashSecurityChecker bashSecurityChecker) {
+        return new HostModeExecutionGateway(bashSecurityChecker);
+    }
+
+    @Bean
     AgentTeamCoordinatorFactory agentTeamCoordinatorFactory(
             AiChatModel aiChatModel,
             AiMemoryProvider aiMemoryProvider,
             AiSessionSandboxGateway sessionSandboxGateway,
+            HostModeExecutionGateway hostModeExecutionGateway,
             OpenManusProperties properties,
             ExecutionEventPort executionEventPort,
             LocalAgentToolRegistry localAgentToolRegistry,
@@ -126,6 +191,7 @@ public class AgentTeamConfig {
                 aiChatModel,
                 aiMemoryProvider,
                 sessionSandboxGateway,
+                hostModeExecutionGateway,
                 properties,
                 executionEventPort,
                 localAgentToolRegistry,

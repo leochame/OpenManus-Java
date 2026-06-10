@@ -5,6 +5,7 @@ import com.openmanus.agentteam.application.AgentTeamCodingApplicationService;
 import com.openmanus.agentteam.application.AgentTeamCodingExecutionStreamingApplicationService;
 import com.openmanus.agentteam.application.AgentTeamConversationApplicationService;
 import com.openmanus.agentteam.application.AgentTeamExecutionStreamingApplicationService;
+import com.openmanus.infra.config.AgentTeamProperties;
 import com.openmanus.domain.service.ConversationApplicationService;
 import com.openmanus.domain.service.AgentExecutionPort;
 import com.openmanus.domain.service.ExecutionStreamingApplicationService;
@@ -85,14 +86,16 @@ public class DomainServiceConfig {
             ExecutionEventPort executionEventPort,
             ExecutionStreamPublisher streamPublisher,
             @Qualifier(AsyncConfig.ASYNC_EXECUTOR_NAME) Executor asyncExecutor,
-            SessionExecutionGuard sessionExecutionGuard) {
+            SessionExecutionGuard sessionExecutionGuard,
+            AgentTeamProperties agentTeamProperties) {
         return new AgentTeamCodingExecutionStreamingApplicationService(
                 agentTeamCodingApplicationService,
                 executionEventPort,
                 streamPublisher,
                 asyncExecutor,
                 sessionExecutionGuard,
-                Path.of("").toAbsolutePath().normalize()
+                Path.of("").toAbsolutePath().normalize(),
+                agentTeamProperties.isEnabled()
         );
     }
 

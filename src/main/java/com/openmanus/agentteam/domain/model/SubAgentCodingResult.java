@@ -13,7 +13,7 @@ public record SubAgentCodingResult(
         String branchName,
         String commitSha,
         String worktreePath,
-        boolean testPassed,
+        Boolean testPassed,
         String testSummary,
         String rawOutput,
         String errorMessage

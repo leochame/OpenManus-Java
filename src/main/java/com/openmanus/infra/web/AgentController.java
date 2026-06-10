@@ -14,6 +14,7 @@ import com.openmanus.sandbox.domain.model.SessionSandboxInfo;
 import com.openmanus.sandbox.application.SandboxSessionApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/agent")
 @Tag(name = "Agent API", description = "Web API interface for intelligent agent")
+@Slf4j
 public class AgentController {
     private static final String ERROR_EMPTY_INPUT = "输入不能为空";
     private static final String ERROR_SESSION_BUSY = "当前会话正在执行中，请稍后重试";
@@ -118,6 +120,13 @@ public class AgentController {
             @RequestParam(defaultValue = "false") boolean agentTeam,
             @RequestParam(defaultValue = "false") boolean agentTeamCoding) {
         String userInput = executionRequest.getInput();
+        log.info(
+                "executionStream request received: sessionId={}, agentTeam={}, agentTeamCoding={}, targetRepositoryPath={}",
+                executionRequest.getSessionId(),
+                agentTeam,
+                agentTeamCoding,
+                executionRequest.getTargetRepositoryPath()
+        );
         ExecutionResponse serviceResult;
         if (shouldUseAgentTeamCoding(agentTeamCoding)) {
             serviceResult = agentTeamCodingExecutionStreamingApplicationService.executeAndStreamEvents(
@@ -260,11 +269,27 @@ public class AgentController {
     }
 
     private boolean shouldUseAgentTeam(boolean agentTeamRequested) {
-        return agentTeamRequested && agentTeamProperties.isEnabled();
+        boolean result = agentTeamRequested && agentTeamProperties.isEnabled();
+        if (agentTeamRequested) {
+            log.info(
+                    "AgentTeam routing decision: agentTeamRequested=true, agentTeamEnabled={}, path={}",
+                    agentTeamProperties.isEnabled(),
+                    result ? "AGENT_TEAM" : "SINGLE_AGENT (fallback)"
+            );
+        }
+        return result;
     }
 
     private boolean shouldUseAgentTeamCoding(boolean agentTeamCodingRequested) {
-        return agentTeamCodingRequested && agentTeamProperties.isEnabled();
+        boolean result = agentTeamCodingRequested && agentTeamProperties.isEnabled();
+        if (agentTeamCodingRequested) {
+            log.info(
+                    "AgentTeamCoding routing decision: agentTeamCodingRequested=true, agentTeamEnabled={}, path={}",
+                    agentTeamProperties.isEnabled(),
+                    result ? "AGENT_TEAM_CODING (worktree)" : "SINGLE_AGENT (fallback)"
+            );
+        }
+        return result;
     }
 
     /**

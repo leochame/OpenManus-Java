@@ -96,6 +96,67 @@ class GitWorktreeProvisioningServiceTest {
                 .hasMessageContaining("current path is not a git repository");
     }
 
+    @Test
+    @DisplayName("should match created worktree when git list uses normalized slash path")
+    void shouldMatchCreatedWorktreeWhenGitListUsesNormalizedSlashPath() {
+        Path repositoryPath = tempDir.resolve("repo").toAbsolutePath().normalize();
+        Path worktreePath = repositoryPath.resolve(".agentteam").resolve("worktrees").resolve("task-a")
+                .toAbsolutePath()
+                .normalize();
+        String listedPath = worktreePath.toString().replace('\\', '/');
+
+        GitCommandRunner runner = new GitCommandRunner() {
+            @Override
+            public GitCommandResult run(Path workingDirectory, List<String> command) {
+                if (command.equals(List.of("git", "--version"))) {
+                    return new GitCommandResult(0, "git version 2.47.0", "");
+                }
+                if (command.equals(List.of("git", "rev-parse", "--is-inside-work-tree"))) {
+                    return new GitCommandResult(0, "true", "");
+                }
+                if (command.equals(List.of("git", "rev-parse", "--show-toplevel"))) {
+                    return new GitCommandResult(0, repositoryPath.toString(), "");
+                }
+                if (command.equals(List.of("git", "branch", "--show-current"))) {
+                    return new GitCommandResult(0, "main", "");
+                }
+                if (command.equals(List.of("git", "rev-parse", "HEAD"))) {
+                    return new GitCommandResult(0, "head-1", "");
+                }
+                if (command.equals(List.of("git", "status", "--short"))) {
+                    return new GitCommandResult(0, "", "");
+                }
+                if (command.equals(List.of("git", "worktree", "list", "--porcelain"))) {
+                    return new GitCommandResult(
+                            0,
+                            "worktree " + repositoryPath.toString().replace('\\', '/') + System.lineSeparator()
+                                    + "HEAD head-1" + System.lineSeparator()
+                                    + "branch refs/heads/main" + System.lineSeparator()
+                                    + System.lineSeparator()
+                                    + "worktree " + listedPath + System.lineSeparator()
+                                    + "HEAD head-1" + System.lineSeparator()
+                                    + "branch refs/heads/agentteam/task-a" + System.lineSeparator(),
+                            ""
+                    );
+                }
+                if (command.size() >= 6
+                        && "git".equals(command.get(0))
+                        && "worktree".equals(command.get(1))
+                        && "add".equals(command.get(2))) {
+                    return new GitCommandResult(0, "Preparing worktree", "");
+                }
+                throw new IllegalStateException("unexpected command: " + command);
+            }
+        };
+
+        GitWorktreeProvisioningService service = new GitWorktreeProvisioningService(runner);
+
+        GitWorktreeInfo created = service.createWorktree(repositoryPath, worktreePath, "agentteam/task-a", "HEAD");
+
+        assertThat(created.path()).isEqualTo(worktreePath.toString());
+        assertThat(created.branchRef()).isEqualTo("refs/heads/agentteam/task-a");
+    }
+
     private void runGit(Path workingDirectory, String... command) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.directory(workingDirectory.toFile());
